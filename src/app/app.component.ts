@@ -13,12 +13,7 @@ export const enum MODE {
     <div #flashEffectRef></div>
     <div>
       <div>
-        <app-camera
-          #cameraRef
-          (onCameraStatus)="onCameraStatusChange($event)"
-          (onCapture)="prepare($event)"
-          (onFlash)="flashEffect()"
-        ></app-camera>
+        <app-camera #cameraRef (onCameraStatus)="onCameraStatusChange($event)" (onFlash)="flashEffect()"></app-camera>
       </div>
     </div>
   `,
@@ -40,13 +35,18 @@ export const enum MODE {
         opacity: 0;
         animation-name: flash;
         animation-duration: 0.6s;
-        animation-timing-function: cubic-bezier(.6,.4,.54,1.12);
+        animation-timing-function: cubic-bezier(0.26, 0.79, 0.72, 0.5);
         position: absolute;
         top: 0;
-        border: 0;
-        width: 100%;
-        height: 100%;
+        bottom: 0;
+        width: 200%;
+        height: 200%;
         z-index: 1;
+        left: -50%;
+        right: 0;
+        margin: 0;
+        padding: 0;
+        display: block;
       }
 
       @keyframes flash {
@@ -79,10 +79,6 @@ export class AppComponent {
       this.flashEffectRef.nativeElement.classList.remove("flash-effect");
       this.setMode(MODE.IDLE);
     }, 2000 /* pause for 2 seconds before taking the next picture */);
-  }
-
-  async prepare(file: Blob) {
-    this.setMode(MODE.PROCESSING);
   }
 
   private setMode(mode: MODE) {
