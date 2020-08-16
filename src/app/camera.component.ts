@@ -1,17 +1,17 @@
-import { Component, OnInit, Output, EventEmitter, ElementRef, ViewChild, Input, Renderer2 } from "@angular/core";
-import { CameraService } from "./camera.service";
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
 import { BlobService } from "./blob.service";
+import { CameraService } from "./camera.service";
 import { CounterComponent } from "./counter.component";
-import { SafeUrl, DomSanitizer } from "@angular/platform-browser";
 import { FileService } from "./file.service";
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
+import { WebGLFilter } from "./webgl-filter";
 
 @Component({
   selector: "app-camera",
   template: `
-    <video #videoRef [width]="videoWidth" [height]="videoHeight" hidden autoplay muted></video>
-    <main [ngStyle]="{ width: videoWidth + 'px' }">
-      <canvas #canvasRef [width]="videoWidth" [height]="videoHeight"></canvas>
+    <video #videoRef hidden autoplay muted></video>
+    <main [ngStyle]="{ width: width + 'px' }">
+      <canvas #canvasRef [width]="width" [height]="height"></canvas>
+      <canvas #canvasTmpRef hidden [width]="width" [height]="height"></canvas>
 
       <section>
         <ul class="camera-roll">
@@ -37,6 +37,10 @@ import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
     <select (change)="onCameraSelect($event)">
       <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{ device.label }}</option>
+    </select>
+
+    <select (change)="onEffectSelect($event)">
+      <option *ngFor="let effect of effects" [value]="effect.label">{{ effect.label }}</option>
     </select>
   `,
   styles: [
@@ -80,7 +84,7 @@ import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
       app-counter {
         position: absolute;
         display: flex;
-        width: 720px;
+        width: 1280px;
         height: 83px;
         padding: 1px;
         border-radius: 0 0 4px 4px;
@@ -150,54 +154,84 @@ export class CameraComponent implements OnInit {
   @Output() onCameraStatus: EventEmitter<boolean>;
   @Output() onFlash: EventEmitter<void>;
 
-  @ViewChild("videoRef", { static: true }) videoRef: ElementRef;
-  @ViewChild("canvasRef", { static: true }) canvasRef: ElementRef;
+  @ViewChild("videoRef", { static: true }) videoRef: ElementRef<HTMLVideoElement>;
+  @ViewChild("canvasRef", { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
+  @ViewChild("canvasTmpRef", { static: true }) canvasTmpRef: ElementRef<HTMLCanvasElement>;
   @ViewChild("counterRef", { static: true }) counterRef: CounterComponent;
 
-  @Input() width: number = 720;
-  @Input() height: number = 480;
-
-  videoHeight = 480;
-  videoWidth = 720;
-  temporaryContext: CanvasRenderingContext2D;
+  @Input() width: number = 1280;
+  @Input() height: number = 720;
+  canvasContextRef: CanvasRenderingContext2D;
+  canvasTmpContextRef: CanvasRenderingContext2D;
   isCameraOn: boolean;
   selectedDeviceId: string;
+  selectedEffect: { label: string; args: number[] };
   availableDevices: Array<{ deviceId: string; label: string }>;
   isCounterHidden: boolean;
   pictures: Array<{ filename: string; data: string; selected: boolean }>;
 
+  effects = [
+    { label: "none" },
+    { label: "negative" },
+    { label: "brightness", args: [1.5] },
+    { label: "saturation", args: [1.5] },
+    { label: "contrast", args: [1.5] },
+    { label: "hue", args: [180] },
+    { label: "desaturate" },
+    { label: "desaturateLuminance" },
+    { label: "brownie" },
+    { label: "sepia" },
+    { label: "vintagePinhole" },
+    { label: "kodachrome" },
+    { label: "technicolor" },
+    { label: "detectEdges" },
+    { label: "sharpen" },
+    { label: "emboss" },
+    { label: "blur", args: [7] },
+  ];
+
   constructor(
     private cameraService: CameraService,
     private fileService: FileService,
-    private blobService: BlobService,
-    private render: Renderer2
+    private blobService: BlobService
   ) {
     this.onCapture = new EventEmitter<Blob>();
     this.onCameraStatus = new EventEmitter<boolean>();
     this.onFlash = new EventEmitter<void>();
     this.isCameraOn = true;
     this.isCounterHidden = true;
-    this.pictures = this.fileService.load();
   }
 
   async ngOnInit() {
-    this.temporaryContext = this.canvasRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
+    this.height = this.height;
+    this.width = this.width;
+
+    this.canvasContextRef = this.canvasRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
+    this.canvasTmpContextRef = this.canvasTmpRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
     this.availableDevices = await this.cameraService.getVideosDevices();
 
     this.videoRef.nativeElement.onload = () => {
       this.isCameraOn = true;
     };
 
-    this.videoRef.nativeElement.canplay = () => {
-      this.computeValues();
-    };
+    this.pictures = await this.fileService.load();
+    console.log(this.pictures);
+    
 
     this.startMediaStream();
   }
 
-  async onCameraSelect(event: any) {
+  async onCameraSelect(event: any /* Event */) {
     this.selectedDeviceId = event.target.value;
     await this.restartMediaStream();
+  }
+
+  onEffectSelect(event: any /* Event */) {
+    const effectLabel = event.target.value;
+    this.selectedEffect = {
+      label: effectLabel,
+      args: this.effects.filter((effect) => effect.label === effectLabel).pop().args,
+    };
   }
 
   startCounter() {
@@ -219,7 +253,7 @@ export class CameraComponent implements OnInit {
 
       const file = await this.confirmCapture();
       const data = await this.blobService.toBase64(file);
-      const filename = this.fileService.save(data);
+      const filename = await this.fileService.save(data);
 
       this.pictures.push({
         filename,
@@ -239,16 +273,14 @@ export class CameraComponent implements OnInit {
     this.pictures.filter((file) => file.filename === filename).map((file) => (file.selected = !file.selected));
   }
 
-  deletePicture(filename: string) {
-    this.pictures = this.fileService.delete(filename);
+  async deletePicture(filename: string) {
+    this.pictures = await this.fileService.delete(filename);
   }
 
   private confirmCapture(): Promise<Blob> {
     return new Promise(async (resolve, reject) => {
-      // draw the video into the temporary canvas
-      this.temporaryContext.drawImage(this.videoRef.nativeElement, 0, 0, this.videoWidth, this.videoHeight);
+      this.canvasContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
 
-      // get a blob from the canvas
       const blob = await this.blobService.toBlob(this.canvasRef.nativeElement, "image/png");
       resolve(blob);
     });
@@ -257,11 +289,15 @@ export class CameraComponent implements OnInit {
   private async startMediaStream() {
     const mediaStream = await this.cameraService.getUserMedia({ deviceId: this.selectedDeviceId });
     this.videoRef.nativeElement.srcObject = mediaStream;
-
-    this.streaming();
+    let { width, height } = mediaStream.getTracks()[0].getSettings();
+    this.videoRef.nativeElement.width = width;
+    this.videoRef.nativeElement.height = height;
 
     this.isCameraOn = true;
     this.onCameraStatus.emit(true);
+
+    // this.stream();
+    this.stream(new WebGLFilter());
   }
 
   private async restartMediaStream() {
@@ -269,23 +305,29 @@ export class CameraComponent implements OnInit {
     await this.startMediaStream();
   }
 
-  private streaming() {
+  private stream(filter?: WebGLFilter) {
     if (this.isCameraOn) {
-      this.temporaryContext.drawImage(this.videoRef.nativeElement, 0, 0, this.videoWidth, this.videoHeight);
-      requestAnimationFrame(this.streaming.bind(this));
+      try {
+        if (this.selectedEffect?.label) {
+          // use WebGL filtered stream
+
+          this.canvasTmpContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
+          const filteredImage = filter.apply(this.canvasTmpRef.nativeElement);
+
+          filter.reset();
+          filter.addFilter(this.selectedEffect.label, this.selectedEffect.args);
+
+          this.canvasContextRef.drawImage(filteredImage, 0, 0, this.width, this.height);
+        } else {
+          // use direct stream (no filters)
+
+          this.canvasContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+
+      requestAnimationFrame(() => this.stream(filter));
     }
-  }
-
-  private computeValues() {
-    const videoWidth = document.body.clientWidth;
-    const videoHeight = document.body.clientHeight;
-    this.videoWidth = videoWidth;
-    this.videoHeight = videoHeight;
-    const canvas = this.canvasRef.nativeElement;
-
-    this.render.setProperty(canvas, "width", videoWidth);
-    this.render.setProperty(canvas, "height", videoHeight);
-    this.render.setAttribute(canvas, "width", `${videoWidth}`);
-    this.render.setAttribute(canvas, "height", `${videoHeight}`);
   }
 }
