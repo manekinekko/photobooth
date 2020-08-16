@@ -1,6 +1,8 @@
 import { Injectable } from "@angular/core";
+import { openDB } from "idb";
 
-const PHOTO_PREFIX = `photobooth_image`;
+const PHOTO_DB = `photobooth_image`;
+const PHOTO_STORE = `photobooth_image_store`;
 const FD_PREFIX = `photobooth_fd`;
 export const enum MODE {
   INSERT,
@@ -11,7 +13,14 @@ export const enum MODE {
   providedIn: "root",
 })
 export class FileService {
-  constructor() {}
+  db;
+  constructor() {
+    this.db = openDB(PHOTO_DB, 1, {
+      upgrade(db) {
+        db.createObjectStore(PHOTO_STORE);
+      },
+    });
+  }
 
   private readFD() {
     return JSON.parse(localStorage.getItem(FD_PREFIX) || "[]") as string[];
@@ -32,20 +41,21 @@ export class FileService {
     localStorage.setItem(FD_PREFIX, JSON.stringify(fd));
   }
 
-  save(data: string) {
-    const name = `${PHOTO_PREFIX}_${Date.now()}`;
-    localStorage.setItem(name, data);
+  async save(data: string) {
+    const name = `${PHOTO_DB}_${Date.now()}`;
+    (await this.db).put(PHOTO_STORE, data, name);
 
     this.updateFileDescriptor(name, MODE.INSERT);
     return name;
   }
 
-  read(name: string) {
-    return localStorage.getItem(name);
+  async read(name: string): Promise<string> {
+    return (await this.db).get(PHOTO_STORE, name);
   }
 
-  delete(name: string) {
-    localStorage.removeItem(name);
+  async delete(name: string) {
+    (await this.db).delete(PHOTO_STORE, name);
+
     this.updateFileDescriptor(name, MODE.DELETE);
     return this.load();
   }
@@ -53,12 +63,14 @@ export class FileService {
   load() {
     const fd = this.readFD();
 
-    return fd.map((filename) => {
-      return {
-        filename,
-        selected: false,
-        data: this.read(filename),
-      };
-    });
+    return Promise.all(
+      fd.map(async (filename) => {
+        return {
+          filename,
+          selected: false,
+          data: await this.read(filename),
+        };
+      })
+    );
   }
 }
