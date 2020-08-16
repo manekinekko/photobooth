@@ -14,7 +14,7 @@ import { CounterComponent } from "./counter.component";
         <button (click)="startCounter()">
           <img src="assets/camera.png" width="64" height="64" alt="capture icon" />
         </button>
-        <app-counter #counterRef [hidden]="isCounterHidden" [value]="1" (onCounterEnd)="triggerCapture()"></app-counter>
+        <app-counter #counterRef [hidden]="isCounterHidden" [value]="3" (onCounterEnd)="triggerCapture()"></app-counter>
       </section>
     </main>
 
