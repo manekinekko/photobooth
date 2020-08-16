@@ -104,6 +104,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "photobooth-teams"
+    }
+  },
+  "defaultProject": "photobooth-teams",
+  "cli": {
+    "analytics": false
+  }
 }
