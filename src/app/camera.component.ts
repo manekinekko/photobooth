@@ -214,9 +214,7 @@ export class CameraComponent implements OnInit {
       this.isCameraOn = true;
     };
 
-    this.pictures = await this.fileService.load();
-    console.log(this.pictures);
-    
+    this.pictures = await this.fileService.load();;
 
     this.startMediaStream();
   }
@@ -279,8 +277,6 @@ export class CameraComponent implements OnInit {
 
   private confirmCapture(): Promise<Blob> {
     return new Promise(async (resolve, reject) => {
-      this.canvasContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
-
       const blob = await this.blobService.toBlob(this.canvasRef.nativeElement, "image/png");
       resolve(blob);
     });
