@@ -121,6 +121,12 @@ import { WebGLFilter } from "./webgl-filter";
         cursor: pointer;
         display: none;
       }
+      .camera-roll-item img {
+        border: 1px solid transparent;
+      }
+      .camera-roll-item.selected img {
+        border: 1px solid white;
+      }
       .camera-roll-item.selected span {
         display: block;
       }
@@ -128,7 +134,7 @@ import { WebGLFilter } from "./webgl-filter";
       @keyframes bounce {
         0%,
         60% {
-          transform: translateY(-52px);
+          transform: translateY(-55px);
         }
         70% {
           transform: translateY(0);
@@ -164,6 +170,7 @@ export class CameraComponent implements OnInit {
   canvasContextRef: CanvasRenderingContext2D;
   canvasTmpContextRef: CanvasRenderingContext2D;
   isCameraOn: boolean;
+  mediaStream: MediaStream;
   selectedDeviceId: string;
   selectedEffect: { label: string; args: number[] };
   availableDevices: Array<{ deviceId: string; label: string }>;
@@ -214,7 +221,7 @@ export class CameraComponent implements OnInit {
       this.isCameraOn = true;
     };
 
-    this.pictures = await this.fileService.load();;
+    this.pictures = await this.fileService.load();
 
     this.startMediaStream();
   }
@@ -232,7 +239,11 @@ export class CameraComponent implements OnInit {
     };
   }
 
-  startCounter() {
+  async startCounter() {
+    if (this.isCameraOn === false) {
+      await this.startMediaStream();
+    }
+
     this.isCounterHidden = false;
     this.counterRef.start();
   }
@@ -263,16 +274,34 @@ export class CameraComponent implements OnInit {
     }, 500);
   }
 
-  selectPicture(filename: string) {
+  async selectPicture(filename: string) {
     // unselected other files
     this.pictures.map((file) => (file.selected = false));
 
     // select clicked file
     this.pictures.filter((file) => file.filename === filename).map((file) => (file.selected = !file.selected));
+
+    // show selected picture
+    this.stopMediaStream();
+    const image = new Image();
+    image.onload = () => this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
+    image.src = await this.fileService.read(filename);
   }
 
   async deletePicture(filename: string) {
+    const fileIndex = this.pictures.findIndex((file) => file.filename === filename);
     this.pictures = await this.fileService.delete(filename);
+
+    // after deleting the current picture from camera roll, select another one
+    if (this.pictures.length === 0) {
+      // no more pictures in camera roll, show camera
+      this.startMediaStream();
+    }
+    else {
+      // try selecting the previous picture in camera roll
+      // TODO: if deleting the last picture, we will select the first one (because it's 3am and I am being lazy)!
+      this.selectPicture(this.pictures[fileIndex % this.pictures.length].filename);
+    }
   }
 
   private confirmCapture(): Promise<Blob> {
@@ -282,8 +311,16 @@ export class CameraComponent implements OnInit {
     });
   }
 
+  private stopMediaStream() {
+    this.isCameraOn = false;
+    this.mediaStream.getTracks().forEach((track) => {
+      track.stop();
+    });
+  }
+
   private async startMediaStream() {
     const mediaStream = await this.cameraService.getUserMedia({ deviceId: this.selectedDeviceId });
+    this.mediaStream = mediaStream;
     this.videoRef.nativeElement.srcObject = mediaStream;
     let { width, height } = mediaStream.getTracks()[0].getSettings();
     this.videoRef.nativeElement.width = width;
