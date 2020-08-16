@@ -72,7 +72,8 @@ export class CounterComponent implements OnInit {
     this.resetCounter();
 
     await this.count();
-    this.onCounterEnd.emit();
+
+    this.onCounterEnd.emit()
   }
 
   private resetCounter() {
@@ -85,13 +86,13 @@ export class CounterComponent implements OnInit {
     return new Promise((resolve) => {
       let counter = 0;
       let timer = setInterval((_) => {
-        this.steps[counter++].ticked = true;
-
-        if (counter > this.value) {
+        if (counter >= this.value || !this.steps[counter]) {
           clearInterval(timer);
           resolve();
         }
-      }, 1000);
+
+        this.steps[counter++].ticked = true;
+      }, 800);
     });
   }
 }

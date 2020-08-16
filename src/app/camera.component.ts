@@ -126,9 +126,12 @@ export class CameraComponent implements OnInit {
   }
 
   triggerCapture() {
-    this.isCounterHidden = true;
+    // emit the flash animation...
     this.onFlash.emit();
-    // todo capture image
+    // ... but leave some time for the flash animation to happen before closing the counter section.
+    setTimeout(() => (this.isCounterHidden = true), 500);
+    
+    // @manekinekko implement image capture here
   }
 
   private async startMediaStream() {
