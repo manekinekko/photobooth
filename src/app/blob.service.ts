@@ -13,4 +13,17 @@ export class BlobService {
       }, type);
     });
   }
+
+  toBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = function () {
+        var base64data = reader.result as string;
+        resolve(base64data);
+      };
+      reader.onerror = reject;
+      reader.onabort = reject;
+    });
+  }
 }

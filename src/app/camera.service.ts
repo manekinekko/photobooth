@@ -4,9 +4,6 @@ import { Injectable } from "@angular/core";
   providedIn: "root",
 })
 export class CameraService {
-  resolutions: {
-    vga: { width: 480; height: 640 };
-  };
   constructor() {}
 
   async getVideosDevices() {

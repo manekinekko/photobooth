@@ -1,5 +1,4 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
-import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
 export const enum MODE {
   IDLE = "idle",
   CAMERA = "camera",
@@ -79,7 +78,7 @@ export class AppComponent {
     setTimeout((_) => {
       this.flashEffectRef.nativeElement.classList.remove("flash-effect");
       this.setMode(MODE.IDLE);
-    }, 3000 /* pause for 3 seconds before taking the next picture */);
+    }, 2000 /* pause for 2 seconds before taking the next picture */);
   }
 
   async prepare(file: Blob) {
