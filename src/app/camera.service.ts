@@ -11,20 +11,16 @@ export class CameraService {
     return devices.filter((device) => device.kind === "videoinput");
   }
 
-  async getUserMedia({ width = 1920, height = 1080, deviceId }) {
+  async getUserMedia({ width = 1280, height = 720, deviceId }) {
     const constraints = {
       audio: false,
       video: {
         facingMode: "environment",
         width: {
-          min: 1280,
           ideal: width,
-          max: 2560,
         },
         height: {
-          min: 720,
           ideal: height,
-          max: 1440,
         },
         deviceId: {
           exact: deviceId,
