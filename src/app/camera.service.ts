@@ -9,43 +9,31 @@ export class CameraService {
   };
   constructor() {}
 
-  async getUserMedia(deviceId: string) {
-    return await navigator.mediaDevices.getUserMedia({
-      video: {
-        width: {
-          min: 1280,
-          ideal: 1920,
-          max: 2560,
-        },
-        height: {
-          min: 720,
-          ideal: 1080,
-          max: 1440,
-        },
-        deviceId: {
-          exact: deviceId
-        }
-      },
-    });
-  }
-
   async getVideosDevices() {
     const devices = await navigator.mediaDevices.enumerateDevices();
     return devices.filter((device) => device.kind === "videoinput");
   }
 
-  // VGA
-  async getMediaStream({ width, height }) {
+  async getUserMedia({ width = 1920, height = 1080, deviceId }) {
     const constraints = {
       audio: false,
       video: {
         facingMode: "environment",
-        width,
-        height,
+        width: {
+          min: 1280,
+          ideal: width,
+          max: 2560,
+        },
+        height: {
+          min: 720,
+          ideal: height,
+          max: 1440,
+        },
+        deviceId: {
+          exact: deviceId,
+        },
       },
     };
-
-    console.log(navigator.mediaDevices.getSupportedConstraints());
 
     try {
       return await navigator.mediaDevices.getUserMedia(constraints);
@@ -57,11 +45,10 @@ export class CameraService {
   cropImage(videoElement: HTMLVideoElement, inContext: CanvasRenderingContext2D, target: HTMLElement, threshold = 0) {
     const { left, top, width, height } = target.getBoundingClientRect();
     const imageData = inContext.getImageData(left - threshold, top - threshold, width + threshold, height + threshold);
-    let can = document.createElement("canvas");
-    can.width = width;
-    can.height = height;
-    // can.getContext('2d').putImageData(imageData, 0, 0);
-    can.getContext("2d").drawImage(videoElement, left, top, width, height, 0, 0, width, height);
-    return can;
+    let canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext("2d").drawImage(videoElement, left, top, width, height, 0, 0, width, height);
+    return canvas;
   }
 }

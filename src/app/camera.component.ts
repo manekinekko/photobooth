@@ -2,6 +2,7 @@ import { Component, OnInit, Output, EventEmitter, ElementRef, ViewChild, Input, 
 import { CameraService } from "./camera.service";
 import { BlobService } from "./blob.service";
 import { CounterComponent } from "./counter.component";
+import { SafeUrl, DomSanitizer } from "@angular/platform-browser";
 
 @Component({
   selector: "app-camera",
@@ -9,6 +10,14 @@ import { CounterComponent } from "./counter.component";
     <video #videoRef [width]="videoWidth" [height]="videoHeight" hidden autoplay muted></video>
     <main [ngStyle]="{ width: videoWidth + 'px' }">
       <canvas #canvasRef [width]="videoWidth" [height]="videoHeight"></canvas>
+
+      <section>
+        <ul class="camera-roll">
+          <li class="camera-roll-item" *ngFor="let pic of pictures">
+            <img [src]="pic" height="50" />
+          </li>
+        </ul>
+      </section>
 
       <section>
         <button (click)="startCounter()">
@@ -31,21 +40,22 @@ import { CounterComponent } from "./counter.component";
         display: none;
       }
       canvas {
-        border-bottom: 1px solid black;
+        border-bottom: 1px solid #474444;
       }
       main {
-        border: 1px solid black;
+        border: 1px solid #474444;
         display: flex;
         flex-direction: column;
         align-items: center;
         border-radius: 4px;
-        background: #242424;
+        background: #585454;
       }
       section {
         width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
+        overflow: hidden;
       }
       button {
         background: transparent;
@@ -67,6 +77,41 @@ import { CounterComponent } from "./counter.component";
         padding: 1px;
         border-radius: 0 0 4px 4px;
       }
+      .camera-roll {
+        border-bottom: 1px solid #474444;
+        display: flex;
+        width: 100%;
+        padding: 0px;
+        height: 55px;
+        margin: 0;
+        position: relative;
+        overflow: scroll;
+      }
+      .camera-roll-item {
+        display: inline-block;
+        margin: 2px;
+        border-radius: 2px;
+        animation: 1s bounce;
+        animation-timing-function: cubic-bezier(.6,.4,.54,1.12);
+      }
+      @keyframes bounce {
+        0%,60% { transform: translateY(-52px); }
+        70% {
+          transform: translateY(0);
+        }
+        75% {
+          transform: translateY(-30px);
+        }
+        70% {
+          transform: translateY(0);
+        }
+        80% {
+          transform: translateY(-20px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
     `,
   ],
 })
@@ -82,22 +127,27 @@ export class CameraComponent implements OnInit {
   @Input() width: number = 720;
   @Input() height: number = 480;
 
-  // Pixel 2 screen dimensions
   videoHeight = 480;
   videoWidth = 720;
-
   temporaryContext: CanvasRenderingContext2D;
   isCameraOn: boolean;
   selectedDeviceId: string;
-  availableDevices: any[];
+  availableDevices: Array<{ deviceId: string; label: string }>;
   isCounterHidden: boolean;
+  pictures: Array<SafeUrl>;
 
-  constructor(private camera: CameraService, private blob: BlobService, private render: Renderer2) {
+  constructor(
+    private camera: CameraService,
+    private blob: BlobService,
+    private render: Renderer2,
+    private domSanitizationService: DomSanitizer
+  ) {
     this.onCapture = new EventEmitter<Blob>();
     this.onCameraStatus = new EventEmitter<boolean>();
     this.onFlash = new EventEmitter<void>();
     this.isCameraOn = true;
     this.isCounterHidden = true;
+    this.pictures = [];
   }
 
   async ngOnInit() {
@@ -125,17 +175,35 @@ export class CameraComponent implements OnInit {
     this.counterRef.start();
   }
 
-  triggerCapture() {
+  async triggerCapture() {
     // emit the flash animation...
     this.onFlash.emit();
-    // ... but leave some time for the flash animation to happen before closing the counter section.
-    setTimeout(() => (this.isCounterHidden = true), 500);
-    
-    // @manekinekko implement image capture here
+
+    setTimeout(async () => {
+      // ... but leave some time for the flash animation to happen before closing the counter section.
+      this.isCounterHidden = true;
+
+      const file = await this.confirmCapture();
+
+      const imageUrl = (window.URL || window.webkitURL).createObjectURL(file);
+      this.pictures.push(this.domSanitizationService.bypassSecurityTrustUrl(imageUrl));
+      this.onCapture.emit(file);
+    }, 500);
+  }
+
+  private confirmCapture(): Promise<Blob> {
+    return new Promise(async (resolve, reject) => {
+      // draw the video into the temporary canvas
+      this.temporaryContext.drawImage(this.videoRef.nativeElement, 0, 0, this.videoWidth, this.videoHeight);
+
+      // get a blob from the canvas
+      const blob = await this.blob.toBlob(this.canvasRef.nativeElement, "image/png");
+      resolve(blob);
+    });
   }
 
   private async startMediaStream() {
-    const mediaStream = await this.camera.getUserMedia(this.selectedDeviceId);
+    const mediaStream = await this.camera.getUserMedia({ deviceId: this.selectedDeviceId });
     this.videoRef.nativeElement.srcObject = mediaStream;
 
     this.streaming();
