@@ -14,7 +14,7 @@ import { WebGLFilter } from "./webgl-filter";
     <canvas #canvasTmpRef hidden [width]="width" [height]="height"></canvas>
 
     <section>
-      <ul class="camera-roll">
+      <ul class="camera-roll" [ngStyle]="{ width: width + 'px' }">
         <li
           class="camera-roll-item"
           *ngFor="let pic of pictures; trackBy: trackByFilename"
@@ -79,7 +79,17 @@ import { WebGLFilter } from "./webgl-filter";
         padding: 0px;
         margin: 0;
         position: relative;
-        overflow: scroll;
+        overflow-x: scroll;
+      }
+      .camera-roll::-webkit-scrollbar-track {
+        background-color: transparent;
+      }
+      .camera-roll::-webkit-scrollbar {
+        height: 5px;
+      }
+      .camera-roll::-webkit-scrollbar-thumb {
+        background-color: #373636;
+        border-radius: 10px;
       }
       .camera-roll-item {
         display: inline-block;
