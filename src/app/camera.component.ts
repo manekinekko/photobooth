@@ -150,7 +150,7 @@ export class CameraComponent implements OnInit {
   @Input() width: number = 1280;
   @Input() height: number = 720;
   @Input() deviceId: string;
-  @Input() selectedEffect: { label: string; args: number[] };
+  @Input() selectedFilter: { label: string; args: number[] };
   canvasContextRef: CanvasRenderingContext2D;
   canvasTmpContextRef: CanvasRenderingContext2D;
   isCameraOn: boolean;
@@ -301,14 +301,14 @@ export class CameraComponent implements OnInit {
   private stream(filter?: WebGLFilter) {
     if (this.isCameraOn) {
       try {
-        if (this.selectedEffect?.label) {
+        if (this.selectedFilter?.label) {
           // use WebGL filtered stream
 
           this.canvasTmpContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
           const filteredImage = filter.apply(this.canvasTmpRef.nativeElement);
 
           filter.reset();
-          filter.addFilter(this.selectedEffect.label, this.selectedEffect.args);
+          filter.addFilter(this.selectedFilter.label, this.selectedFilter.args);
 
           this.canvasContextRef.drawImage(filteredImage, 0, 0, this.width, this.height);
         } else {

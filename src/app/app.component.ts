@@ -18,7 +18,7 @@ export const enum MODE {
         #cameraRef
         [width]="width"
         [height]="height"
-        [selectedEffect]="selectedEffect"
+        [selectedFilter]="selectedFilter"
         (onCameraStatus)="onCameraStatusChange($event)"
         (onFlash)="flashEffect()"
       ></app-camera>
@@ -29,7 +29,7 @@ export const enum MODE {
     </select>
 
     <select (change)="onEffectSelect($event)">
-      <option *ngFor="let effect of effects" [value]="effect.label">{{ effect.label }}</option>
+      <option *ngFor="let effect of filters" [value]="effect.label">{{ effect.label }}</option>
     </select>
   `,
   styles: [
@@ -91,8 +91,8 @@ export class AppComponent {
   availableDevices: Array<{ deviceId: string; label: string }>;
 
   selectedDeviceId: string;
-  selectedEffect: { label: string; args: number[] };
-  effects = [
+  selectedFilter: { label: string; args: number[] };
+  filters = [
     { label: "none" },
     { label: "negative" },
     { label: "brightness", args: [1.5] },
@@ -125,10 +125,10 @@ export class AppComponent {
   }
 
   onEffectSelect(event: any /* Event */) {
-    const effectLabel = event.target.value;
-    this.selectedEffect = {
-      label: effectLabel,
-      args: this.effects.filter((effect) => effect.label === effectLabel).pop().args,
+    const filterLabel = event.target.value;
+    this.selectedFilter = {
+      label: filterLabel,
+      args: this.filters.filter((effect) => effect.label === filterLabel).pop().args,
     };
   }
 
