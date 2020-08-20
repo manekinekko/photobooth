@@ -275,21 +275,35 @@ export class CameraComponent implements OnInit {
   }
 
   async selectPicture(filename: string) {
-    // unselected other files
-    this.pictures.map((file) => (file.selected = false));
+    this.unselectPicture();
 
     // select clicked file
     this.pictures.filter((file) => file.filename === filename).map((file) => (file.selected = !file.selected));
 
     // show selected picture
     this.stopMediaStream();
+    this.previewSelectedPicture(filename);
+  }
+
+  unselectPicture() {
+    const pictureIndex = this.findSelectedPictureIndex();
+    if (pictureIndex >= 0) {
+      this.pictures[pictureIndex].selected = false;
+    }
+  }
+
+  async previewSelectedPicture(filename: string) {
     const image = new Image();
     image.onload = () => this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
     image.src = await this.fileService.read(filename);
   }
 
+  findSelectedPictureIndex() {
+    return this.pictures.findIndex((file) => file.selected);
+  }
+
   async deletePicture(filename: string) {
-    const fileIndex = this.pictures.findIndex((file) => file.filename === filename);
+    const fileIndex = this.findSelectedPictureIndex();
     this.pictures = await this.fileService.delete(filename);
 
     // after deleting the current picture from camera roll, select another one
