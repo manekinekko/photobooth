@@ -18,7 +18,7 @@ import { WebGLFilter } from "./webgl-filter";
       <button (click)="startCounter()">
         <img src="assets/camera.png" width="64" height="64" alt="capture icon" />
       </button>
-      <app-counter #counterRef [hidden]="isCounterHidden" [value]="3" (onCounterEnd)="triggerCapture()"></app-counter>
+      <app-counter [hidden]="isCounterHidden" [value]="3" (onCounterEnd)="triggerCapture()"></app-counter>
     </section>
   `,
   styles: [
@@ -70,7 +70,7 @@ export class CameraComponent implements OnInit {
   @ViewChild("videoRef", { static: true }) videoRef: ElementRef<HTMLVideoElement>;
   @ViewChild("canvasRef", { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
   @ViewChild("canvasTmpRef", { static: true }) canvasTmpRef: ElementRef<HTMLCanvasElement>;
-  @ViewChild("counterRef", { static: true }) counterRef: CounterComponent;
+  @ViewChild(CounterComponent, { static: true }) counterRef: CounterComponent;
 
   @Input() width: number = 1280;
   @Input() height: number = 720;

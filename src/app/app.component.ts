@@ -16,7 +16,6 @@ export const enum MODE {
     <div #flashEffectRef></div>
     <main [ngStyle]="{ width: width + 'px' }">
       <app-camera
-        #cameraRef
         [width]="width"
         [height]="height"
         [selectedFilter]="selectedFilter"
@@ -83,7 +82,7 @@ export const enum MODE {
   ],
 })
 export class AppComponent {
-  @ViewChild("cameraRef", { static: true }) cameraRef: CameraComponent;
+  @ViewChild(CameraComponent, { static: true }) cameraRef: CameraComponent;
   @ViewChild("flashEffectRef", { static: true }) flashEffectRef: ElementRef;
   mode: MODE;
   width: number = 1280;
