@@ -9,39 +9,30 @@ import { WebGLFilter } from "./webgl-filter";
   selector: "app-camera",
   template: `
     <video #videoRef hidden autoplay muted></video>
-    <main [ngStyle]="{ width: width + 'px' }">
-      <canvas #canvasRef [width]="width" [height]="height"></canvas>
-      <canvas #canvasTmpRef hidden [width]="width" [height]="height"></canvas>
 
-      <section>
-        <ul class="camera-roll">
-          <li
-            class="camera-roll-item"
-            *ngFor="let pic of pictures; trackBy: trackByFilename"
-            [class.selected]="pic.selected"
-            (click)="selectPicture(pic.filename)"
-          >
-            <span (click)="deletePicture(pic.filename)">&#x2715;</span>
-            <img [src]="pic.data" height="50" />
-          </li>
-        </ul>
-      </section>
+    <canvas #canvasRef [width]="width" [height]="height"></canvas>
+    <canvas #canvasTmpRef hidden [width]="width" [height]="height"></canvas>
 
-      <section>
-        <button (click)="startCounter()">
-          <img src="assets/camera.png" width="64" height="64" alt="capture icon" />
-        </button>
-        <app-counter #counterRef [hidden]="isCounterHidden" [value]="3" (onCounterEnd)="triggerCapture()"></app-counter>
-      </section>
-    </main>
+    <section>
+      <ul class="camera-roll">
+        <li
+          class="camera-roll-item"
+          *ngFor="let pic of pictures; trackBy: trackByFilename"
+          [class.selected]="pic.selected"
+          (click)="selectPicture(pic.filename)"
+        >
+          <span (click)="deletePicture(pic.filename)">&#x2715;</span>
+          <img [src]="pic.data" height="50" />
+        </li>
+      </ul>
+    </section>
 
-    <select (change)="onCameraSelect($event)">
-      <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{ device.label }}</option>
-    </select>
-
-    <select (change)="onEffectSelect($event)">
-      <option *ngFor="let effect of effects" [value]="effect.label">{{ effect.label }}</option>
-    </select>
+    <section>
+      <button (click)="startCounter()">
+        <img src="assets/camera.png" width="64" height="64" alt="capture icon" />
+      </button>
+      <app-counter #counterRef [hidden]="isCounterHidden" [value]="3" (onCounterEnd)="triggerCapture()"></app-counter>
+    </section>
   `,
   styles: [
     `
@@ -53,14 +44,6 @@ import { WebGLFilter } from "./webgl-filter";
       }
       canvas {
         border-bottom: 1px solid #474444;
-      }
-      main {
-        border: 1px solid #474444;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        border-radius: 4px;
-        background: #585454;
       }
       section {
         width: 100%;
@@ -94,7 +77,6 @@ import { WebGLFilter } from "./webgl-filter";
         display: flex;
         width: 100%;
         padding: 0px;
-        height: 55px;
         margin: 0;
         position: relative;
         overflow: scroll;
@@ -167,35 +149,14 @@ export class CameraComponent implements OnInit {
 
   @Input() width: number = 1280;
   @Input() height: number = 720;
+  @Input() deviceId: string;
+  @Input() selectedEffect: { label: string; args: number[] };
   canvasContextRef: CanvasRenderingContext2D;
   canvasTmpContextRef: CanvasRenderingContext2D;
   isCameraOn: boolean;
   mediaStream: MediaStream;
-  selectedDeviceId: string;
-  selectedEffect: { label: string; args: number[] };
-  availableDevices: Array<{ deviceId: string; label: string }>;
   isCounterHidden: boolean;
   pictures: Array<{ filename: string; data: string; selected: boolean }>;
-
-  effects = [
-    { label: "none" },
-    { label: "negative" },
-    { label: "brightness", args: [1.5] },
-    { label: "saturation", args: [1.5] },
-    { label: "contrast", args: [1.5] },
-    { label: "hue", args: [180] },
-    { label: "desaturate" },
-    { label: "desaturateLuminance" },
-    { label: "brownie" },
-    { label: "sepia" },
-    { label: "vintagePinhole" },
-    { label: "kodachrome" },
-    { label: "technicolor" },
-    { label: "detectEdges" },
-    { label: "sharpen" },
-    { label: "emboss" },
-    { label: "blur", args: [7] },
-  ];
 
   constructor(
     private cameraService: CameraService,
@@ -215,7 +176,6 @@ export class CameraComponent implements OnInit {
 
     this.canvasContextRef = this.canvasRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
     this.canvasTmpContextRef = this.canvasTmpRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
-    this.availableDevices = await this.cameraService.getVideosDevices();
 
     this.videoRef.nativeElement.onload = () => {
       this.isCameraOn = true;
@@ -224,19 +184,6 @@ export class CameraComponent implements OnInit {
     this.pictures = await this.fileService.load();
 
     this.startMediaStream();
-  }
-
-  async onCameraSelect(event: any /* Event */) {
-    this.selectedDeviceId = event.target.value;
-    await this.restartMediaStream();
-  }
-
-  onEffectSelect(event: any /* Event */) {
-    const effectLabel = event.target.value;
-    this.selectedEffect = {
-      label: effectLabel,
-      args: this.effects.filter((effect) => effect.label === effectLabel).pop().args,
-    };
   }
 
   async startCounter() {
@@ -310,8 +257,7 @@ export class CameraComponent implements OnInit {
     if (this.pictures.length === 0) {
       // no more pictures in camera roll, show camera
       this.startMediaStream();
-    }
-    else {
+    } else {
       // try selecting the previous picture in camera roll
       // TODO: if deleting the last picture, we will select the first one (because it's 3am and I am being lazy)!
       this.selectPicture(this.pictures[fileIndex % this.pictures.length].filename);
@@ -333,7 +279,7 @@ export class CameraComponent implements OnInit {
   }
 
   private async startMediaStream() {
-    const mediaStream = await this.cameraService.getUserMedia({ deviceId: this.selectedDeviceId });
+    const mediaStream = await this.cameraService.getUserMedia({ deviceId: this.deviceId });
     this.mediaStream = mediaStream;
     this.videoRef.nativeElement.srcObject = mediaStream;
     let { width, height } = mediaStream.getTracks()[0].getSettings();
@@ -347,7 +293,7 @@ export class CameraComponent implements OnInit {
     this.stream(new WebGLFilter());
   }
 
-  private async restartMediaStream() {
+  async restartMediaStream() {
     this.videoRef.nativeElement.srcObject = null;
     await this.startMediaStream();
   }

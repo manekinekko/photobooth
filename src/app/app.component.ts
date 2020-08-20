@@ -1,4 +1,6 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
+import { CameraComponent } from "./camera.component";
+import { CameraService } from "./camera.service";
 export const enum MODE {
   IDLE = "idle",
   CAMERA = "camera",
@@ -11,11 +13,24 @@ export const enum MODE {
   selector: "app-root",
   template: `
     <div #flashEffectRef></div>
-    <div>
-      <div>
-        <app-camera #cameraRef (onCameraStatus)="onCameraStatusChange($event)" (onFlash)="flashEffect()"></app-camera>
-      </div>
-    </div>
+    <main [ngStyle]="{ width: width + 'px' }">
+      <app-camera
+        #cameraRef
+        [width]="width"
+        [height]="height"
+        [selectedEffect]="selectedEffect"
+        (onCameraStatus)="onCameraStatusChange($event)"
+        (onFlash)="flashEffect()"
+      ></app-camera>
+    </main>
+
+    <select (change)="onDeviceSelect($event)">
+      <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{ device.label }}</option>
+    </select>
+
+    <select (change)="onEffectSelect($event)">
+      <option *ngFor="let effect of effects" [value]="effect.label">{{ effect.label }}</option>
+    </select>
   `,
   styles: [
     `
@@ -29,7 +44,6 @@ export const enum MODE {
         align-items: center;
         flex-direction: column;
       }
-
       .flash-effect {
         background: white;
         opacity: 0;
@@ -48,6 +62,14 @@ export const enum MODE {
         padding: 0;
         display: block;
       }
+      main {
+        border: 1px solid #474444;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border-radius: 4px;
+        background: #585454;
+      }
 
       @keyframes flash {
         from {
@@ -61,15 +83,58 @@ export const enum MODE {
   ],
 })
 export class AppComponent {
+  @ViewChild("cameraRef", { static: true }) cameraRef: CameraComponent;
   @ViewChild("flashEffectRef", { static: true }) flashEffectRef: ElementRef;
   mode: MODE;
+  width: number = 1280;
+  height: number = 720;
+  availableDevices: Array<{ deviceId: string; label: string }>;
 
-  constructor() {
+  selectedDeviceId: string;
+  selectedEffect: { label: string; args: number[] };
+  effects = [
+    { label: "none" },
+    { label: "negative" },
+    { label: "brightness", args: [1.5] },
+    { label: "saturation", args: [1.5] },
+    { label: "contrast", args: [1.5] },
+    { label: "hue", args: [180] },
+    { label: "desaturate" },
+    { label: "desaturateLuminance" },
+    { label: "brownie" },
+    { label: "sepia" },
+    { label: "vintagePinhole" },
+    { label: "kodachrome" },
+    { label: "technicolor" },
+    { label: "detectEdges" },
+    { label: "sharpen" },
+    { label: "emboss" },
+    { label: "blur", args: [7] },
+  ];
+
+  constructor(private cameraService: CameraService) {
     this.setMode(MODE.IDLE);
+  }
+
+  async ngOnInit() {
+    this.availableDevices = await this.cameraService.getVideosDevices();
   }
 
   onCameraStatusChange(status: boolean) {
     this.setMode(status ? MODE.CAMERA : MODE.IDLE);
+  }
+
+  onEffectSelect(event: any /* Event */) {
+    const effectLabel = event.target.value;
+    this.selectedEffect = {
+      label: effectLabel,
+      args: this.effects.filter((effect) => effect.label === effectLabel).pop().args,
+    };
+  }
+
+  async onDeviceSelect(event: any /* Event */) {
+    this.selectedDeviceId = event.target.value;
+    await this.cameraRef.restartMediaStream();
   }
 
   flashEffect() {
