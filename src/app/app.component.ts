@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
 import { CameraComponent } from "./camera.component";
 import { CameraService } from "./camera.service";
+import { FileService } from './file.service';
 export const enum MODE {
   IDLE = "idle",
   CAMERA = "camera",
@@ -20,9 +21,18 @@ export const enum MODE {
         [height]="height"
         [selectedFilter]="selectedFilter"
         (onCameraStatus)="onCameraStatusChange($event)"
+        (onCapture)="onCapture($event)"
         (onFlash)="flashEffect()"
       ></app-camera>
     </main>
+
+    <section>
+      <app-camera-roll 
+        [pictures]="pictures" 
+        (onPictureDeleted)="onPictureDeleted()" 
+        (onPictureSelected)="onPictureSelected($event)" 
+        ></app-camera-roll>
+    </section>
 
     <select (change)="onDeviceSelect($event)">
       <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{ device.label }}</option>
@@ -36,13 +46,13 @@ export const enum MODE {
     `
       :host {
         display: flex;
-        min-width: 100%;
-        min-height: 100%;
-        max-width: 100%;
-        max-height: 100%;
         position: relative;
         align-items: center;
         flex-direction: column;
+        border: 1px solid #474444;
+        border-radius: 4px;
+        background: #585454;
+        width: 1280px;
       }
       .flash-effect {
         background: white;
@@ -62,14 +72,7 @@ export const enum MODE {
         padding: 0;
         display: block;
       }
-      main {
-        border: 1px solid #474444;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        border-radius: 4px;
-        background: #585454;
-      }
+      
 
       @keyframes flash {
         from {
@@ -91,7 +94,10 @@ export class AppComponent {
   availableDevices: Array<{ deviceId: string; label: string }>;
 
   selectedDeviceId: string;
+  pictures: Array<{ filename: string; data: string; selected: boolean }>;
+
   selectedFilter: { label: string; args: number[] };
+
   filters = [
     { label: "none" },
     { label: "negative" },
@@ -112,7 +118,7 @@ export class AppComponent {
     { label: "blur", args: [7] },
   ];
 
-  constructor(private cameraService: CameraService) {
+  constructor(private cameraService: CameraService, private fileService: FileService) {
     this.setMode(MODE.IDLE);
   }
 
@@ -137,6 +143,16 @@ export class AppComponent {
     await this.cameraRef.restartMediaStream();
   }
 
+  async onCapture(data: string) {
+    const filename = await this.fileService.save(data);
+    this.pictures.push({
+      filename,
+      selected: false,
+      data,
+    });
+  }
+  
+
   flashEffect() {
     this.setMode(MODE.FLASHING);
     this.flashEffectRef.nativeElement.classList.add("flash-effect");
@@ -149,4 +165,14 @@ export class AppComponent {
   private setMode(mode: MODE) {
     this.mode = mode;
   }
+
+  onPictureDeleted() {
+    this.cameraRef.startMediaStream();
+  }
+  
+  onPictureSelected(data: string) {
+    this.cameraRef.stopMediaStream();
+    this.cameraRef.previewSelectedPicture(data);
+  }
+
 }
