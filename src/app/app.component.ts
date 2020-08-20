@@ -1,7 +1,7 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
 import { CameraComponent } from "./camera.component";
 import { CameraService } from "./camera.service";
-import { FileService } from './file.service';
+import { FileService } from "./file.service";
 export const enum MODE {
   IDLE = "idle",
   CAMERA = "camera",
@@ -23,16 +23,14 @@ export const enum MODE {
         (onCameraStatus)="onCameraStatusChange($event)"
         (onCapture)="onCapture($event)"
         (onFlash)="flashEffect()"
-      ></app-camera>
-    </main>
-
-    <section>
-      <app-camera-roll 
-        [pictures]="pictures" 
-        (onPictureDeleted)="onPictureDeleted()" 
-        (onPictureSelected)="onPictureSelected($event)" 
+      >
+        <app-camera-roll
+          [pictures]="pictures"
+          (onPictureDeleted)="onPictureDeleted()"
+          (onPictureSelected)="onPictureSelected($event)"
         ></app-camera-roll>
-    </section>
+      </app-camera>
+    </main>
 
     <select (change)="onDeviceSelect($event)">
       <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{ device.label }}</option>
@@ -72,7 +70,6 @@ export const enum MODE {
         padding: 0;
         display: block;
       }
-      
 
       @keyframes flash {
         from {
@@ -124,6 +121,7 @@ export class AppComponent {
 
   async ngOnInit() {
     this.availableDevices = await this.cameraService.getVideosDevices();
+    this.pictures = await this.fileService.load();
   }
 
   onCameraStatusChange(status: boolean) {
@@ -151,7 +149,6 @@ export class AppComponent {
       data,
     });
   }
-  
 
   flashEffect() {
     this.setMode(MODE.FLASHING);
@@ -169,10 +166,9 @@ export class AppComponent {
   onPictureDeleted() {
     this.cameraRef.startMediaStream();
   }
-  
+
   onPictureSelected(data: string) {
     this.cameraRef.stopMediaStream();
     this.cameraRef.previewSelectedPicture(data);
   }
-
 }

@@ -104,9 +104,7 @@ export class CameraRollComponent implements OnInit {
     this.onPictureSelected = new EventEmitter<string>();
   }
 
-  async ngOnInit() {
-    this.pictures = await this.fileService.load();
-  }
+  async ngOnInit() {}
 
   async selectPicture(filename: string) {
     this.unselectPicture();

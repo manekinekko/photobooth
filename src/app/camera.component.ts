@@ -2,7 +2,6 @@ import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild }
 import { BlobService } from "./blob.service";
 import { CameraService } from "./camera.service";
 import { CounterComponent } from "./counter.component";
-import { FileService } from "./file.service";
 import { WebGLFilter } from "./webgl-filter";
 
 @Component({
@@ -12,6 +11,8 @@ import { WebGLFilter } from "./webgl-filter";
     <canvas #canvasTmpRef hidden [width]="width" [height]="height"></canvas>
 
     <canvas #canvasRef [width]="width" [height]="height"></canvas>
+
+    <ng-content></ng-content>
 
     <section>
       <button (click)="startCounter()">
