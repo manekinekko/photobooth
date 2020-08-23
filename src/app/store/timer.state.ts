@@ -96,7 +96,5 @@ export class TimerState {
   }
 
   @Action(TickTimer)
-  tickTimer({ setState, dispatch }: StateContext<TimerStateModel>, payload: number) {
-    console.log(payload);
-  }
+  tickTimer() {}
 }

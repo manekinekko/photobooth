@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, Output } from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
-import { InitializeTimer, StopTimer, TimerState } from "./store/timer.state";
+import { InitializeTimer, StopTimer, TickTimer, TimerState } from "./store/timer.state";
 import { TimerStep } from "./timer.service";
 
 @Component({
@@ -62,6 +62,7 @@ import { TimerStep } from "./timer.service";
 })
 export class TimerComponent implements OnInit {
   @Output() onTimerEnd: Observable<void>;
+  @Output() onTimerTick: Observable<void>;
   @Input() value = 3;
   steps: TimerStep[];
 
@@ -69,6 +70,7 @@ export class TimerComponent implements OnInit {
 
   constructor(private store: Store, private actions$: Actions) {
     this.onTimerEnd = this.actions$.pipe(ofActionSuccessful(StopTimer));
+    this.onTimerTick = this.actions$.pipe(ofActionSuccessful(TickTimer));
 
     this.timerSteps$.subscribe((steps) => {
       this.steps = steps;

@@ -21,7 +21,12 @@ import { WebGLFilter } from "./webgl-filter";
       <button (click)="startTimer()">
         <img src="assets/camera.png" width="64" height="64" alt="capture icon" />
       </button>
-      <app-timer [hidden]="!(timerIsTicking$ | async)" [value]="3" (onTimerEnd)="triggerCapture()"></app-timer>
+      <app-timer
+        [hidden]="!(timerIsTicking$ | async)"
+        [value]="3"
+        (onTimerTick)="onTimerTick($event)"
+        (onTimerEnd)="triggerCapture()"
+      ></app-timer>
     </section>
   `,
   styles: [
@@ -115,21 +120,18 @@ export class CameraComponent implements OnInit {
     this.store.dispatch(new StartTimer());
   }
 
+  onTimerTick(data: { time: number }) {
+    if (data.time === 0) {
+      // emit the flash animation...
+      this.onFlash.emit();
+    }
+  }
+
   async triggerCapture() {
-    debugger;
-    
-    // emit the flash animation...
-    this.onFlash.emit();
+    const file = await this.confirmCapture();
+    const data = await this.blobService.toBase64(file);
 
-    setTimeout(async () => {
-      // ... but leave some time for the flash animation to happen before closing the timer section.
-      // this.isTimerHidden = true;
-
-      const file = await this.confirmCapture();
-      const data = await this.blobService.toBase64(file);
-
-      this.onCapture.emit(data);
-    }, 500);
+    this.onCapture.emit(data);
   }
 
   async previewSelectedPicture(data: string) {
