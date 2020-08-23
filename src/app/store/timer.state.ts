@@ -24,6 +24,11 @@ export class TickTimer {
   constructor(public readonly time: number) {}
 }
 
+export class ResetTimer {
+  static readonly type = "[Timer] reset";
+  constructor() {}
+}
+
 // state
 export interface TimerStateModel {
   isTicking: boolean;
@@ -83,7 +88,7 @@ export class TimerState {
       },
       (error) => {},
       () => {
-        dispatch(new StopTimer());
+        dispatch([new StopTimer(), new ResetTimer()]);
       }
     );
   }
@@ -97,4 +102,9 @@ export class TimerState {
 
   @Action(TickTimer)
   tickTimer() {}
+
+  @Action(ResetTimer)
+  resetTimer({ getState, dispatch }: StateContext<TimerStateModel>) {
+    dispatch(new InitializeTimer(getState().value));
+  }
 }
