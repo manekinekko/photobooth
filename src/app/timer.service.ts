@@ -11,7 +11,7 @@ export interface TimerStep {
   providedIn: "root",
 })
 export class TimerService {
-  steps: TimerStep[] = [];
+  private steps: TimerStep[] = [];
 
   initialize(value: number) {
     this.steps = [...Array((value || 0) + 1).keys()].reverse().map((key) => {

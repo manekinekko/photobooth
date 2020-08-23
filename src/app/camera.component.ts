@@ -116,6 +116,8 @@ export class CameraComponent implements OnInit {
   }
 
   async triggerCapture() {
+    debugger;
+    
     // emit the flash animation...
     this.onFlash.emit();
 

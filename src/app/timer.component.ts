@@ -1,8 +1,8 @@
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
-import { Select, Store } from "@ngxs/store";
+import { Component, Input, OnInit, Output } from "@angular/core";
+import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
+import { InitializeTimer, StopTimer, TimerState } from "./store/timer.state";
 import { TimerStep } from "./timer.service";
-import { TimerState, InitializeTimer } from "./store/timer.state";
 
 @Component({
   selector: "app-timer",
@@ -61,14 +61,15 @@ import { TimerState, InitializeTimer } from "./store/timer.state";
   ],
 })
 export class TimerComponent implements OnInit {
-  @Output() onTimerEnd: EventEmitter<void>;
+  @Output() onTimerEnd: Observable<void>;
   @Input() value = 3;
   steps: TimerStep[];
 
   @Select(TimerState.steps) timerSteps$: Observable<TimerStep[]>;
 
-  constructor(private store: Store) {
-    this.onTimerEnd = new EventEmitter<void>();
+  constructor(private store: Store, private actions$: Actions) {
+    this.onTimerEnd = this.actions$.pipe(ofActionSuccessful(StopTimer));
+
     this.timerSteps$.subscribe((steps) => {
       this.steps = steps;
     });
