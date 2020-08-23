@@ -1,7 +1,10 @@
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
+import { Select, Store } from "@ngxs/store";
+import { Observable } from "rxjs";
 import { BlobService } from "./blob.service";
 import { CameraService } from "./camera.service";
-import { CounterComponent } from "./counter.component";
+import { TimerComponent } from "./timer.component";
+import { TimerState, TimerStateModel, StartTimer, TickTimer } from "./store/timer.state";
 import { WebGLFilter } from "./webgl-filter";
 
 @Component({
@@ -15,10 +18,10 @@ import { WebGLFilter } from "./webgl-filter";
     <ng-content></ng-content>
 
     <section>
-      <button (click)="startCounter()">
+      <button (click)="startTimer()">
         <img src="assets/camera.png" width="64" height="64" alt="capture icon" />
       </button>
-      <app-counter [hidden]="isCounterHidden" [value]="3" (onCounterEnd)="triggerCapture()"></app-counter>
+      <app-timer [hidden]="!(timerIsTicking$ | async)" [value]="3" (onTimerEnd)="triggerCapture()"></app-timer>
     </section>
   `,
   styles: [
@@ -51,7 +54,7 @@ import { WebGLFilter } from "./webgl-filter";
       button img {
         border-radius: 50%;
       }
-      app-counter {
+      app-timer {
         position: absolute;
         display: flex;
         width: 1280px;
@@ -70,7 +73,7 @@ export class CameraComponent implements OnInit {
   @ViewChild("videoRef", { static: true }) videoRef: ElementRef<HTMLVideoElement>;
   @ViewChild("canvasRef", { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
   @ViewChild("canvasTmpRef", { static: true }) canvasTmpRef: ElementRef<HTMLCanvasElement>;
-  @ViewChild(CounterComponent, { static: true }) counterRef: CounterComponent;
+  @ViewChild(TimerComponent, { static: true }) timerRef: TimerComponent;
 
   @Input() width: number = 1280;
   @Input() height: number = 720;
@@ -80,14 +83,14 @@ export class CameraComponent implements OnInit {
   canvasTmpContextRef: CanvasRenderingContext2D;
   isCameraOn: boolean;
   mediaStream: MediaStream;
-  isCounterHidden: boolean;
 
-  constructor(private cameraService: CameraService, private blobService: BlobService) {
+  @Select(TimerState.isTicking) timerIsTicking$: Observable<boolean>;
+
+  constructor(private cameraService: CameraService, private blobService: BlobService, private store: Store) {
     this.onCapture = new EventEmitter<string>();
     this.onCameraStatus = new EventEmitter<boolean>();
     this.onFlash = new EventEmitter<void>();
     this.isCameraOn = true;
-    this.isCounterHidden = true;
   }
 
   async ngOnInit() {
@@ -104,13 +107,12 @@ export class CameraComponent implements OnInit {
     this.startMediaStream();
   }
 
-  async startCounter() {
+  async startTimer() {
     if (this.isCameraOn === false) {
       await this.startMediaStream();
     }
 
-    this.isCounterHidden = false;
-    this.counterRef.start();
+    this.store.dispatch(new StartTimer());
   }
 
   async triggerCapture() {
@@ -118,8 +120,8 @@ export class CameraComponent implements OnInit {
     this.onFlash.emit();
 
     setTimeout(async () => {
-      // ... but leave some time for the flash animation to happen before closing the counter section.
-      this.isCounterHidden = true;
+      // ... but leave some time for the flash animation to happen before closing the timer section.
+      // this.isTimerHidden = true;
 
       const file = await this.confirmCapture();
       const data = await this.blobService.toBase64(file);
