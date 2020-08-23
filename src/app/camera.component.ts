@@ -3,8 +3,8 @@ import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { BlobService } from "./blob.service";
 import { CameraService } from "./camera.service";
+import { StartTimer, TimerState } from "./store/timer.state";
 import { TimerComponent } from "./timer.component";
-import { TimerState, TimerStateModel, StartTimer, TickTimer } from "./store/timer.state";
 import { WebGLFilter } from "./webgl-filter";
 
 @Component({
@@ -99,9 +99,6 @@ export class CameraComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.height = this.height;
-    this.width = this.width;
-
     this.canvasContextRef = this.canvasRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
     this.canvasTmpContextRef = this.canvasTmpRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
 
