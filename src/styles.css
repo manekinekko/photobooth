@@ -2,4 +2,6 @@
 body {
   padding: 10px;
   margin: 0;
+  display: flex;
+  justify-content: center;
 }
