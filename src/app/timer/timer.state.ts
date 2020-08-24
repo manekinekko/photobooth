@@ -6,12 +6,10 @@ import { TimerService, TimerStep } from "./timer.service";
 // actions
 export class StartTimer {
   static readonly type = "[Timer] start";
-  constructor() {}
 }
 
 export class StopTimer {
   static readonly type = "[Timer] stop";
-  constructor() {}
 }
 
 export class InitializeTimer {
@@ -26,7 +24,6 @@ export class TickTimer {
 
 export class ResetTimer {
   static readonly type = "[Timer] reset";
-  constructor() {}
 }
 
 // state

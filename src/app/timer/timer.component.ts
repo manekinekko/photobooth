@@ -8,7 +8,7 @@ import { TimerStep } from "./timer.service";
   selector: "app-timer",
   template: `
     <ul>
-      <li *ngFor="let step of steps" [class.ticked]="step.ticked">
+      <li *ngFor="let step of timerSteps$ | async" [class.ticked]="step.ticked">
         <b *ngIf="step.value != 0; else showCameraIconTpl">{{ step.value }}</b>
         <ng-template #showCameraIconTpl>
           <img *ngIf="step.value == 0" src="assets/camera-invert.png" width="64" height="64" />
@@ -71,10 +71,6 @@ export class TimerComponent implements OnInit {
   constructor(private store: Store, private actions$: Actions) {
     this.onTimerEnd = this.actions$.pipe(ofActionSuccessful(StopTimer));
     this.onTimerTick = this.actions$.pipe(ofActionSuccessful(TickTimer));
-
-    this.timerSteps$.subscribe((steps) => {
-      this.steps = steps;
-    });
   }
 
   ngOnInit(): void {
