@@ -1,5 +1,14 @@
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
-import { FileService } from "../camera/file.service";
+import { Component, Input, Output } from "@angular/core";
+import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
+import { Observable } from "rxjs";
+import {
+  CameraRollState,
+  DeletePicture,
+  InitializePictures,
+  PictureItem,
+  SelectPicture,
+  SelectPictureData,
+} from "./camera-roll.state";
 
 @Component({
   selector: "app-camera-roll",
@@ -7,11 +16,12 @@ import { FileService } from "../camera/file.service";
     <ul class="camera-roll" [ngStyle]="{ width: width + 'px' }">
       <li
         class="camera-roll-item"
-        *ngFor="let pic of pictures; trackBy: trackByFilename"
-        [class.selected]="pic.selected"
-        (click)="selectPicture(pic.filename)"
+        *ngFor="let pic of pictures$ | async; let currentPictureIndex = index; trackBy: trackByFilename"
+        (click)="selectPicture(currentPictureIndex)"
+        [ngClass]="{ selected: (selectedPictureIndex$ | async) === currentPictureIndex }"
+        style="--delay: {{ currentPictureIndex / 10 }}s "
       >
-        <span (click)="deletePicture(pic.filename)">&#x2715;</span>
+        <span (click)="deletePicture()">&#x2715;</span>
         <img [src]="pic.data" height="50" />
       </li>
     </ul>
@@ -26,6 +36,7 @@ import { FileService } from "../camera/file.service";
         margin: 0;
         position: relative;
         overflow-x: scroll;
+        overflow-y: hidden;
       }
       .camera-roll::-webkit-scrollbar-track {
         background-color: transparent;
@@ -40,10 +51,13 @@ import { FileService } from "../camera/file.service";
       .camera-roll-item {
         display: inline-block;
         margin: 2px;
+        opacity: 0;
         border-radius: 2px;
-        animation: 1s bounce;
-        animation-timing-function: cubic-bezier(0.6, 0.4, 0.54, 1.12);
+        animation: 1s bounce forwards, 1s reveal forwards;
+        animation-delay: var(--delay), 0.5s;
+        animation-timing-function: cubic-bezier(0.6, 0.4, 0.54, 1.12), ease;
         position: relative;
+        transform: translateY(-55px);
       }
       .camera-roll-item span {
         color: white;
@@ -64,18 +78,27 @@ import { FileService } from "../camera/file.service";
       }
       .camera-roll-item.selected img {
         border: 1px solid white;
+        transition: 0.3s;
       }
       .camera-roll-item.selected span {
         display: block;
       }
 
+      @keyframes reveal {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
       @keyframes bounce {
         0%,
         60% {
           transform: translateY(-55px);
         }
         70% {
-          transform: translateY(0);
+          transform: translateY(-40px);
         }
         75% {
           transform: translateY(-30px);
@@ -93,56 +116,31 @@ import { FileService } from "../camera/file.service";
     `,
   ],
 })
-export class CameraRollComponent implements OnInit {
-  @Input() pictures: Array<{ filename: string; data: string; selected: boolean }>;
+export class CameraRollComponent {
   @Input() width: number;
-  @Output() onPictureDeleted: EventEmitter<void>;
-  @Output() onPictureSelected: EventEmitter<string>;
+  @Output() onPictureDeleted: Observable<void>;
+  @Output() onPictureSelected: Observable<string>;
 
-  constructor(private fileService: FileService) {
-    this.onPictureDeleted = new EventEmitter<void>();
-    this.onPictureSelected = new EventEmitter<string>();
+  @Select(CameraRollState.selectedPictureIndex)
+  selectedPictureIndex$: Observable<number>;
+  @Select(CameraRollState.pictures) pictures$: Observable<PictureItem[]>;
+
+  constructor(private store: Store, private actions$: Actions) {
+    this.onPictureDeleted = this.actions$.pipe(ofActionSuccessful(DeletePicture));
+    this.onPictureSelected = this.actions$.pipe(ofActionSuccessful(SelectPictureData));
+
+    this.store.dispatch(new InitializePictures());
   }
 
-  async ngOnInit() {}
-
-  async selectPicture(filename: string) {
-    this.unselectPicture();
-
-    // select clicked file
-    this.pictures.filter((file) => file.filename === filename).map((file) => (file.selected = !file.selected));
-
-    // show selected picture
-    this.onPictureSelected.emit(await this.fileService.read(filename));
+  async selectPicture(currentPictureIndex: number) {
+    this.store.dispatch(new SelectPicture(currentPictureIndex));
   }
 
-  unselectPicture() {
-    const pictureIndex = this.findSelectedPictureIndex();
-    if (pictureIndex >= 0) {
-      this.pictures[pictureIndex].selected = false;
-    }
+  async deletePicture() {
+    this.store.dispatch(new DeletePicture());
   }
 
-  findSelectedPictureIndex() {
-    return this.pictures.findIndex((file) => file.selected);
-  }
-
-  async deletePicture(filename: string) {
-    const fileIndex = this.findSelectedPictureIndex();
-    this.pictures = await this.fileService.delete(filename);
-
-    // after deleting the current picture from camera roll, select another one
-    if (this.pictures.length === 0) {
-      // no more pictures in camera roll, show camera
-      this.onPictureDeleted.emit();
-    } else {
-      // try selecting the previous picture in camera roll
-      // TODO: if deleting the last picture, we will select the first one (because it's 3am and I am being lazy)!
-      this.selectPicture(this.pictures[fileIndex % this.pictures.length].filename);
-    }
-  }
-
-  trackByFilename(index: number, item: any) {
-    return item.filename;
+  trackByFilename(index: number, item: PictureItem) {
+    return item?.date;
   }
 }

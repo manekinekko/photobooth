@@ -8,12 +8,13 @@ import { CameraRollComponent } from "./camera-roll/camera-roll.component";
 import { CameraComponent } from "./camera/camera.component";
 import { TimerState } from "./timer/timer.state";
 import { TimerComponent } from "./timer/timer.component";
+import { CameraRollState } from './camera-roll/camera-roll.state';
 
 @NgModule({
   declarations: [AppComponent, CameraComponent, TimerComponent, CameraRollComponent],
   imports: [
     BrowserModule,
-    NgxsModule.forRoot([TimerState], {
+    NgxsModule.forRoot([TimerState, CameraRollState], {
       developmentMode: !environment.production,
     }),
     NgxsReduxDevtoolsPluginModule.forRoot(),

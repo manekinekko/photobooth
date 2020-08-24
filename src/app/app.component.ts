@@ -1,7 +1,9 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
+import { Store } from "@ngxs/store";
+import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraService } from "./camera/camera.service";
-import { FileService } from "./camera/file.service";
+import { CameraRollService } from "./camera-roll/camera-roll.service";
 export const enum MODE {
   IDLE = "idle",
   CAMERA = "camera",
@@ -24,7 +26,6 @@ export const enum MODE {
         (onFlash)="flashEffect()"
       >
         <app-camera-roll
-          [pictures]="pictures"
           (onPictureDeleted)="onPictureDeleted()"
           (onPictureSelected)="onPictureSelected($event)"
         ></app-camera-roll>
@@ -90,7 +91,6 @@ export class AppComponent {
   availableDevices: Array<{ deviceId: string; label: string }>;
 
   selectedDeviceId: string;
-  pictures: Array<{ filename: string; data: string; selected: boolean }>;
 
   selectedFilter: { label: string; args: number[] };
 
@@ -114,13 +114,12 @@ export class AppComponent {
     { label: "blur", args: [7] },
   ];
 
-  constructor(private cameraService: CameraService, private fileService: FileService) {
+  constructor(private cameraService: CameraService, private fileService: CameraRollService, private store: Store) {
     this.setMode(MODE.IDLE);
   }
 
   async ngOnInit() {
     this.availableDevices = await this.cameraService.getVideosDevices();
-    this.pictures = await this.fileService.load();
   }
 
   onCameraStatusChange(status: boolean) {
@@ -141,12 +140,7 @@ export class AppComponent {
   }
 
   async onCapture(data: string) {
-    const filename = await this.fileService.save(data);
-    this.pictures.push({
-      filename,
-      selected: false,
-      data,
-    });
+    this.store.dispatch(new AddPicture(data));
   }
 
   flashEffect() {
@@ -166,8 +160,8 @@ export class AppComponent {
     this.cameraRef.startMediaStream();
   }
 
-  onPictureSelected(data: string) {
+  onPictureSelected(picture: SelectPictureData) {
     this.cameraRef.stopMediaStream();
-    this.cameraRef.previewSelectedPicture(data);
+    this.cameraRef.previewSelectedPicture(picture.data);
   }
 }
