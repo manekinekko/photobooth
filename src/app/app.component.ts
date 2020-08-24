@@ -1,7 +1,7 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
-import { CameraComponent } from "./camera.component";
-import { CameraService } from "./camera.service";
-import { FileService } from "./file.service";
+import { CameraComponent } from "./camera/camera.component";
+import { CameraService } from "./camera/camera.service";
+import { FileService } from "./camera/file.service";
 export const enum MODE {
   IDLE = "idle",
   CAMERA = "camera",

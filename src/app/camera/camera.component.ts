@@ -3,8 +3,8 @@ import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { BlobService } from "./blob.service";
 import { CameraService } from "./camera.service";
-import { StartTimer, TimerState } from "./store/timer.state";
-import { TimerComponent } from "./timer.component";
+import { StartTimer, TimerState } from "../timer/timer.state";
+import { TimerComponent } from "../timer/timer.component";
 import { WebGLFilter } from "./webgl-filter";
 
 @Component({

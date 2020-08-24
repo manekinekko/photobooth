@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, Output } from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
-import { InitializeTimer, StopTimer, TickTimer, TimerState } from "./store/timer.state";
+import { InitializeTimer, StopTimer, TickTimer, TimerState } from "./timer.state";
 import { TimerStep } from "./timer.service";
 
 @Component({

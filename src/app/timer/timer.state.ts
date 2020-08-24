@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
 import { patch, updateItem } from "@ngxs/store/operators";
-import { TimerService, TimerStep } from "../timer.service";
+import { TimerService, TimerStep } from "./timer.service";
 
 // actions
 export class StartTimer {

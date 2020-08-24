@@ -4,10 +4,10 @@ import { NgxsReduxDevtoolsPluginModule } from "@ngxs/devtools-plugin";
 import { NgxsModule } from "@ngxs/store";
 import { environment } from "src/environments/environment";
 import { AppComponent } from "./app.component";
-import { CameraRollComponent } from "./camera-roll.component";
-import { CameraComponent } from "./camera.component";
-import { TimerState } from "./store/timer.state";
-import { TimerComponent } from "./timer.component";
+import { CameraRollComponent } from "./camera-roll/camera-roll.component";
+import { CameraComponent } from "./camera/camera.component";
+import { TimerState } from "./timer/timer.state";
+import { TimerComponent } from "./timer/timer.component";
 
 @NgModule({
   declarations: [AppComponent, CameraComponent, TimerComponent, CameraRollComponent],

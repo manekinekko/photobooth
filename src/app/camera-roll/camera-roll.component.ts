@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
-import { FileService } from "./file.service";
+import { FileService } from "../camera/file.service";
 
 @Component({
   selector: "app-camera-roll",
