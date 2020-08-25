@@ -56,7 +56,7 @@ export const enum MODE {
         background: white;
         opacity: 0;
         animation-name: flash;
-        animation-duration: 0.6s;
+        animation-duration: 0.8s;
         animation-timing-function: cubic-bezier(0.26, 0.79, 0.72, 0.5);
         position: absolute;
         top: 0;
@@ -75,7 +75,7 @@ export const enum MODE {
         from {
           opacity: 0;
         }
-        to {
+        70%, 100% {
           opacity: 1;
         }
       }

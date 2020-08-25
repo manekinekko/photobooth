@@ -1,8 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
-import { insertItem, patch, removeItem } from "@ngxs/store/operators";
+import { append, patch, removeItem } from "@ngxs/store/operators";
 import { of } from "rxjs";
-import { dispatch } from "rxjs/internal/observable/pairs";
 import { map, tap } from "rxjs/operators";
 import { CameraRollService } from "./camera-roll.service";
 
@@ -63,8 +62,8 @@ export class CameraRollState {
   constructor(private cameraRollService: CameraRollService) {}
 
   @Selector()
-  static pictures(picture: CameraRollStateModel) {
-    return picture.pictures;
+  static pictures(cameraRoll: CameraRollStateModel) {
+    return cameraRoll.pictures;
   }
 
   @Selector()
@@ -142,7 +141,7 @@ export class CameraRollState {
       tap((newPicture: any) => {
         setState(
           patch({
-            pictures: insertItem<PictureItem>(newPicture),
+            pictures: append<PictureItem>([newPicture]),
           })
         );
       })
