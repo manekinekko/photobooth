@@ -6,6 +6,7 @@ import { CameraService } from "./camera.service";
 import { StartTimer, TimerState } from "../timer/timer.state";
 import { TimerComponent } from "../timer/timer.component";
 import { WebGLFilter } from "./webgl-filter";
+import { UnselectPicture } from '../camera-roll/camera-roll.state';
 
 @Component({
   selector: "app-camera",
@@ -24,6 +25,7 @@ import { WebGLFilter } from "./webgl-filter";
       <app-timer
         [hidden]="!(timerIsTicking$ | async)"
         [value]="3"
+        (onTimerStart)="onTimerStart()"
         (onTimerTick)="onTimerTick($event)"
         (onTimerEnd)="triggerCapture()"
       ></app-timer>
@@ -123,6 +125,10 @@ export class CameraComponent implements OnInit {
       // emit the flash event 1 tick before capturing...
       this.onFlash.emit(this.flashDuration);
     }
+  }
+
+  onTimerStart() {
+    this.store.dispatch(new UnselectPicture());
   }
 
   async triggerCapture() {
