@@ -5,6 +5,7 @@ import {
   CameraRollState,
   DeletePicture,
   InitializePictures,
+  NoMorePictures,
   PictureItem,
   SelectPicture,
   SelectPictureData,
@@ -16,13 +17,14 @@ import {
     <ul class="camera-roll" [ngStyle]="{ width: width + 'px' }">
       <li
         class="camera-roll-item"
-        *ngFor="let pic of pictures$ | async; let currentPictureIndex = index; trackBy: trackByFilename"
-        (click)="selectPicture(currentPictureIndex)"
-        [ngClass]="{ selected: (selectedPictureIndex$ | async) === currentPictureIndex }"
-        style="--delay: {{ currentPictureIndex / 10 }}s "
+        *ngFor="let pic of pictures$ | async; let currentPictureId = index; trackBy: trackByFilename"
+        (click)="selectPicture(pic.id)"
+        [ngClass]="{ selected: (selectedPictureId$ | async) === pic.id }"
+        style="--delay: {{ currentPictureId / 10 }}s "
       >
         <span (click)="deletePicture()">&#x2715;</span>
         <img [src]="pic.data" height="50" />
+        {{pic.id}}
       </li>
     </ul>
   `,
@@ -120,20 +122,22 @@ export class CameraRollComponent {
   @Input() width: number;
   @Output() onPictureDeleted: Observable<void>;
   @Output() onPictureSelected: Observable<string>;
+  @Output() onEmptyPictures: Observable<void>;
 
-  @Select(CameraRollState.selectedPictureIndex)
-  selectedPictureIndex$: Observable<number>;
+  @Select(CameraRollState.selectedPictureId)
+  selectedPictureId$: Observable<string>;
   @Select(CameraRollState.pictures) pictures$: Observable<PictureItem[]>;
 
   constructor(private store: Store, private actions$: Actions) {
     this.onPictureDeleted = this.actions$.pipe(ofActionSuccessful(DeletePicture));
     this.onPictureSelected = this.actions$.pipe(ofActionSuccessful(SelectPictureData));
+    this.onEmptyPictures = this.actions$.pipe(ofActionSuccessful(NoMorePictures));
 
     this.store.dispatch(new InitializePictures());
   }
 
-  async selectPicture(currentPictureIndex: number) {
-    this.store.dispatch(new SelectPicture(currentPictureIndex));
+  async selectPicture(currentPictureId: string) {
+    this.store.dispatch(new SelectPicture(currentPictureId));
   }
 
   async deletePicture() {

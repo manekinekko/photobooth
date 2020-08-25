@@ -26,7 +26,7 @@ export const enum MODE {
         (onFlash)="flashEffect()"
       >
         <app-camera-roll
-          (onPictureDeleted)="onPictureDeleted()"
+          (onEmptyPictures)="onEmptyPictures()"
           (onPictureSelected)="onPictureSelected($event)"
         ></app-camera-roll>
       </app-camera>
@@ -156,7 +156,7 @@ export class AppComponent {
     this.mode = mode;
   }
 
-  onPictureDeleted() {
+  onEmptyPictures() {
     this.cameraRef.startMediaStream();
   }
 

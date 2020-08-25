@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
 import { insertItem, patch, removeItem } from "@ngxs/store/operators";
+import { of } from "rxjs";
 import { dispatch } from "rxjs/internal/observable/pairs";
 import { map, tap } from "rxjs/operators";
 import { CameraRollService } from "./camera-roll.service";
@@ -22,7 +23,7 @@ export class DeletePicture {
 
 export class SelectPicture {
   static readonly type = "[CameraRoll] select picture";
-  constructor(public readonly currentPictureIndex: number) {}
+  constructor(public readonly currentPictureId: string) {}
 }
 
 export class SelectPictureData {
@@ -34,22 +35,27 @@ export class UnselectPicture {
   static readonly type = "[CameraRoll] unselect picture";
 }
 
+export class NoMorePictures {
+  static readonly type = "[CameraRoll] no more pictures";
+}
+
 // state
 
 export interface PictureItem {
+  id: string;
   data: string;
   date: number;
 }
 export interface CameraRollStateModel {
   pictures: PictureItem[];
-  selectedPictureIndex: number;
+  selectedPictureId: string;
 }
 
 @State<CameraRollStateModel>({
   name: "cameraRoll",
   defaults: {
     pictures: [],
-    selectedPictureIndex: -1,
+    selectedPictureId: null,
   },
 })
 @Injectable()
@@ -62,8 +68,8 @@ export class CameraRollState {
   }
 
   @Selector()
-  static selectedPictureIndex(picture: CameraRollStateModel) {
-    return picture.selectedPictureIndex;
+  static selectedPictureId(picture: CameraRollStateModel) {
+    return picture.selectedPictureId;
   }
 
   @Action(InitializePictures)
@@ -78,12 +84,20 @@ export class CameraRollState {
   }
 
   @Action(SelectPicture)
-  selectPicture({ patchState, dispatch }: StateContext<CameraRollStateModel>, payload: SelectPicture) {
-    return this.cameraRollService.read(payload.currentPictureIndex).pipe(
+  selectPicture({ patchState, getState, dispatch }: StateContext<CameraRollStateModel>, payload: SelectPicture) {
+    const { selectedPictureId } = getState();
+
+    if (selectedPictureId === payload.currentPictureId) {
+      // if the picture is already selected, ignore it
+      // TODO: should we toggle selection?
+      return of();
+    }
+
+    return this.cameraRollService.read(payload.currentPictureId).pipe(
       map((picture: PictureItem) => picture.data),
       tap((data: string) => {
         patchState({
-          selectedPictureIndex: payload.currentPictureIndex,
+          selectedPictureId: payload.currentPictureId,
         });
 
         dispatch(new SelectPictureData(data));
@@ -93,22 +107,29 @@ export class CameraRollState {
 
   @Action(DeletePicture)
   deletePicture({ setState, getState, dispatch }: StateContext<CameraRollStateModel>) {
-    const { selectedPictureIndex } = getState();
-    return this.cameraRollService.delete(selectedPictureIndex).pipe(
+    const { selectedPictureId, pictures } = getState();
+    let selectedPictureIndex = pictures.findIndex((picture) => picture.id === selectedPictureId);
+
+    return this.cameraRollService.delete(selectedPictureId).pipe(
       tap((_) => {
+        // update state
         setState(
           patch({
             pictures: removeItem<PictureItem>(selectedPictureIndex),
           })
         );
+
+        // get new state
         const { pictures } = getState();
+
         if (pictures.length === 0) {
           // no more pictures in camera roll, show camera
-          dispatch(new DeletePicture());
+          dispatch(new NoMorePictures());
         } else {
           // try selecting the previous picture in camera roll
           // TODO: if deleting the last picture, we will select the first one (because it's 3am and I am being lazy)!
-          const nextPictureIndex = selectedPictureIndex % pictures.length;
+          const nextPictureIndex = pictures[(selectedPictureIndex - 1) % pictures.length].id;
+
           dispatch(new SelectPicture(nextPictureIndex));
         }
       })
@@ -131,7 +152,7 @@ export class CameraRollState {
   @Action(UnselectPicture)
   unelectPicture({ patchState }: StateContext<CameraRollStateModel>) {
     patchState({
-      selectedPictureIndex: -1,
+      selectedPictureId: null,
     });
   }
 }

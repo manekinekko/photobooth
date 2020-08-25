@@ -25,22 +25,26 @@ export class CameraRollService {
 
   save(data: string) {
     return defer(async () => {
-      const insertIndex = await (await this.db).count(PHOTO_STORE);
-      const picture = { data, date: Date.now() };
-      (await this.db).put(PHOTO_STORE, picture, insertIndex);
+      const id = this.id();
+      const picture = { id, data, date: Date.now() } as PictureItem;
+      (await this.db).put(PHOTO_STORE, picture, id);
       return picture;
     });
   }
 
-  read(index: number): Observable<PictureItem> {
-    return defer(async () => (await this.db).get(PHOTO_STORE, index));
+  read(id: string): Observable<PictureItem> {
+    return defer(async () => (await this.db).get(PHOTO_STORE, id));
   }
 
-  delete(index: number): Observable<void> {
-    return defer(async () => (await this.db).delete(PHOTO_STORE, index));
+  delete(id: string): Observable<void> {
+    return defer(async () => (await this.db).delete(PHOTO_STORE, id));
   }
 
   getAll(): Observable<PictureItem[]> {
     return defer(async () => (await this.db).getAll(PHOTO_STORE));
+  }
+
+  private id() {
+    return (Date.now() % 9e6).toString(36);
   }
 }
