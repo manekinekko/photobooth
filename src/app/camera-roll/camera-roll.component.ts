@@ -24,7 +24,6 @@ import {
       >
         <span (click)="deletePicture()">&#x2715;</span>
         <img [src]="pic.data" height="50" />
-        {{pic.id}}
       </li>
     </ul>
   `,

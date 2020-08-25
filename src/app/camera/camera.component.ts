@@ -73,7 +73,7 @@ import { WebGLFilter } from "./webgl-filter";
 export class CameraComponent implements OnInit {
   @Output() onCapture: EventEmitter<string>;
   @Output() onCameraStatus: EventEmitter<boolean>;
-  @Output() onFlash: EventEmitter<void>;
+  @Output() onFlash: EventEmitter<number>;
 
   @ViewChild("videoRef", { static: true }) videoRef: ElementRef<HTMLVideoElement>;
   @ViewChild("canvasRef", { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
@@ -88,13 +88,14 @@ export class CameraComponent implements OnInit {
   canvasTmpContextRef: CanvasRenderingContext2D;
   isCameraOn: boolean;
   mediaStream: MediaStream;
+  flashDuration = 3; // in seconds
 
   @Select(TimerState.isTicking) timerIsTicking$: Observable<boolean>;
 
   constructor(private cameraService: CameraService, private blobService: BlobService, private store: Store) {
     this.onCapture = new EventEmitter<string>();
     this.onCameraStatus = new EventEmitter<boolean>();
-    this.onFlash = new EventEmitter<void>();
+    this.onFlash = new EventEmitter<number>();
     this.isCameraOn = true;
   }
 
@@ -119,8 +120,8 @@ export class CameraComponent implements OnInit {
 
   onTimerTick(data: { time: number }) {
     if (data.time === 0) {
-      // emit the flash animation...
-      this.onFlash.emit();
+      // emit the flash event 1 tick before capturing...
+      this.onFlash.emit(this.flashDuration);
     }
   }
 

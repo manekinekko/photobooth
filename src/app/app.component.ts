@@ -23,7 +23,7 @@ export const enum MODE {
         [selectedFilter]="selectedFilter"
         (onCameraStatus)="onCameraStatusChange($event)"
         (onCapture)="onCapture($event)"
-        (onFlash)="flashEffect()"
+        (onFlash)="flashEffect($event)"
       >
         <app-camera-roll
           (onEmptyPictures)="onEmptyPictures()"
@@ -143,13 +143,13 @@ export class AppComponent {
     this.store.dispatch(new AddPicture(data));
   }
 
-  flashEffect() {
+  flashEffect(duration: number) {
     this.setMode(MODE.FLASHING);
     this.flashEffectRef.nativeElement.classList.add("flash-effect");
     setTimeout((_) => {
       this.flashEffectRef.nativeElement.classList.remove("flash-effect");
       this.setMode(MODE.IDLE);
-    }, 2000 /* pause for 2 seconds before taking the next picture */);
+    }, duration * 1000 /* pause for 2 seconds before taking the next picture */);
   }
 
   private setMode(mode: MODE) {
