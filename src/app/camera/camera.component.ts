@@ -90,7 +90,7 @@ export class CameraComponent implements OnInit {
   canvasTmpContextRef: CanvasRenderingContext2D;
   isCameraOn: boolean;
   mediaStream: MediaStream;
-  flashDuration = 3; // in seconds
+  flashDuration = 2; // in seconds
 
   @Select(TimerState.isTicking) timerIsTicking$: Observable<boolean>;
 
@@ -121,8 +121,8 @@ export class CameraComponent implements OnInit {
   }
 
   onTimerTick(data: { time: number }) {
+    // emit the flash event 1 tick before capturing...
     if (data.time === 0) {
-      // emit the flash event 1 tick before capturing...
       this.onFlash.emit(this.flashDuration);
     }
   }

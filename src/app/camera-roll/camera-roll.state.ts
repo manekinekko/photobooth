@@ -126,10 +126,10 @@ export class CameraRollState {
           dispatch(new NoMorePictures());
         } else {
           // try selecting the previous picture in camera roll
-          // TODO: if deleting the last picture, we will select the first one (because it's 3am and I am being lazy)!
-          const nextPictureIndex = pictures[(selectedPictureIndex - 1) % pictures.length].id;
+          const nextPictureIndex = Math.max(0, (selectedPictureIndex - 1) % pictures.length);
+          const nextPictureId = pictures[nextPictureIndex].id;
 
-          dispatch(new SelectPicture(nextPictureIndex));
+          dispatch(new SelectPicture(nextPictureId));
         }
       })
     );
