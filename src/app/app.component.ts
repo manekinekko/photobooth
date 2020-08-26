@@ -26,7 +26,7 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
     </main>
 
     <section class="source-selection">
-      <label for="source">Input:</label>
+      <!-- <label for="source">Input:</label> -->
       <select id="source" (change)="onDeviceSelect($event)" [value]="selectedDeviceId">
         <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{
           device.label | deviceIdFormat
@@ -76,7 +76,6 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
       .source-selection {
         position: relative;
         display: flex;
-        width: 20em;
         height: 30px;
         line-height: 1.9;
         background: #343232;
@@ -90,6 +89,8 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
       .source-selection select {
         appearance: none;
         outline: 0;
+        width: 200px;
+        text-align-last: center;
         box-shadow: none;
         border: 0 !important;
         background: #343232;
