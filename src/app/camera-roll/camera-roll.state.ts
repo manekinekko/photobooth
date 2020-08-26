@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
-import { append, patch, removeItem } from "@ngxs/store/operators";
+import { insertItem, patch, removeItem } from "@ngxs/store/operators";
 import { of } from "rxjs";
 import { map, tap } from "rxjs/operators";
 import { CameraRollService } from "./camera-roll.service";
@@ -141,7 +141,7 @@ export class CameraRollState {
       tap((newPicture: any) => {
         setState(
           patch({
-            pictures: append<PictureItem>([newPicture]),
+            pictures: insertItem<PictureItem>(newPicture, getState().pictures.length),
           })
         );
       })
