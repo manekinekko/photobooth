@@ -14,9 +14,9 @@ import { WebGLFilter } from "./webgl-filter";
     <video #videoRef hidden autoplay playsinline muted [width]="width" [height]="height"></video>
     <canvas #canvasTmpRef hidden [width]="width" [height]="height"></canvas>
 
+    <ng-content select="app-filters"></ng-content>
     <canvas #canvasRef [width]="width" [height]="height"></canvas>
-
-    <ng-content></ng-content>
+    <ng-content select="app-camera-roll"></ng-content>
 
     <section>
       <button (click)="startTimer()">

@@ -11,9 +11,10 @@ import { TimerComponent } from "./timer/timer.component";
 import { CameraRollState } from "./camera-roll/camera-roll.state";
 import { CameraState } from "./camera/camera.state";
 import { DeviceIdFormatPipe } from './camera/device-id-format.pipe';
+import { FiltersComponent } from './filters/filters.component';
 
 @NgModule({
-  declarations: [AppComponent, CameraComponent, TimerComponent, CameraRollComponent, DeviceIdFormatPipe],
+  declarations: [AppComponent, CameraComponent, TimerComponent, CameraRollComponent, DeviceIdFormatPipe, FiltersComponent],
   imports: [
     BrowserModule,
     NgxsModule.forRoot([TimerState, CameraRollState, CameraState], {

@@ -8,6 +8,13 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
 @Component({
   selector: "app-root",
   template: `
+    <section class="source-selection">
+      <select id="source" (change)="onDeviceSelect($event)" [value]="selectedDeviceId">
+        <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{
+          device.label | deviceIdFormat
+        }}</option>
+      </select>
+    </section>
     <div #flashEffectRef></div>
     <main [ngStyle]="{ width: width + 'px' }">
       <app-camera
@@ -25,18 +32,7 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
       </app-camera>
     </main>
 
-    <section class="source-selection">
-      <!-- <label for="source">Input:</label> -->
-      <select id="source" (change)="onDeviceSelect($event)" [value]="selectedDeviceId">
-        <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{
-          device.label | deviceIdFormat
-        }}</option>
-      </select>
-    </section>
-
-    <select (change)="onEffectSelect($event)">
-      <option *ngFor="let effect of filters" [value]="effect.label">{{ effect.label }}</option>
-    </select>
+    <app-filters (onFilterSelect)="onFilterSelect($event)"></app-filters>
   `,
   styles: [
     `
@@ -141,26 +137,6 @@ export class AppComponent {
 
   selectedFilter: { label: string; args: number[] };
 
-  filters = [
-    { label: "none" },
-    { label: "negative" },
-    { label: "brightness", args: [1.5] },
-    { label: "saturation", args: [1.5] },
-    { label: "contrast", args: [1.5] },
-    { label: "hue", args: [180] },
-    { label: "desaturate" },
-    { label: "desaturateLuminance" },
-    { label: "brownie" },
-    { label: "sepia" },
-    { label: "vintagePinhole" },
-    { label: "kodachrome" },
-    { label: "technicolor" },
-    { label: "detectEdges" },
-    { label: "sharpen" },
-    { label: "emboss" },
-    { label: "blur", args: [7] },
-  ];
-
   constructor(private cameraService: CameraService, private store: Store) {}
 
   async ngOnInit() {
@@ -170,18 +146,6 @@ export class AppComponent {
 
   onCameraStart(activeDeviceId: string) {
     this.selectedDeviceId = activeDeviceId;
-  }
-
-  onEffectSelect(event: any /* Event */) {
-    const filterLabel = event.target.value;
-    if (filterLabel === "none") {
-      this.selectedFilter = null;
-    } else {
-      this.selectedFilter = {
-        label: filterLabel,
-        args: this.filters.filter((effect) => effect.label === filterLabel).pop().args,
-      };
-    }
   }
 
   onDeviceSelect(event: any /* Event */) {
@@ -207,5 +171,9 @@ export class AppComponent {
   onPictureSelected(picture: SelectPictureData) {
     this.store.dispatch(new StopMediaStream());
     this.store.dispatch(new PreviewPictureData(picture.data));
+  }
+
+  onFilterSelect(filter: any) {
+    this.selectedFilter = filter;
   }
 }
