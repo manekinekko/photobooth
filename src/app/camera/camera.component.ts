@@ -41,6 +41,7 @@ import { WebGLFilter } from "./webgl-filter";
       }
       canvas {
         border-bottom: 1px solid #474444;
+        border-radius: 3px;
       }
       section {
         width: 100%;
