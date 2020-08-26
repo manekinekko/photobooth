@@ -1,7 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
 import { of } from "rxjs";
-import { dispatch } from "rxjs/internal/observable/pairs";
 import { switchMap, tap } from "rxjs/operators";
 import { BlobService } from "./blob.service";
 import { CameraService } from "./camera.service";
@@ -31,10 +30,23 @@ export class CapturePictureData {
   constructor(public readonly data: string) {}
 }
 
+export class PreviewPictureData {
+  static readonly type = "[Camera] preview picture data";
+  constructor(public readonly data: string) {}
+}
+
+export class SwitchCameraDevice {
+  static readonly type = "[Camera] switch camera device";
+  constructor(public readonly deviceId: string) {}
+}
+
 // state
 export interface CameraStateModel {
   mediaStream: MediaStream;
   deviceId: string;
+  width: number;
+  height: number;
+  preview: string;
 }
 
 @State<CameraStateModel>({
@@ -42,6 +54,9 @@ export interface CameraStateModel {
   defaults: {
     mediaStream: null,
     deviceId: null,
+    width: 1280,
+    height: 720,
+    preview: null,
   },
 })
 @Injectable()
@@ -51,6 +66,11 @@ export class CameraState {
   @Selector()
   static mediaStream(camera: CameraStateModel) {
     return camera.mediaStream;
+  }
+
+  @Selector()
+  static preview(camera: CameraStateModel) {
+    return camera.preview;
   }
 
   @Action(StartMediaStream)
@@ -74,31 +94,40 @@ export class CameraState {
   @Action(RestartMediaStream)
   restartMediaStream({ patchState, getState, dispatch }: StateContext<CameraStateModel>, payload: RestartMediaStream) {
     const { mediaStream } = getState();
-    mediaStream.getTracks().forEach((track) => track.stop());
 
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((track) => track.stop());
+
+      patchState({
+        mediaStream: null,
+      });
+
+      dispatch(new StartMediaStream(payload.deviceId));
+    }
+  }
+
+  @Action(SwitchCameraDevice)
+  switchCameraDevice({ patchState, dispatch }: StateContext<CameraStateModel>, payload: SwitchCameraDevice) {
     patchState({
-      mediaStream: null,
+      deviceId: payload.deviceId,
     });
 
-    dispatch(new StartMediaStream(payload.deviceId));
+    dispatch(new RestartMediaStream(payload.deviceId));
   }
 
   @Action(StopMediaStream)
   stopMediaStream({ patchState, getState }: StateContext<CameraStateModel>) {
     const { mediaStream } = getState();
 
-    if (mediaStream === null) {
-      // media stream is already stopped, skip.
-      return of();
-    }
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((track) => {
+        track.stop();
+      });
 
-    mediaStream.getTracks().forEach((track) => {
-      track.stop();
-    });
-    
-    patchState({
-      mediaStream: null,
-    });
+      patchState({
+        mediaStream: null,
+      });
+    }
   }
 
   @Action(CapturePicture)
@@ -109,5 +138,11 @@ export class CameraState {
         dispatch(new CapturePictureData(data));
       })
     );
+  }
+  @Action(PreviewPictureData)
+  previewPictureData({ patchState }: StateContext<CameraStateModel>, payload: PreviewPictureData) {
+    patchState({
+      preview: payload.data,
+    });
   }
 }

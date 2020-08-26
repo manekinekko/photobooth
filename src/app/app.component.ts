@@ -1,9 +1,9 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
 import { Store } from "@ngxs/store";
-import { CameraRollService } from "./camera-roll/camera-roll.service";
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraService } from "./camera/camera.service";
+import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevice } from "./camera/camera.state";
 
 @Component({
   selector: "app-root",
@@ -183,9 +183,9 @@ export class AppComponent {
     }
   }
 
-  async onDeviceSelect(event: any /* Event */) {
+  onDeviceSelect(event: any /* Event */) {
     this.selectedDeviceId = event.target.value;
-    await this.cameraRef.switchCameras(this.selectedDeviceId);
+    this.store.dispatch(new SwitchCameraDevice(this.selectedDeviceId));
   }
 
   onCapture(capturedPicture: { data: string }) {
@@ -200,11 +200,11 @@ export class AppComponent {
   }
 
   onEmptyPictures() {
-    this.cameraRef.startMediaStream();
+    this.store.dispatch(new StartMediaStream(this.selectedDeviceId));
   }
 
   onPictureSelected(picture: SelectPictureData) {
-    this.cameraRef.stopMediaStream();
-    this.cameraRef.previewSelectedPicture(picture.data);
+    this.store.dispatch(new StopMediaStream());
+    this.store.dispatch(new PreviewPictureData(picture.data));
   }
 }
