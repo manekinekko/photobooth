@@ -1,16 +1,9 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
 import { Store } from "@ngxs/store";
+import { CameraRollService } from "./camera-roll/camera-roll.service";
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraService } from "./camera/camera.service";
-import { CameraRollService } from "./camera-roll/camera-roll.service";
-export const enum MODE {
-  IDLE = "idle",
-  CAMERA = "camera",
-  FLASHING = "flashing",
-  PROCESSING = "processing",
-  UNAUTHORIZED = "unauthorized",
-}
 
 @Component({
   selector: "app-root",
@@ -21,7 +14,7 @@ export const enum MODE {
         [width]="width"
         [height]="height"
         [selectedFilter]="selectedFilter"
-        (onCameraStatus)="onCameraStatusChange($event)"
+        (onCameraStart)="onCameraStart($event)"
         (onCapture)="onCapture($event)"
         (onFlash)="flashEffect($event)"
       >
@@ -34,8 +27,8 @@ export const enum MODE {
 
     <section class="source-selection">
       <label for="source">Input:</label>
-      <select id="source" (change)="onDeviceSelect($event)">
-        <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{ device.label }}</option>
+      <select id="source" (change)="onDeviceSelect($event)" [value]="selectedDeviceId">
+        <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{ device.label | deviceIdFormat }}</option>
       </select>
     </section>
 
@@ -77,18 +70,19 @@ export const enum MODE {
       select::-ms-expand {
         display: none;
       }
-      
+
       .source-selection {
         position: relative;
         display: flex;
         width: 20em;
-        height: 3em;
-        line-height: 3;
+        height: 30px;
+        line-height: 1.9;
         background: #343232;
         overflow: hidden;
         border-radius: 30px;
         padding: 0px 14px;
         color: white;
+        border: 1px solid rgba(255, 255, 255, 0.6);
       }
 
       .source-selection select {
@@ -105,15 +99,16 @@ export const enum MODE {
       }
 
       .source-selection::after {
-        content: '▼';
+        content: "▼";
         position: absolute;
-        top: 0;
+        top: 4px;
         right: 0;
         padding: 0 1em;
         background: #343232;
         cursor: pointer;
         pointer-events: none;
         transition: 0.25s all ease;
+        font-size: 13px;
       }
 
       .source-selection:hover::after {
@@ -135,7 +130,6 @@ export const enum MODE {
 export class AppComponent {
   @ViewChild(CameraComponent, { static: true }) cameraRef: CameraComponent;
   @ViewChild("flashEffectRef", { static: true }) flashEffectRef: ElementRef;
-  mode: MODE;
   width: number = 1280;
   height: number = 720;
   availableDevices: Array<{ deviceId: string; label: string }>;
@@ -164,16 +158,15 @@ export class AppComponent {
     { label: "blur", args: [7] },
   ];
 
-  constructor(private cameraService: CameraService, private fileService: CameraRollService, private store: Store) {
-    this.setMode(MODE.IDLE);
-  }
+  constructor(private cameraService: CameraService, private store: Store) {}
 
   async ngOnInit() {
     this.availableDevices = await this.cameraService.getVideosDevices();
+    this.selectedDeviceId = this.availableDevices[0].deviceId;
   }
 
-  onCameraStatusChange(status: boolean) {
-    this.setMode(status ? MODE.CAMERA : MODE.IDLE);
+  onCameraStart(activeDeviceId: string) {
+    this.selectedDeviceId = activeDeviceId;
   }
 
   onEffectSelect(event: any /* Event */) {
@@ -186,23 +179,19 @@ export class AppComponent {
 
   async onDeviceSelect(event: any /* Event */) {
     this.selectedDeviceId = event.target.value;
+    await this.cameraRef.switchCameras(this.selectedDeviceId);
     await this.cameraRef.restartMediaStream();
   }
+
   onCapture(capturedPicture: { data: string }) {
     this.store.dispatch(new AddPicture(capturedPicture.data));
   }
 
   flashEffect(duration: number) {
-    this.setMode(MODE.FLASHING);
     this.flashEffectRef.nativeElement.classList.add("flash-effect");
     setTimeout((_) => {
       this.flashEffectRef.nativeElement.classList.remove("flash-effect");
-      this.setMode(MODE.IDLE);
     }, duration * 1000 /* pause for 2 seconds before taking the next picture */);
-  }
-
-  private setMode(mode: MODE) {
-    this.mode = mode;
   }
 
   onEmptyPictures() {
