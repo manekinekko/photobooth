@@ -32,9 +32,12 @@ export const enum MODE {
       </app-camera>
     </main>
 
-    <select (change)="onDeviceSelect($event)">
-      <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{ device.label }}</option>
-    </select>
+    <section class="source-selection">
+      <label for="source">Input:</label>
+      <select id="source" (change)="onDeviceSelect($event)">
+        <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{ device.label }}</option>
+      </select>
+    </section>
 
     <select (change)="onEffectSelect($event)">
       <option *ngFor="let effect of filters" [value]="effect.label">{{ effect.label }}</option>
@@ -69,6 +72,52 @@ export const enum MODE {
         margin: 0;
         padding: 0;
         display: block;
+      }
+
+      select::-ms-expand {
+        display: none;
+      }
+      
+      .source-selection {
+        position: relative;
+        display: flex;
+        width: 20em;
+        height: 3em;
+        line-height: 3;
+        background: #343232;
+        overflow: hidden;
+        border-radius: 30px;
+        padding: 0px 14px;
+        color: white;
+      }
+
+      .source-selection select {
+        appearance: none;
+        outline: 0;
+        box-shadow: none;
+        border: 0 !important;
+        background: #343232;
+        background-image: none;
+        flex: 1;
+        padding: 0 0.5em;
+        color: #fff;
+        cursor: pointer;
+      }
+
+      .source-selection::after {
+        content: '▼';
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 0 1em;
+        background: #343232;
+        cursor: pointer;
+        pointer-events: none;
+        transition: 0.25s all ease;
+      }
+
+      .source-selection:hover::after {
+        color: #8e8e8e;
       }
 
       @keyframes flash {
