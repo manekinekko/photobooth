@@ -192,12 +192,13 @@ export class CameraComponent implements OnInit {
   private loop(filter?: WebGLFilter) {
     if (this.isCameraOn) {
       try {
+        
         if (this.selectedFilter?.label) {
           // use WebGL filtered stream
-
+          
           this.canvasTmpContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
           const filteredImage = filter.apply(this.canvasTmpRef.nativeElement);
-
+          
           filter.reset();
           filter.addFilter(this.selectedFilter.label, this.selectedFilter.args);
 

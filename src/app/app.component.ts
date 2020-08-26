@@ -28,7 +28,9 @@ import { CameraService } from "./camera/camera.service";
     <section class="source-selection">
       <label for="source">Input:</label>
       <select id="source" (change)="onDeviceSelect($event)" [value]="selectedDeviceId">
-        <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{ device.label | deviceIdFormat }}</option>
+        <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{
+          device.label | deviceIdFormat
+        }}</option>
       </select>
     </section>
 
@@ -171,10 +173,14 @@ export class AppComponent {
 
   onEffectSelect(event: any /* Event */) {
     const filterLabel = event.target.value;
-    this.selectedFilter = {
-      label: filterLabel,
-      args: this.filters.filter((effect) => effect.label === filterLabel).pop().args,
-    };
+    if (filterLabel === "none") {
+      this.selectedFilter = null;
+    } else {
+      this.selectedFilter = {
+        label: filterLabel,
+        args: this.filters.filter((effect) => effect.label === filterLabel).pop().args,
+      };
+    }
   }
 
   async onDeviceSelect(event: any /* Event */) {
