@@ -14,6 +14,7 @@ export class StartMediaStream {
 
 export class RestartMediaStream {
   static readonly type = "[Camera] restart media stream";
+  constructor(public readonly deviceId: string) {}
 }
 
 export class StopMediaStream {
@@ -71,12 +72,15 @@ export class CameraState {
   }
 
   @Action(RestartMediaStream)
-  restartMediaStream({ patchState, getState, dispatch }: StateContext<CameraStateModel>) {
+  restartMediaStream({ patchState, getState, dispatch }: StateContext<CameraStateModel>, payload: RestartMediaStream) {
+    const { mediaStream } = getState();
+    mediaStream.getTracks().forEach((track) => track.stop());
+
     patchState({
       mediaStream: null,
     });
 
-    dispatch(new StartMediaStream(getState().deviceId));
+    dispatch(new StartMediaStream(payload.deviceId));
   }
 
   @Action(StopMediaStream)
@@ -91,7 +95,7 @@ export class CameraState {
     mediaStream.getTracks().forEach((track) => {
       track.stop();
     });
-
+    
     patchState({
       mediaStream: null,
     });

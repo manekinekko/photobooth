@@ -5,13 +5,20 @@ import { delay } from "rxjs/operators";
 import { UnselectPicture } from "../camera-roll/camera-roll.state";
 import { TimerComponent } from "../timer/timer.component";
 import { StartTimer, TimerState } from "../timer/timer.state";
-import { CameraState, CapturePicture, CapturePictureData, RestartMediaStream, StartMediaStream, StopMediaStream } from "./camera.state";
+import {
+  CameraState,
+  CapturePicture,
+  CapturePictureData,
+  RestartMediaStream,
+  StartMediaStream,
+  StopMediaStream,
+} from "./camera.state";
 import { WebGLFilter } from "./webgl-filter";
 
 @Component({
   selector: "app-camera",
   template: `
-    <video #videoRef hidden autoplay muted></video>
+    <video #videoRef hidden autoplay playsinline muted [width]="width" [height]="height"></video>
     <canvas #canvasTmpRef hidden [width]="width" [height]="height"></canvas>
 
     <canvas #canvasRef [width]="width" [height]="height"></canvas>
@@ -78,6 +85,7 @@ import { WebGLFilter } from "./webgl-filter";
 })
 export class CameraComponent implements OnInit {
   @Output() onCapture: Observable<string>;
+  @Output() onCameraStart: EventEmitter<string>;
   @Output() onCameraStatus: EventEmitter<boolean>;
   @Output() onFlash: EventEmitter<number>;
 
@@ -104,6 +112,7 @@ export class CameraComponent implements OnInit {
   constructor(private store: Store, private actions$: Actions) {
     this.onCapture = this.actions$.pipe(ofActionSuccessful(CapturePictureData));
     this.onCameraStatus = new EventEmitter<boolean>();
+    this.onCameraStart = new EventEmitter<string>();
     this.onFlash = new EventEmitter<number>();
   }
 
@@ -112,15 +121,19 @@ export class CameraComponent implements OnInit {
     this.canvasTmpContextRef = this.canvasTmpRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
 
     this.mediaStream$.subscribe((mediaStream) => {
+      // Note: when stopping the device, mediaStream is set to null.
+      this.mediaStream = mediaStream;
       this.isCameraOn = !!mediaStream;
       this.onCameraStatus.emit(this.isCameraOn);
       this.videoRef.nativeElement.srcObject = mediaStream;
 
       if (mediaStream) {
-        let { width, height } = mediaStream.getTracks()[0].getSettings();
+        let { width, height, deviceId } = mediaStream.getTracks()[0].getSettings();
         this.videoRef.nativeElement.width = width;
         this.videoRef.nativeElement.height = height;
         this.loop(new WebGLFilter());
+
+        this.onCameraStart.emit(deviceId);
       }
     });
 
@@ -168,8 +181,12 @@ export class CameraComponent implements OnInit {
     return this.store.dispatch(new StartMediaStream(this.deviceId));
   }
 
-  async restartMediaStream() {
-    this.store.dispatch(new RestartMediaStream());
+  switchCameras(deviceId: string) {
+    this.restartMediaStream(deviceId);
+  }
+
+  restartMediaStream(deviceId: string) {
+    this.store.dispatch(new RestartMediaStream(deviceId));
   }
 
   private loop(filter?: WebGLFilter) {

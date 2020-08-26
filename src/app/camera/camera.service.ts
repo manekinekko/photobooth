@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { defer } from "rxjs";
+import { defer, Observable } from "rxjs";
 
 @Injectable({
   providedIn: "root",
@@ -12,11 +12,10 @@ export class CameraService {
     return devices.filter((device) => device.kind === "videoinput");
   }
 
-  getUserMedia({ width = 1280, height = 720, deviceId }) {
+  getUserMedia({ width = 1280, height = 720, deviceId }): Observable<MediaStream> {
     const constraints = {
       audio: false,
       video: {
-        facingMode: "environment",
         width: {
           ideal: width,
         },

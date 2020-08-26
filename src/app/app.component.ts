@@ -180,7 +180,6 @@ export class AppComponent {
   async onDeviceSelect(event: any /* Event */) {
     this.selectedDeviceId = event.target.value;
     await this.cameraRef.switchCameras(this.selectedDeviceId);
-    await this.cameraRef.restartMediaStream();
   }
 
   onCapture(capturedPicture: { data: string }) {
