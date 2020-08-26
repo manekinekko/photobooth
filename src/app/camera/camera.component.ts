@@ -1,12 +1,12 @@
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
-import { Select, Store } from "@ngxs/store";
+import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
-import { BlobService } from "./blob.service";
-import { CameraService } from "./camera.service";
-import { StartTimer, TimerState } from "../timer/timer.state";
+import { delay } from "rxjs/operators";
+import { UnselectPicture } from "../camera-roll/camera-roll.state";
 import { TimerComponent } from "../timer/timer.component";
+import { StartTimer, TimerState } from "../timer/timer.state";
+import { CameraState, CapturePicture, CapturePictureData, RestartMediaStream, StartMediaStream, StopMediaStream } from "./camera.state";
 import { WebGLFilter } from "./webgl-filter";
-import { UnselectPicture } from '../camera-roll/camera-roll.state';
 
 @Component({
   selector: "app-camera",
@@ -58,6 +58,9 @@ import { UnselectPicture } from '../camera-roll/camera-roll.state';
         margin: 10px;
         border-radius: 50%;
       }
+      button[disabled] {
+        filter: grayscale();
+      }
       button img {
         border-radius: 50%;
       }
@@ -73,7 +76,7 @@ import { UnselectPicture } from '../camera-roll/camera-roll.state';
   ],
 })
 export class CameraComponent implements OnInit {
-  @Output() onCapture: EventEmitter<string>;
+  @Output() onCapture: Observable<string>;
   @Output() onCameraStatus: EventEmitter<boolean>;
   @Output() onFlash: EventEmitter<number>;
 
@@ -88,36 +91,51 @@ export class CameraComponent implements OnInit {
   @Input() selectedFilter: { label: string; args: number[] };
   canvasContextRef: CanvasRenderingContext2D;
   canvasTmpContextRef: CanvasRenderingContext2D;
+
   isCameraOn: boolean;
+
   mediaStream: MediaStream;
   flashDuration = 2; // in seconds
 
   @Select(TimerState.isTicking) timerIsTicking$: Observable<boolean>;
+  @Select(CameraState.mediaStream) mediaStream$: Observable<MediaStream>;
 
-  constructor(private cameraService: CameraService, private blobService: BlobService, private store: Store) {
-    this.onCapture = new EventEmitter<string>();
+  constructor(private store: Store, private actions$: Actions) {
+    this.onCapture = this.actions$.pipe(ofActionSuccessful(CapturePictureData));
     this.onCameraStatus = new EventEmitter<boolean>();
     this.onFlash = new EventEmitter<number>();
-    this.isCameraOn = true;
   }
 
   async ngOnInit() {
     this.canvasContextRef = this.canvasRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
     this.canvasTmpContextRef = this.canvasTmpRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
 
-    this.videoRef.nativeElement.onload = () => {
-      this.isCameraOn = true;
-    };
+    this.mediaStream$.subscribe((mediaStream) => {
+      this.isCameraOn = !!mediaStream;
+      this.onCameraStatus.emit(this.isCameraOn);
+      this.videoRef.nativeElement.srcObject = mediaStream;
+
+      if (mediaStream) {
+        let { width, height } = mediaStream.getTracks()[0].getSettings();
+        this.videoRef.nativeElement.width = width;
+        this.videoRef.nativeElement.height = height;
+        this.loop(new WebGLFilter());
+      }
+    });
 
     this.startMediaStream();
   }
 
-  async startTimer() {
-    if (this.isCameraOn === false) {
-      await this.startMediaStream();
+  startTimer() {
+    if (this.isCameraOn) {
+      this.store.dispatch(new StartTimer());
+    } else {
+      this.startMediaStream()
+        .pipe(delay(1000))
+        .subscribe((_) => {
+          this.store.dispatch(new StartTimer());
+        });
     }
-
-    this.store.dispatch(new StartTimer());
   }
 
   onTimerTick(data: { time: number }) {
@@ -131,11 +149,8 @@ export class CameraComponent implements OnInit {
     this.store.dispatch(new UnselectPicture());
   }
 
-  async triggerCapture() {
-    const file = await this.confirmCapture();
-    const data = await this.blobService.toBase64(file);
-
-    this.onCapture.emit(data);
+  triggerCapture() {
+    this.store.dispatch(new CapturePicture(this.canvasRef.nativeElement));
   }
 
   async previewSelectedPicture(data: string) {
@@ -144,41 +159,19 @@ export class CameraComponent implements OnInit {
     image.src = data;
   }
 
-  private confirmCapture(): Promise<Blob> {
-    return new Promise(async (resolve, reject) => {
-      const blob = await this.blobService.toBlob(this.canvasRef.nativeElement, "image/png");
-      resolve(blob);
-    });
-  }
-
   stopMediaStream() {
-    this.isCameraOn = false;
-    this.mediaStream.getTracks().forEach((track) => {
-      track.stop();
-    });
+    this.store.dispatch(new StopMediaStream());
   }
 
-  async startMediaStream() {
-    const mediaStream = await this.cameraService.getUserMedia({ deviceId: this.deviceId });
-    this.mediaStream = mediaStream;
-    this.videoRef.nativeElement.srcObject = mediaStream;
-    let { width, height } = mediaStream.getTracks()[0].getSettings();
-    this.videoRef.nativeElement.width = width;
-    this.videoRef.nativeElement.height = height;
-
-    this.isCameraOn = true;
-    this.onCameraStatus.emit(true);
-
-    // this.stream();
-    this.stream(new WebGLFilter());
+  startMediaStream() {
+    return this.store.dispatch(new StartMediaStream(this.deviceId));
   }
 
   async restartMediaStream() {
-    this.videoRef.nativeElement.srcObject = null;
-    await this.startMediaStream();
+    this.store.dispatch(new RestartMediaStream());
   }
 
-  private stream(filter?: WebGLFilter) {
+  private loop(filter?: WebGLFilter) {
     if (this.isCameraOn) {
       try {
         if (this.selectedFilter?.label) {
@@ -200,7 +193,7 @@ export class CameraComponent implements OnInit {
         console.log(err);
       }
 
-      requestAnimationFrame(() => this.stream(filter));
+      requestAnimationFrame(() => this.loop(filter));
     }
   }
 }

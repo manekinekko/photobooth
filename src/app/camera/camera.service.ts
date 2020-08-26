@@ -1,4 +1,5 @@
 import { Injectable } from "@angular/core";
+import { defer } from "rxjs";
 
 @Injectable({
   providedIn: "root",
@@ -11,7 +12,7 @@ export class CameraService {
     return devices.filter((device) => device.kind === "videoinput");
   }
 
-  async getUserMedia({ width = 1280, height = 720, deviceId }) {
+  getUserMedia({ width = 1280, height = 720, deviceId }) {
     const constraints = {
       audio: false,
       video: {
@@ -29,7 +30,7 @@ export class CameraService {
     };
 
     try {
-      return await navigator.mediaDevices.getUserMedia(constraints);
+      return defer(async () => await navigator.mediaDevices.getUserMedia(constraints));
     } catch (error) {
       console.error("getUserMedia() error:", error);
     }

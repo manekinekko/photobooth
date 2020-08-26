@@ -75,7 +75,8 @@ export const enum MODE {
         from {
           opacity: 0;
         }
-        70%, 100% {
+        70%,
+        100% {
           opacity: 1;
         }
       }
@@ -138,9 +139,8 @@ export class AppComponent {
     this.selectedDeviceId = event.target.value;
     await this.cameraRef.restartMediaStream();
   }
-
-  async onCapture(data: string) {
-    this.store.dispatch(new AddPicture(data));
+  onCapture(capturedPicture: { data: string }) {
+    this.store.dispatch(new AddPicture(capturedPicture.data));
   }
 
   flashEffect(duration: number) {

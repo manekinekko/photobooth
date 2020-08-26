@@ -1,4 +1,5 @@
 import { Injectable } from "@angular/core";
+import { defer, Observable, of, throwError } from "rxjs";
 
 @Injectable({
   providedIn: "root",
@@ -6,24 +7,20 @@ import { Injectable } from "@angular/core";
 export class BlobService {
   constructor() {}
 
-  toBlob(canvas: HTMLCanvasElement, type: string): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        resolve(blob);
-      }, type);
-    });
+  toBlob(canvas: HTMLCanvasElement, type: string): Observable<Blob> {
+    return new Observable((observer) => canvas.toBlob((blob) => observer.next(blob), type));
   }
 
-  toBase64(blob: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
+  toBase64(blob: Blob): Observable<string> {
+    return new Observable((observer) => {
       const reader = new FileReader();
       reader.readAsDataURL(blob);
       reader.onloadend = function () {
-        var base64data = reader.result as string;
-        resolve(base64data);
+        const base64data = reader.result as string;
+        observer.next(base64data);
       };
-      reader.onerror = reject;
-      reader.onabort = reject;
+      reader.onerror = (error) => observer.error(error);
+      reader.onabort = (error) => observer.error(error);
     });
   }
 }
