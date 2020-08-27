@@ -43,7 +43,7 @@ export class SwitchCameraDevice {
 // state
 export interface CameraStateModel {
   mediaStream: MediaStream;
-  deviceId: string;
+  source: string;
   width: number;
   height: number;
   preview: string;
@@ -53,7 +53,7 @@ export interface CameraStateModel {
   name: "camera",
   defaults: {
     mediaStream: null,
-    deviceId: null,
+    source: null,
     width: 1280,
     height: 720,
     preview: null,
@@ -71,6 +71,11 @@ export class CameraState {
   @Selector()
   static preview(camera: CameraStateModel) {
     return camera.preview;
+  }
+
+  @Selector()
+  static source(camera: CameraStateModel) {
+    return camera.source;
   }
 
   @Action(StartMediaStream)
@@ -109,7 +114,7 @@ export class CameraState {
   @Action(SwitchCameraDevice)
   switchCameraDevice({ patchState, dispatch }: StateContext<CameraStateModel>, payload: SwitchCameraDevice) {
     patchState({
-      deviceId: payload.deviceId,
+      source: payload.deviceId,
     });
 
     dispatch(new RestartMediaStream(payload.deviceId));
