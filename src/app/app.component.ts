@@ -8,8 +8,6 @@ import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } fr
 @Component({
   selector: "app-root",
   template: `
-    <app-device-source [source]="activeSource" (onDeviceSelected)="onDeviceSelected($event)"></app-device-source>
-
     <app-filters [ngStyle]="{ width: width + 'px' }" (onFilterSelected)="onFilterSelected($event)"></app-filters>
 
     <div #flashEffectRef></div>
@@ -28,6 +26,8 @@ import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } fr
         ></app-camera-roll>
       </app-camera>
     </main>
+
+    <app-device-source [source]="activeSource" (onDeviceSelected)="onDeviceSelected($event)"></app-device-source>
   `,
   styles: [
     `
