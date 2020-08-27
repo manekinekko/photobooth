@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from "@angular/core";
+import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
 
 export interface EffectFilter {
   label: string;
@@ -8,14 +8,53 @@ export interface EffectFilter {
 @Component({
   selector: "app-filters",
   template: `
-    <select (change)="onEffectSelect($event)" class="filters-list">
-      <option *ngFor="let effect of filters" [value]="effect.label">{{ effect.label }}</option>
-    </select>
+    <ul class="filter-list">
+      <li class="filter-list-item" *ngFor="let effect of filters">
+        <img (click)="onFilterClicked(effect.label)" src="assets/filter-placeholder.jpg" height="50" />
+      </li>
+    </ul>
   `,
-  styles: [],
+  styles: [
+    `
+      .filter-list {
+        border-bottom: 1px solid #474444;
+        display: flex;
+        height: 62px;
+        padding: 0px 4px;
+        margin: 0;
+        position: relative;
+        overflow-x: scroll;
+        overflow-y: hidden;
+      }
+      .filter-list::-webkit-scrollbar-track {
+        background-color: transparent;
+      }
+      .filter-list::-webkit-scrollbar {
+        height: 5px;
+      }
+      .filter-list::-webkit-scrollbar-thumb {
+        background-color: #373636;
+        border-radius: 10px;
+      }
+      .filter-list-item {
+        display: inline-block;
+        margin: 2px;
+        border-radius: 2px;
+        position: relative;
+      }
+      .filter-list-item img {
+        border: 1px solid transparent;
+      }
+      .filter-list-item.selected img {
+        border: 1px solid white;
+        transition: 0.3s;
+      }
+    `,
+  ],
 })
 export class FiltersComponent implements OnInit {
-  @Output() onFilterSelect: EventEmitter<EffectFilter>;
+  @Output() onFilterSelected: EventEmitter<EffectFilter>;
+  @Input() width: number;
 
   filters: EffectFilter[] = [
     { label: "none" },
@@ -37,17 +76,16 @@ export class FiltersComponent implements OnInit {
     { label: "blur", args: [7] },
   ];
   constructor() {
-    this.onFilterSelect = new EventEmitter<EffectFilter>();
+    this.onFilterSelected = new EventEmitter<EffectFilter>();
   }
 
   ngOnInit(): void {}
 
-  onEffectSelect(event: any /* Event */) {
-    const filterLabel = event.target.value;
+  onFilterClicked(filterLabel: string) {
     if (filterLabel === "none") {
-      this.onFilterSelect.emit(null);
+      this.onFilterSelected.emit(null);
     } else {
-      this.onFilterSelect.emit({
+      this.onFilterSelected.emit({
         label: filterLabel,
         args: this.filters.filter((effect) => effect.label === filterLabel).pop().args,
       });
