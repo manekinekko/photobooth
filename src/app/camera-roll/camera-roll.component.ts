@@ -60,6 +60,9 @@ import {
         position: relative;
         transform: translateY(-55px);
       }
+      .camera-roll-item:last-child {
+        padding-right: 4px;
+      }
       .camera-roll-item span {
         color: white;
         position: absolute;

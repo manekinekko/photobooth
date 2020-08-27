@@ -3,58 +3,7 @@
  * License MIT
  */
 
-export class CustomWebGLProgram {
-  public uniform: { [key: string]: WebGLUniformLocation } = {};
-  public attribute: { [key: string]: number } = {};
-  public id: WebGLProgram;
-
-  constructor(gl: WebGLRenderingContext, vertexSource: string, fragmentSource: string) {
-    const vsh = this._compile(gl, vertexSource, gl.VERTEX_SHADER);
-    const _fsh = this._compile(gl, fragmentSource, gl.FRAGMENT_SHADER);
-
-    this.id = gl.createProgram();
-    gl.attachShader(this.id, vsh);
-    gl.attachShader(this.id, _fsh);
-    gl.linkProgram(this.id);
-
-    if (!gl.getProgramParameter(this.id, gl.LINK_STATUS)) {
-    }
-
-    gl.useProgram(this.id);
-
-    // Collect attributes
-    this._collect(vertexSource, "attribute", this.attribute);
-    for (const a in this.attribute) {
-      this.attribute[a] = gl.getAttribLocation(this.id, a);
-    }
-
-    // Collect uniforms
-    this._collect(vertexSource, "uniform", this.uniform);
-    this._collect(fragmentSource, "uniform", this.uniform);
-    for (const u in this.uniform) {
-      this.uniform[u] = gl.getUniformLocation(this.id, u);
-    }
-  }
-
-  private _collect(source: string, prefix: string, collection: object) {
-    const r = new RegExp("\\b" + prefix + " \\w+ (\\w+)", "ig");
-    source.replace(r, function (match, name) {
-      collection[name] = 0;
-      return match;
-    });
-  }
-
-  private _compile(gl: WebGLRenderingContext, source: string, type: number) {
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      return null;
-    }
-    return shader;
-  }
-}
+import { CustomWebGLProgram } from "./webgl-program.class";
 
 export class WebGLFilter {
   private gl: WebGLRenderingContext = null;
@@ -78,28 +27,28 @@ export class WebGLFilter {
   };
 
   private SHADER = {
-    VERTEX_IDENTITY: [
-      "precision highp float;",
-      "attribute vec2 pos;",
-      "attribute vec2 uv;",
-      "varying vec2 vUv;",
-      "uniform float flipY;",
+    VERTEX_IDENTITY: `
+      precision highp float;
+      attribute vec2 pos;
+      attribute vec2 uv;
+      varying vec2 vUv;
+      uniform float flipY;
+    
+      void main(void) {
+        vUv = uv;
+        gl_Position = vec4(pos.x, pos.y*flipY, 0.0, 1.);
+      }
+    `,
 
-      "void main(void) {",
-      "vUv = uv;",
-      "gl_Position = vec4(pos.x, pos.y*flipY, 0.0, 1.);",
-      "}",
-    ].join("\n"),
+    FRAGMENT_IDENTITY: `
+      precision highp float;
+      varying vec2 vUv;
+      uniform sampler2D texture;
 
-    FRAGMENT_IDENTITY: [
-      "precision highp float;",
-      "varying vec2 vUv;",
-      "uniform sampler2D texture;",
-
-      "void main(void) {",
-      "gl_FragColor = texture2D(texture, vUv);",
-      "}",
-    ].join("\n"),
+      void main(void) {
+        gl_FragColor = texture2D(texture, vUv);
+      }
+    `,
   };
 
   constructor() {
@@ -123,7 +72,7 @@ export class WebGLFilter {
     this.filterChain = [];
   }
 
-  apply(imageOrCanvas: HTMLCanvasElement) {
+  apply(imageOrCanvas: HTMLCanvasElement | HTMLImageElement) {
     this.resize(imageOrCanvas.width, imageOrCanvas.height);
 
     this.drawCount = 0;
@@ -260,7 +209,7 @@ export class WebGLFilter {
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
   }
 
-  private compileShader(fragmentSource) {
+  private compileShader(fragmentSource: string) {
     if (this.shaderProgramCache[fragmentSource]) {
       this.currentProgram = this.shaderProgramCache[fragmentSource];
       this.gl.useProgram(this.currentProgram.id);
@@ -282,7 +231,7 @@ export class WebGLFilter {
   }
 
   private initializePresets() {
-    this.filter.colorMatrix = (matrix) => {
+    this.filter.colorMatrix = (matrix: number[]) => {
       // Create a Float32 Array and normalize the offset component to 0-1
       const m = new Float32Array(matrix);
       m[4] /= 255;
@@ -302,41 +251,39 @@ export class WebGLFilter {
     };
 
     this.filter.colorMatrix.SHADER = {};
-    this.filter.colorMatrix.SHADER.WITH_ALPHA = [
-      "precision highp float;",
-      "varying vec2 vUv;",
-      "uniform sampler2D texture;",
-      "uniform float m[20];",
+    this.filter.colorMatrix.SHADER.WITH_ALPHA = `
+      precision highp float;
+      varying vec2 vUv;
+      uniform sampler2D texture;
+      uniform float m[20];
 
-      "void main(void) {",
-      "vec4 c = texture2D(texture, vUv);",
-      "gl_FragColor.r = m[0] * c.r + m[1] * c.g + m[2] * c.b + m[3] * c.a + m[4];",
-      "gl_FragColor.g = m[5] * c.r + m[6] * c.g + m[7] * c.b + m[8] * c.a + m[9];",
-      "gl_FragColor.b = m[10] * c.r + m[11] * c.g + m[12] * c.b + m[13] * c.a + m[14];",
-      "gl_FragColor.a = m[15] * c.r + m[16] * c.g + m[17] * c.b + m[18] * c.a + m[19];",
-      "}",
-    ].join("\n");
-    this.filter.colorMatrix.SHADER.WITHOUT_ALPHA = [
-      "precision highp float;",
-      "varying vec2 vUv;",
-      "uniform sampler2D texture;",
-      "uniform float m[20];",
+      void main(void) {
+        vec4 c = texture2D(texture, vUv);
+        gl_FragColor.r = m[0] * c.r + m[1] * c.g + m[2] * c.b + m[3] * c.a + m[4];
+        gl_FragColor.g = m[5] * c.r + m[6] * c.g + m[7] * c.b + m[8] * c.a + m[9];
+        gl_FragColor.b = m[10] * c.r + m[11] * c.g + m[12] * c.b + m[13] * c.a + m[14];
+        gl_FragColor.a = m[15] * c.r + m[16] * c.g + m[17] * c.b + m[18] * c.a + m[19];
+      }`;
+    this.filter.colorMatrix.SHADER.WITHOUT_ALPHA = `
+      precision highp float;
+      varying vec2 vUv;
+      uniform sampler2D texture;
+      uniform float m[20];
 
-      "void main(void) {",
-      "vec4 c = texture2D(texture, vUv);",
-      "gl_FragColor.r = m[0] * c.r + m[1] * c.g + m[2] * c.b + m[4];",
-      "gl_FragColor.g = m[5] * c.r + m[6] * c.g + m[7] * c.b + m[9];",
-      "gl_FragColor.b = m[10] * c.r + m[11] * c.g + m[12] * c.b + m[14];",
-      "gl_FragColor.a = c.a;",
-      "}",
-    ].join("\n");
+      void main(void) {
+        vec4 c = texture2D(texture, vUv);
+        gl_FragColor.r = m[0] * c.r + m[1] * c.g + m[2] * c.b + m[4];
+        gl_FragColor.g = m[5] * c.r + m[6] * c.g + m[7] * c.b + m[9];
+        gl_FragColor.b = m[10] * c.r + m[11] * c.g + m[12] * c.b + m[14];
+        gl_FragColor.a = c.a;
+      }`;
 
-    this.filter.brightness = (brightness) => {
+    this.filter.brightness = (brightness: number) => {
       const b = (brightness || 0) + 1;
       this.filter.colorMatrix([b, 0, 0, 0, 0, 0, b, 0, 0, 0, 0, 0, b, 0, 0, 0, 0, 0, 1, 0]);
     };
 
-    this.filter.saturation = (amount) => {
+    this.filter.saturation = (amount: number) => {
       const x = ((amount || 0) * 2) / 3 + 1;
       const y = (x - 1) * -0.5;
       this.filter.colorMatrix([x, y, y, 0, 0, y, x, y, 0, 0, y, y, x, 0, 0, 0, 0, 0, 1, 0]);
@@ -346,7 +293,7 @@ export class WebGLFilter {
       this.filter.saturation(-1);
     };
 
-    this.filter.contrast = (amount) => {
+    this.filter.contrast = (amount: number) => {
       const v = (amount || 0) + 1;
       const o = -128 * (v - 1);
 
@@ -357,7 +304,7 @@ export class WebGLFilter {
       this.filter.contrast(-2);
     };
 
-    this.filter.hue = (rotation) => {
+    this.filter.hue = (rotation: number) => {
       rotation = ((rotation || 0) / 180) * Math.PI;
       const cos = Math.cos(rotation),
         sin = Math.sin(rotation),
@@ -571,7 +518,7 @@ export class WebGLFilter {
     // -------------------------------------------------------------------------
     // Convolution Filter
 
-    this.filter.convolution = (matrix) => {
+    this.filter.convolution = (matrix: number[]) => {
       const m = new Float32Array(matrix);
       const pixelSizeX = 1 / this.width;
       const pixelSizeY = 1 / this.height;
@@ -582,33 +529,32 @@ export class WebGLFilter {
       this.draw();
     };
 
-    this.filter.convolution.SHADER = [
-      "precision highp float;",
-      "varying vec2 vUv;",
-      "uniform sampler2D texture;",
-      "uniform vec2 px;",
-      "uniform float m[9];",
+    this.filter.convolution.SHADER = `
+      precision highp float;
+      varying vec2 vUv;
+      uniform sampler2D texture;
+      uniform vec2 px;
+      uniform float m[9];
 
-      "void main(void) {",
-      "vec4 c11 = texture2D(texture, vUv - px);", // top left
-      "vec4 c12 = texture2D(texture, vec2(vUv.x, vUv.y - px.y));", // top center
-      "vec4 c13 = texture2D(texture, vec2(vUv.x + px.x, vUv.y - px.y));", // top right
+      void main(void) {
+        vec4 c11 = texture2D(texture, vUv - px); // top left
+        vec4 c12 = texture2D(texture, vec2(vUv.x, vUv.y - px.y)); // top center
+        vec4 c13 = texture2D(texture, vec2(vUv.x + px.x, vUv.y - px.y)); // top right
 
-      "vec4 c21 = texture2D(texture, vec2(vUv.x - px.x, vUv.y) );", // mid left
-      "vec4 c22 = texture2D(texture, vUv);", // mid center
-      "vec4 c23 = texture2D(texture, vec2(vUv.x + px.x, vUv.y) );", // mid right
+        vec4 c21 = texture2D(texture, vec2(vUv.x - px.x, vUv.y) ); // mid left
+        vec4 c22 = texture2D(texture, vUv); // mid center
+        vec4 c23 = texture2D(texture, vec2(vUv.x + px.x, vUv.y) ); // mid right
 
-      "vec4 c31 = texture2D(texture, vec2(vUv.x - px.x, vUv.y + px.y) );", // bottom left
-      "vec4 c32 = texture2D(texture, vec2(vUv.x, vUv.y + px.y) );", // bottom center
-      "vec4 c33 = texture2D(texture, vUv + px );", // bottom right
+        vec4 c31 = texture2D(texture, vec2(vUv.x - px.x, vUv.y + px.y) ); // bottom left
+        vec4 c32 = texture2D(texture, vec2(vUv.x, vUv.y + px.y) ); // bottom center
+        vec4 c33 = texture2D(texture, vUv + px ); // bottom right
 
-      "gl_FragColor = ",
-      "c11 * m[0] + c12 * m[1] + c22 * m[2] +",
-      "c21 * m[3] + c22 * m[4] + c23 * m[5] +",
-      "c31 * m[6] + c32 * m[7] + c33 * m[8];",
-      "gl_FragColor.a = c22.a;",
-      "}",
-    ].join("\n");
+        gl_FragColor = 
+        c11 * m[0] + c12 * m[1] + c22 * m[2] +
+        c21 * m[3] + c22 * m[4] + c23 * m[5] +
+        c31 * m[6] + c32 * m[7] + c33 * m[8];
+        gl_FragColor.a = c22.a;
+      }`;
 
     this.filter.detectEdges = () => {
       this.filter.convolution.call(this, [0, 1, 0, 1, -4, 1, 0, 1, 0]);
@@ -622,12 +568,12 @@ export class WebGLFilter {
       this.filter.convolution.call(this, [-1, -2, -1, 0, 0, 0, 1, 2, 1]);
     };
 
-    this.filter.sharpen = (amount) => {
+    this.filter.sharpen = (amount: number) => {
       const a = amount || 1;
       this.filter.convolution.call(this, [0, -1 * a, 0, -1 * a, 1 + 4 * a, -1 * a, 0, -1 * a, 0]);
     };
 
-    this.filter.emboss = (size) => {
+    this.filter.emboss = (size: number) => {
       const s = size || 1;
       this.filter.convolution.call(this, [-2 * s, -1 * s, 0, -1 * s, 1, 1 * s, 0, 1 * s, 2 * s]);
     };
@@ -635,51 +581,83 @@ export class WebGLFilter {
     // -------------------------------------------------------------------------
     // Blur Filter
 
-    this.filter.blur = (size) => {
+    this.filter.blur = (size: number) => {
+      this.filter._blur(size, 3);
+    };
+    this.filter.blurVertical = (size: number) => {
+      this.filter._blur(size, 2);
+    };
+    this.filter.blurHorizontal = (size: number) => {
+      this.filter._blur(size, 1);
+    };
+    this.filter._blur = (size: number, type: 1 | 2 | 3 = 1) => {
       const blurSizeX = size / 7 / this.width;
       const blurSizeY = size / 7 / this.height;
-
       const program = this.compileShader(this.filter.blur.SHADER);
+      const h = (inter = false) => {
+        this.gl.uniform2f(program.uniform.px, blurSizeX, 0);
+        this.draw(inter && this.DRAW.INTERMEDIATE);
+      };
+      const v = (inter = false) => {
+        this.gl.uniform2f(program.uniform.px, 0, blurSizeY);
+        this.draw(inter && this.DRAW.INTERMEDIATE);
+      };
 
-      // Vertical
-      this.gl.uniform2f(program.uniform.px, 0, blurSizeY);
-      this.draw(this.DRAW.INTERMEDIATE);
+      switch (type) {
+        case 1:
+          // Horizontal
+          h();
+          break;
+        case 2:
+          // Vertical
+          v();
+          break;
+        // horizontal and vertical
+        case 3:
+        default:
+          h(true);
+          v();
+      }
 
-      // Horizontal
-      this.gl.uniform2f(program.uniform.px, blurSizeX, 0);
-      this.draw();
+      // // Vertical
+      // // this.gl.uniform2f(program.uniform.px, 0, blurSizeY);
+      // // this.draw(this.DRAW.INTERMEDIATE);
+
+      // // Horizontal
+      // this.gl.uniform2f(program.uniform.px, blurSizeX, 0);
+      // this.draw();
     };
 
-    this.filter.blur.SHADER = [
-      "precision highp float;",
-      "varying vec2 vUv;",
-      "uniform sampler2D texture;",
-      "uniform vec2 px;",
+    this.filter.blur.SHADER = `
+      precision highp float;
+      varying vec2 vUv;
+      uniform sampler2D texture;
+      uniform vec2 px;
 
-      "void main(void) {",
-      "gl_FragColor = vec4(0.0);",
-      "gl_FragColor += texture2D(texture, vUv + vec2(-7.0*px.x, -7.0*px.y))*0.0044299121055113265;",
-      "gl_FragColor += texture2D(texture, vUv + vec2(-6.0*px.x, -6.0*px.y))*0.00895781211794;",
-      "gl_FragColor += texture2D(texture, vUv + vec2(-5.0*px.x, -5.0*px.y))*0.0215963866053;",
-      "gl_FragColor += texture2D(texture, vUv + vec2(-4.0*px.x, -4.0*px.y))*0.0443683338718;",
-      "gl_FragColor += texture2D(texture, vUv + vec2(-3.0*px.x, -3.0*px.y))*0.0776744219933;",
-      "gl_FragColor += texture2D(texture, vUv + vec2(-2.0*px.x, -2.0*px.y))*0.115876621105;",
-      "gl_FragColor += texture2D(texture, vUv + vec2(-1.0*px.x, -1.0*px.y))*0.147308056121;",
-      "gl_FragColor += texture2D(texture, vUv                             )*0.159576912161;",
-      "gl_FragColor += texture2D(texture, vUv + vec2( 1.0*px.x,  1.0*px.y))*0.147308056121;",
-      "gl_FragColor += texture2D(texture, vUv + vec2( 2.0*px.x,  2.0*px.y))*0.115876621105;",
-      "gl_FragColor += texture2D(texture, vUv + vec2( 3.0*px.x,  3.0*px.y))*0.0776744219933;",
-      "gl_FragColor += texture2D(texture, vUv + vec2( 4.0*px.x,  4.0*px.y))*0.0443683338718;",
-      "gl_FragColor += texture2D(texture, vUv + vec2( 5.0*px.x,  5.0*px.y))*0.0215963866053;",
-      "gl_FragColor += texture2D(texture, vUv + vec2( 6.0*px.x,  6.0*px.y))*0.00895781211794;",
-      "gl_FragColor += texture2D(texture, vUv + vec2( 7.0*px.x,  7.0*px.y))*0.0044299121055113265;",
-      "}",
-    ].join("\n");
+      void main(void) {
+        gl_FragColor = vec4(0.0);
+        gl_FragColor += texture2D(texture, vUv + vec2(-7.0*px.x, -7.0*px.y))*0.0044299121055113265;
+        gl_FragColor += texture2D(texture, vUv + vec2(-6.0*px.x, -6.0*px.y))*0.00895781211794;
+        gl_FragColor += texture2D(texture, vUv + vec2(-5.0*px.x, -5.0*px.y))*0.0215963866053;
+        gl_FragColor += texture2D(texture, vUv + vec2(-4.0*px.x, -4.0*px.y))*0.0443683338718;
+        gl_FragColor += texture2D(texture, vUv + vec2(-3.0*px.x, -3.0*px.y))*0.0776744219933;
+        gl_FragColor += texture2D(texture, vUv + vec2(-2.0*px.x, -2.0*px.y))*0.115876621105;
+        gl_FragColor += texture2D(texture, vUv + vec2(-1.0*px.x, -1.0*px.y))*0.147308056121;
+        gl_FragColor += texture2D(texture, vUv                             )*0.159576912161;
+        gl_FragColor += texture2D(texture, vUv + vec2( 1.0*px.x,  1.0*px.y))*0.147308056121;
+        gl_FragColor += texture2D(texture, vUv + vec2( 2.0*px.x,  2.0*px.y))*0.115876621105;
+        gl_FragColor += texture2D(texture, vUv + vec2( 3.0*px.x,  3.0*px.y))*0.0776744219933;
+        gl_FragColor += texture2D(texture, vUv + vec2( 4.0*px.x,  4.0*px.y))*0.0443683338718;
+        gl_FragColor += texture2D(texture, vUv + vec2( 5.0*px.x,  5.0*px.y))*0.0215963866053;
+        gl_FragColor += texture2D(texture, vUv + vec2( 6.0*px.x,  6.0*px.y))*0.00895781211794;
+        gl_FragColor += texture2D(texture, vUv + vec2( 7.0*px.x,  7.0*px.y))*0.0044299121055113265;
+      }
+    `;
 
     // -------------------------------------------------------------------------
     // Pixelate Filter
 
-    this.filter.pixelate = (size) => {
+    this.filter.pixelate = (size: number) => {
       const blurSizeX = size / this.width;
       const blurSizeY = size / this.height;
 
@@ -690,21 +668,21 @@ export class WebGLFilter {
       this.draw();
     };
 
-    this.filter.pixelate.SHADER = [
-      "precision highp float;",
-      "varying vec2 vUv;",
-      "uniform vec2 size;",
-      "uniform sampler2D texture;",
+    this.filter.pixelate.SHADER = `
+     precision highp float;
+     varying vec2 vUv;
+     uniform vec2 size;
+     uniform sampler2D texture;
 
-      "vec2 pixelate(vec2 coord, vec2 size) {",
-      "return floor( coord / size ) * size;",
-      "}",
+     vec2 pixelate(vec2 coord, vec2 size) {
+      return floor( coord / size ) * size;
+     }
 
-      "void main(void) {",
-      "gl_FragColor = vec4(0.0);",
-      "vec2 coord = pixelate(vUv, size);",
-      "gl_FragColor += texture2D(texture, coord);",
-      "}",
-    ].join("\n");
+     void main(void) {
+      gl_FragColor = vec4(0.0);
+      vec2 coord = pixelate(vUv, size);
+      gl_FragColor += texture2D(texture, coord);
+     }
+   `;
   }
 }

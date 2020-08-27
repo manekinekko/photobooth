@@ -1,6 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { WebGLFilter } from "../shared/webgl-filter.class";
 
 export interface EffectFilter {
+  id: string;
+  data?: string;
   label: string;
   args?: number[];
 }
@@ -9,8 +12,13 @@ export interface EffectFilter {
   selector: "app-filters",
   template: `
     <ul class="filter-list">
-      <li class="filter-list-item" *ngFor="let effect of filters">
-        <img (click)="onFilterClicked(effect.label)" src="assets/filter-placeholder.jpg" height="50" />
+      <li
+        class="filter-list-item"
+        *ngFor="let filter of filters"
+        [ngClass]="{ selected: selectedFilterId === filter.id }"
+      >
+        <span>{{ filter.label }}</span>
+        <img (click)="onFilterClicked(filter)" [src]="filter.data || 'assets/filter-placeholder.jpg'" height="50" />
       </li>
     </ul>
   `,
@@ -37,58 +45,107 @@ export interface EffectFilter {
         border-radius: 10px;
       }
       .filter-list-item {
-        display: inline-block;
         margin: 2px;
         border-radius: 2px;
         position: relative;
+        cursor: pointer;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        overflowL hidden;
+      }
+      .filter-list-item:last-child {
+        padding-right: 4px;
       }
       .filter-list-item img {
         border: 1px solid transparent;
       }
-      .filter-list-item.selected img {
+      .filter-list-item span {
+        color: white;
+        font-size: 10px;
+        display: inline-block;
         border: 1px solid white;
+        padding: 2px 4px;
+        border-radius: 7px;
+        background: rgba(0, 0, 0, 1);
+        min-width: 21px;
+        text-align: center;
+        position: absolute;
+        bottom: -20px;
+        transition: bottom 0.1s ease-in;
+      }
+      .filter-list-item.selected span,
+      .filter-list-item:hover span {
+        bottom: 5px;
+      }
+      .filter-list-item.selected img {
+        border: 1px solid black;
         transition: 0.3s;
       }
     `,
   ],
 })
 export class FiltersComponent implements OnInit {
-  @Output() onFilterSelected: EventEmitter<EffectFilter>;
+  @Output() onFilterSelected: EventEmitter<Partial<EffectFilter>>;
   @Input() width: number;
+  selectedFilterId: string;
 
   filters: EffectFilter[] = [
-    { label: "none" },
-    { label: "negative" },
-    { label: "brightness", args: [1.5] },
-    { label: "saturation", args: [1.5] },
-    { label: "contrast", args: [1.5] },
-    { label: "hue", args: [180] },
-    { label: "desaturate" },
-    { label: "desaturateLuminance" },
-    { label: "brownie" },
-    { label: "sepia" },
-    { label: "vintagePinhole" },
-    { label: "kodachrome" },
-    { label: "technicolor" },
-    { label: "detectEdges" },
-    { label: "sharpen" },
-    { label: "emboss" },
-    { label: "blur", args: [7] },
+    { id: "none", label: "Normal" },
+    { id: "negative", label: "Negative" },
+    { id: "brightness", label: "Brightness", args: [1.5] },
+    { id: "saturation", label: "Saturation", args: [1.5] },
+    { id: "contrast", label: "Contrast", args: [1.5] },
+    { id: "hue", label: "Hue", args: [180] },
+    { id: "desaturate", label: "Desaturate" },
+    { id: "desaturateLuminance", label: "Luminance" },
+    { id: "brownie", label: "Brownie" },
+    { id: "sepia", label: "Sepia" },
+    { id: "vintagePinhole", label: "Vintage" },
+    { id: "kodachrome", label: "Koda" },
+    { id: "technicolor", label: "Technicolor" },
+    { id: "detectEdges", label: "Edges" },
+    { id: "sharpen", label: "Sharpen" },
+    { id: "emboss", label: "Emboss" },
+    { id: "blur", label: "Blur", args: [20] },
+    { id: "blurHorizontal", label: "Blur Hor.", args: [20] },
+    { id: "blurVertical", label: "Blur Ver.", args: [20] },
+    { id: "pixelate", label: "Pixelate", args: [10] },
   ];
   constructor() {
     this.onFilterSelected = new EventEmitter<EffectFilter>();
+    this.selectedFilterId = "none";
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.initializeFilters();
+  }
 
-  onFilterClicked(filterLabel: string) {
-    if (filterLabel === "none") {
-      this.onFilterSelected.emit(null);
-    } else {
-      this.onFilterSelected.emit({
-        label: filterLabel,
-        args: this.filters.filter((effect) => effect.label === filterLabel).pop().args,
-      });
+  onFilterClicked(filter: EffectFilter) {
+    if (this.selectedFilterId !== filter.id) {
+      this.selectedFilterId = filter.id;
+
+      if (filter.id === "none") {
+        this.onFilterSelected.emit(null);
+      } else {
+        this.onFilterSelected.emit(filter);
+      }
     }
+  }
+
+  private initializeFilters() {
+    const image = new Image();
+    const webGlFilter = new WebGLFilter();
+    image.onload = () => {
+      this.filters
+        .filter((filter) => filter.id !== "none")
+        .map((filter) => {
+          webGlFilter.reset();
+          webGlFilter.addFilter(filter.id, filter.args);
+          const filteredImage = webGlFilter.apply(image);
+          filter.data = filteredImage.toDataURL();
+        });
+    };
+    image.src = "assets/filter-placeholder.jpg";
   }
 }

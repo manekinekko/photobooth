@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
+import { EffectFilter } from './filters/filters.component';
 
 @Component({
   selector: "app-root",
@@ -83,7 +84,7 @@ export class AppComponent {
   height: number = 720;
   aspectRatio = 0.7;
 
-  selectedFilter: { label: string; args: number[] };
+  selectedFilter: Partial<EffectFilter>;
 
   activeSource: string;
   @Select(CameraState.source) activeSource$: Observable<string>;
@@ -123,7 +124,7 @@ export class AppComponent {
     this.store.dispatch([new StopMediaStream(), new PreviewPictureData(picture.data)]);
   }
 
-  onFilterSelected(filter: any) {
+  onFilterSelected(filter: Partial<EffectFilter>) {
     this.selectedFilter = filter;
   }
 }

@@ -3,10 +3,11 @@ import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { delay } from "rxjs/operators";
 import { UnselectPicture } from "../camera-roll/camera-roll.state";
+import { EffectFilter } from "../filters/filters.component";
 import { TimerComponent } from "../timer/timer.component";
 import { StartTimer, TimerState } from "../timer/timer.state";
 import { CameraState, CapturePicture, CapturePictureData, StartMediaStream, StopMediaStream } from "./camera.state";
-import { WebGLFilter } from "./webgl-filter";
+import { WebGLFilter } from "../shared/webgl-filter.class";
 
 @Component({
   selector: "app-camera",
@@ -86,7 +87,7 @@ export class CameraComponent implements OnInit {
   @Input() width: number = 1280;
   @Input() height: number = 720;
   @Input() deviceId: string;
-  @Input() selectedFilter: { label: string; args: number[] };
+  @Input() selectedFilter: Partial<EffectFilter>;
   canvasContextRef: CanvasRenderingContext2D;
   canvasTmpContextRef: CanvasRenderingContext2D;
 
@@ -176,15 +177,15 @@ export class CameraComponent implements OnInit {
   private loop(filter?: WebGLFilter) {
     if (this.isCameraOn) {
       try {
-        if (this.selectedFilter?.label) {
+        if (this.selectedFilter?.id) {
           // use WebGL filtered stream
 
           this.canvasTmpContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
-          const filteredImage = filter.apply(this.canvasTmpRef.nativeElement);
 
           filter.reset();
-          filter.addFilter(this.selectedFilter.label, this.selectedFilter.args);
+          filter.addFilter(this.selectedFilter.id, this.selectedFilter.args);
 
+          const filteredImage = filter.apply(this.canvasTmpRef.nativeElement);
           this.canvasContextRef.drawImage(filteredImage, 0, 0, this.width, this.height);
         } else {
           // use direct stream (no filters)
