@@ -14,7 +14,7 @@ import {
 @Component({
   selector: "app-camera-roll",
   template: `
-    <ul class="camera-roll" [ngStyle]="{ width: width + 'px' }">
+    <ul class="camera-roll">
       <li
         class="camera-roll-item"
         *ngFor="let pic of pictures$ | async; let currentPictureId = index; trackBy: trackByFilename"
@@ -32,9 +32,8 @@ import {
       .camera-roll {
         border-bottom: 1px solid #474444;
         display: flex;
-        width: 100%;
         height: 62px;
-        padding: 0px;
+        padding: 0px 4px;
         margin: 0;
         position: relative;
         overflow-x: scroll;
@@ -119,7 +118,6 @@ import {
   ],
 })
 export class CameraRollComponent {
-  @Input() width: number;
   @Output() onPictureDeleted: Observable<void>;
   @Output() onPictureSelected: Observable<string>;
   @Output() onEmptyPictures: Observable<void>;
