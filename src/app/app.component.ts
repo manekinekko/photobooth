@@ -8,13 +8,16 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
 @Component({
   selector: "app-root",
   template: `
-    <section class="source-selection">
+    <section class="selection">
       <select id="source" (change)="onDeviceSelect($event)" [value]="selectedDeviceId">
         <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{
           device.label | deviceIdFormat
         }}</option>
       </select>
     </section>
+
+    <app-filters (onFilterSelect)="onFilterSelect($event)"></app-filters>
+    
     <div #flashEffectRef></div>
     <main [ngStyle]="{ width: width + 'px' }">
       <app-camera
@@ -31,8 +34,6 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
         ></app-camera-roll>
       </app-camera>
     </main>
-
-    <app-filters (onFilterSelect)="onFilterSelect($event)"></app-filters>
   `,
   styles: [
     `
@@ -44,7 +45,7 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
         border: 1px solid #474444;
         border-radius: 4px;
         background: #585454;
-        width: 1280px;
+        padding: 10px
       }
       .flash-effect {
         background: white;
@@ -69,7 +70,7 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
         display: none;
       }
 
-      .source-selection {
+      .selection {
         position: relative;
         display: flex;
         height: 30px;
@@ -78,11 +79,12 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
         overflow: hidden;
         border-radius: 30px;
         padding: 0px 14px;
+        margin: 10px;
         color: white;
         border: 1px solid rgba(255, 255, 255, 0.6);
       }
 
-      .source-selection select {
+      .selection select {
         appearance: none;
         outline: 0;
         width: 200px;
@@ -97,7 +99,7 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
         cursor: pointer;
       }
 
-      .source-selection::after {
+      .selection::after {
         content: "▼";
         position: absolute;
         top: 4px;
@@ -110,7 +112,7 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
         font-size: 13px;
       }
 
-      .source-selection:hover::after {
+      .selection:hover::after {
         color: #8e8e8e;
       }
 
@@ -131,6 +133,7 @@ export class AppComponent {
   @ViewChild("flashEffectRef", { static: true }) flashEffectRef: ElementRef;
   width: number = 1280;
   height: number = 720;
+  aspectRatio = 0.70;
   availableDevices: Array<{ deviceId: string; label: string }>;
 
   selectedDeviceId: string;
@@ -142,6 +145,9 @@ export class AppComponent {
   async ngOnInit() {
     this.availableDevices = await this.cameraService.getVideosDevices();
     this.selectedDeviceId = this.availableDevices[0].deviceId;
+
+    this.width = this.width * this.aspectRatio;
+    this.height = this.height * this.aspectRatio;
   }
 
   onCameraStart(activeDeviceId: string) {
