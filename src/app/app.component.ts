@@ -1,23 +1,17 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
-import { Store } from "@ngxs/store";
+import { Select, Store } from "@ngxs/store";
+import { Observable } from 'rxjs';
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
-import { CameraService } from "./camera/camera.service";
-import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevice } from "./camera/camera.state";
+import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
 
 @Component({
   selector: "app-root",
   template: `
-    <section class="selection">
-      <select id="source" (change)="onDeviceSelect($event)" [value]="selectedDeviceId">
-        <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{
-          device.label | deviceIdFormat
-        }}</option>
-      </select>
-    </section>
+    <app-device-source [source]="activeSource" (onDeviceSelected)="onDeviceSelected($event)"></app-device-source>
 
-    <app-filters (onFilterSelect)="onFilterSelect($event)"></app-filters>
-    
+    <app-filters [ngStyle]="{ width: width + 'px' }" (onFilterSelected)="onFilterSelected($event)"></app-filters>
+
     <div #flashEffectRef></div>
     <main [ngStyle]="{ width: width + 'px' }">
       <app-camera
@@ -45,7 +39,7 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
         border: 1px solid #474444;
         border-radius: 4px;
         background: #585454;
-        padding: 10px
+        padding: 10px 0 0;
       }
       .flash-effect {
         background: white;
@@ -70,52 +64,6 @@ import { PreviewPictureData, StartMediaStream, StopMediaStream, SwitchCameraDevi
         display: none;
       }
 
-      .selection {
-        position: relative;
-        display: flex;
-        height: 30px;
-        line-height: 1.9;
-        background: #343232;
-        overflow: hidden;
-        border-radius: 30px;
-        padding: 0px 14px;
-        margin: 10px;
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.6);
-      }
-
-      .selection select {
-        appearance: none;
-        outline: 0;
-        width: 200px;
-        text-align-last: center;
-        box-shadow: none;
-        border: 0 !important;
-        background: #343232;
-        background-image: none;
-        flex: 1;
-        padding: 0 0.5em;
-        color: #fff;
-        cursor: pointer;
-      }
-
-      .selection::after {
-        content: "▼";
-        position: absolute;
-        top: 4px;
-        right: 0;
-        padding: 0 1em;
-        background: #343232;
-        cursor: pointer;
-        pointer-events: none;
-        transition: 0.25s all ease;
-        font-size: 13px;
-      }
-
-      .selection:hover::after {
-        color: #8e8e8e;
-      }
-
       @keyframes flash {
         from {
           opacity: 0;
@@ -133,30 +81,26 @@ export class AppComponent {
   @ViewChild("flashEffectRef", { static: true }) flashEffectRef: ElementRef;
   width: number = 1280;
   height: number = 720;
-  aspectRatio = 0.70;
-  availableDevices: Array<{ deviceId: string; label: string }>;
-
-  selectedDeviceId: string;
+  aspectRatio = 0.7;
 
   selectedFilter: { label: string; args: number[] };
 
-  constructor(private cameraService: CameraService, private store: Store) {}
+  activeSource: string;
+  @Select(CameraState.source) activeSource$: Observable<string>;
+
+  constructor(private store: Store) {}
 
   async ngOnInit() {
-    this.availableDevices = await this.cameraService.getVideosDevices();
-    this.selectedDeviceId = this.availableDevices[0].deviceId;
-
     this.width = this.width * this.aspectRatio;
     this.height = this.height * this.aspectRatio;
   }
 
-  onCameraStart(activeDeviceId: string) {
-    this.selectedDeviceId = activeDeviceId;
+  onDeviceSelected(selectedDeviceId: string) {
+    this.activeSource = selectedDeviceId;
   }
 
-  onDeviceSelect(event: any /* Event */) {
-    this.selectedDeviceId = event.target.value;
-    this.store.dispatch(new SwitchCameraDevice(this.selectedDeviceId));
+  onCameraStart(activeSource: string) {
+    this.activeSource = activeSource;
   }
 
   onCapture(capturedPicture: { data: string }) {
@@ -171,15 +115,15 @@ export class AppComponent {
   }
 
   onEmptyPictures() {
-    this.store.dispatch(new StartMediaStream(this.selectedDeviceId));
+    this.store.dispatch(new StartMediaStream(this.activeSource));
   }
 
   onPictureSelected(picture: SelectPictureData) {
-    this.store.dispatch(new StopMediaStream());
-    this.store.dispatch(new PreviewPictureData(picture.data));
+
+    this.store.dispatch([new StopMediaStream(), new PreviewPictureData(picture.data)]);
   }
 
-  onFilterSelect(filter: any) {
+  onFilterSelected(filter: any) {
     this.selectedFilter = filter;
   }
 }
