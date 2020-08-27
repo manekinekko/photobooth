@@ -23,6 +23,7 @@ import { WebGLFilter } from "./webgl-filter";
         <img src="assets/camera.png" width="64" height="64" alt="capture icon" />
       </button>
       <app-timer
+        [ngStyle]="{ width: width + 'px' }"
         [hidden]="!(timerIsTicking$ | async)"
         [value]="3"
         (onTimerStart)="onTimerStart()"
@@ -38,10 +39,6 @@ import { WebGLFilter } from "./webgl-filter";
       }
       [hidden] {
         display: none;
-      }
-      canvas {
-        border-bottom: 1px solid #474444;
-        border-radius: 3px;
       }
       section {
         width: 100%;
@@ -68,7 +65,6 @@ import { WebGLFilter } from "./webgl-filter";
       app-timer {
         position: absolute;
         display: flex;
-        width: 1280px;
         height: 83px;
         padding: 1px;
         border-radius: 0 0 4px 4px;
