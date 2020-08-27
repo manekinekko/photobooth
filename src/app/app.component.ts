@@ -4,12 +4,12 @@ import { Observable } from 'rxjs';
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
-import { EffectFilter } from './filters/filters.component';
+import { EffectFilter } from './filters-preview/filters-preview.component';
 
 @Component({
   selector: "app-root",
   template: `
-    <app-filters [ngStyle]="{ width: width + 'px' }" (onFilterSelected)="onFilterSelected($event)"></app-filters>
+    <app-filters-preview [ngStyle]="{ width: width + 'px' }" (onFilterSelected)="onFilterSelected($event)"></app-filters-preview>
 
     <div #flashEffectRef></div>
     <main [ngStyle]="{ width: width + 'px' }">

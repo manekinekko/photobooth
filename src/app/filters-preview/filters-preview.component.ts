@@ -9,7 +9,7 @@ export interface EffectFilter {
 }
 
 @Component({
-  selector: "app-filters",
+  selector: "app-filters-preview",
   template: `
     <ul class="filter-list">
       <li
@@ -85,7 +85,7 @@ export interface EffectFilter {
     `,
   ],
 })
-export class FiltersComponent implements OnInit {
+export class FiltersPreviewComponent implements OnInit {
   @Output() onFilterSelected: EventEmitter<Partial<EffectFilter>>;
   @Input() width: number;
   selectedFilterId: string;
