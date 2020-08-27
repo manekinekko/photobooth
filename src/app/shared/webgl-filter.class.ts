@@ -26,7 +26,7 @@ import {
 import { CustomWebGLProgram } from "./webgl-program.class";
 
 export class WebGLFilter {
-  gl: WebGLRenderingContext = null;
+  private gl: WebGLRenderingContext = null;
   private drawCount = 0;
   private sourceTexture: WebGLTexture = null;
   private lastInChain = false;
@@ -36,7 +36,7 @@ export class WebGLFilter {
   private width = -1;
   private height = -1;
   private vertexBuffer: WebGLBuffer = null;
-  private currentProgram: CustomWebGLProgram = null;
+  private program: CustomWebGLProgram = null;
   private canvas: HTMLCanvasElement = null;
   // key is the shader program source, value is the compiled program
   private shaderProgramCache = {};
@@ -220,7 +220,7 @@ export class WebGLFilter {
     return { fbo: fbo, texture: texture };
   }
 
-  draw(flags = null) {
+  private draw(flags = null) {
     let source = null,
       target = null,
       flipY = false;
@@ -251,32 +251,32 @@ export class WebGLFilter {
     this.gl.bindTexture(this.gl.TEXTURE_2D, source);
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, target);
 
-    this.gl.uniform1f(this.currentProgram.uniform.flipY, flipY ? -1 : 1);
+    this.gl.uniform1f(this.program.uniform.flipY, flipY ? -1 : 1);
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
   }
 
-  compileShader(fragmentSource: string) {
+  private compileShader(fragmentSource: string) {
     if (this.shaderProgramCache[fragmentSource]) {
-      this.currentProgram = this.shaderProgramCache[fragmentSource];
-      this.gl.useProgram(this.currentProgram.id);
-      return this.currentProgram;
+      this.program = this.shaderProgramCache[fragmentSource];
+      this.gl.useProgram(this.program.id);
+      return this.program;
     }
 
     // Compile shaders
-    this.currentProgram = new CustomWebGLProgram(this.gl, this.SHADER.VERTEX_IDENTITY, fragmentSource);
+    this.program = new CustomWebGLProgram(this.gl, this.SHADER.VERTEX_IDENTITY, fragmentSource);
 
     const floatSize = Float32Array.BYTES_PER_ELEMENT;
     const vertSize = 4 * floatSize;
-    this.gl.enableVertexAttribArray(this.currentProgram.attribute.pos);
-    this.gl.vertexAttribPointer(this.currentProgram.attribute.pos, 2, this.gl.FLOAT, false, vertSize, 0 * floatSize);
-    this.gl.enableVertexAttribArray(this.currentProgram.attribute.uv);
-    this.gl.vertexAttribPointer(this.currentProgram.attribute.uv, 2, this.gl.FLOAT, false, vertSize, 2 * floatSize);
+    this.gl.enableVertexAttribArray(this.program.attribute.pos);
+    this.gl.vertexAttribPointer(this.program.attribute.pos, 2, this.gl.FLOAT, false, vertSize, 0 * floatSize);
+    this.gl.enableVertexAttribArray(this.program.attribute.uv);
+    this.gl.vertexAttribPointer(this.program.attribute.uv, 2, this.gl.FLOAT, false, vertSize, 2 * floatSize);
 
-    this.shaderProgramCache[fragmentSource] = this.currentProgram;
-    return this.currentProgram;
+    this.shaderProgramCache[fragmentSource] = this.program;
+    return this.program;
   }
 
-  registerFilter(filter: Function) {
+  private registerFilter(filter: Function) {
     // pass in "this" to the filter function
     this.filter[filter.name] = filter.call(this);
   }
