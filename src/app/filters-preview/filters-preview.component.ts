@@ -16,9 +16,10 @@ export interface EffectFilter {
         class="filter-list-item"
         *ngFor="let filter of filters"
         [ngClass]="{ selected: selectedFilterId === filter.id }"
+        (click)="onFilterClicked(filter)"
       >
         <span>{{ filter.label }}</span>
-        <img (click)="onFilterClicked(filter)" [src]="filter.data || 'assets/filter-placeholder.jpg'" height="50" />
+        <img [src]="filter.data || 'assets/filter-placeholder.jpg'" height="50" />
       </li>
     </ul>
   `,
@@ -92,25 +93,29 @@ export class FiltersPreviewComponent implements OnInit {
 
   filters: EffectFilter[] = [
     { id: "none", label: "Normal" },
-    { id: "negative", label: "Negative" },
-    { id: "brightness", label: "Brightness", args: [1.5] },
-    { id: "saturation", label: "Saturation", args: [1.5] },
-    { id: "contrast", label: "Contrast", args: [1.5] },
-    { id: "hue", label: "Hue", args: [180] },
-    { id: "desaturate", label: "Desaturate" },
-    { id: "desaturateLuminance", label: "Luminance" },
-    { id: "brownie", label: "Brownie" },
-    { id: "sepia", label: "Sepia" },
-    { id: "vintagePinhole", label: "Vintage" },
-    { id: "kodachrome", label: "Koda" },
-    { id: "technicolor", label: "Technicolor" },
-    { id: "detectEdges", label: "Edges" },
-    { id: "sharpen", label: "Sharpen" },
-    { id: "emboss", label: "Emboss" },
-    { id: "blur", label: "Blur", args: [20] },
+    { id: "bgr", label: "BGR" },
     { id: "blurHorizontal", label: "Blur Hor.", args: [20] },
     { id: "blurVertical", label: "Blur Ver.", args: [20] },
+    { id: "blur", label: "Blur", args: [20] },
+    { id: "brightness", label: "Brightness", args: [1.5] },
+    { id: "brownie", label: "Brownie" },
+    { id: "contrast", label: "Contrast", args: [1.5] },
+    { id: "desaturateLuminance", label: "Luminance" },
+    { id: "desaturate", label: "Desaturate" },
+    { id: "edges", label: "Edges" },
+    { id: "emboss", label: "Emboss" },
+    { id: "hue", label: "Hue", args: [180] },
+    { id: "kodachrome", label: "Koda" },
+    { id: "negative", label: "Negative" },
     { id: "pixelate", label: "Pixelate", args: [10] },
+    { id: "polaroid", label: "Polaroid", args: [] },
+    { id: "saturate", label: "Saturate", args: [1.5] },
+    { id: "sepia", label: "Sepia" },
+    { id: "sharpen", label: "Sharpen" },
+    { id: "sobelHorizontal", label: "Sobel Hor." },
+    { id: "sobelVertical", label: "Sobel Ver." },
+    { id: "technicolor", label: "Technicolor" },
+    { id: "vintagePinhole", label: "Vintage" },
   ];
   constructor() {
     this.onFilterSelected = new EventEmitter<EffectFilter>();
@@ -140,6 +145,8 @@ export class FiltersPreviewComponent implements OnInit {
       this.filters
         .filter((filter) => filter.id !== "none")
         .map((filter) => {
+          console.log("Loading preset: ", filter.id);
+
           webGlFilter.reset();
           webGlFilter.addFilter(filter.id, filter.args);
           const filteredImage = webGlFilter.apply(image);

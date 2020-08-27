@@ -1,15 +1,18 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
 import { Select, Store } from "@ngxs/store";
-import { Observable } from 'rxjs';
+import { Observable } from "rxjs";
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
-import { EffectFilter } from './filters-preview/filters-preview.component';
+import { EffectFilter } from "./filters-preview/filters-preview.component";
 
 @Component({
   selector: "app-root",
   template: `
-    <app-filters-preview [ngStyle]="{ width: width + 'px' }" (onFilterSelected)="onFilterSelected($event)"></app-filters-preview>
+    <app-filters-preview
+      [ngStyle]="{ width: width + 'px' }"
+      (onFilterSelected)="onFilterSelected($event)"
+    ></app-filters-preview>
 
     <div #flashEffectRef></div>
     <main [ngStyle]="{ width: width + 'px' }">
@@ -120,7 +123,6 @@ export class AppComponent {
   }
 
   onPictureSelected(picture: SelectPictureData) {
-
     this.store.dispatch([new StopMediaStream(), new PreviewPictureData(picture.data)]);
   }
 
