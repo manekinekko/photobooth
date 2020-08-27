@@ -18,7 +18,6 @@ export class CustomWebGLProgram {
     gl.linkProgram(this.id);
 
     if (!gl.getProgramParameter(this.id, gl.LINK_STATUS)) {
-      console.log(gl.getProgramInfoLog(this.id));
     }
 
     gl.useProgram(this.id);
@@ -51,7 +50,6 @@ export class CustomWebGLProgram {
     gl.compileShader(shader);
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.log(gl.getShaderInfoLog(shader));
       return null;
     }
     return shader;
@@ -127,7 +125,7 @@ export class WebGLFilter {
 
   apply(imageOrCanvas: HTMLCanvasElement) {
     this.resize(imageOrCanvas.width, imageOrCanvas.height);
-    
+
     this.drawCount = 0;
 
     // Create the texture for the input image if we haven't yet
@@ -142,9 +140,6 @@ export class WebGLFilter {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, imageOrCanvas);
 
-    console.log(this.filterChain);
-    
-    
     // No filters? Just draw
     if (this.filterChain.length == 0) {
       this.compileShader(this.SHADER.FRAGMENT_IDENTITY);
@@ -170,7 +165,6 @@ export class WebGLFilter {
 
     this.canvas.width = this.width = width;
     this.canvas.height = this.height = height;
-    
 
     // Create the context if we don't have it yet
     if (!this.vertexBuffer) {
