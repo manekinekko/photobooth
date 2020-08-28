@@ -85,7 +85,7 @@ export class AppComponent {
   @ViewChild("flashEffectRef", { static: true }) flashEffectRef: ElementRef;
   width: number = 1280;
   height: number = 720;
-  aspectRatio = 0.7;
+  aspectRatio = 0.8;
 
   selectedFilter: Partial<EffectFilter>;
 

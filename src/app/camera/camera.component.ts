@@ -1,21 +1,24 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
+import { Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, ViewChild } from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
+import * as facemesh from "@tensorflow-models/facemesh";
 import { Observable } from "rxjs";
 import { delay } from "rxjs/operators";
 import { UnselectPicture } from "../camera-roll/camera-roll.state";
 import { EffectFilter } from "../filters-preview/filters-preview.component";
+import { WebGLFilter } from "../shared/webgl-filter.class";
 import { TimerComponent } from "../timer/timer.component";
 import { StartTimer, TimerState } from "../timer/timer.state";
 import { CameraState, CapturePicture, CapturePictureData, StartMediaStream, StopMediaStream } from "./camera.state";
-import { WebGLFilter } from "../shared/webgl-filter.class";
+
 
 @Component({
   selector: "app-camera",
   template: `
-    <video #videoRef hidden autoplay playsinline muted [width]="width" [height]="height"></video>
+    <video #videoRef hidden autoplay playsinline muted></video>
     <canvas #canvasTmpRef hidden [width]="width" [height]="height"></canvas>
 
     <ng-content select="app-filters"></ng-content>
+    <canvas #canvasMeshRef [hidden]="!isMeshOn" [width]="width" [height]="height" style="position: absolute"></canvas>
     <canvas #canvasRef [width]="width" [height]="height"></canvas>
     <ng-content select="app-camera-roll"></ng-content>
 
@@ -81,6 +84,7 @@ export class CameraComponent implements OnInit {
 
   @ViewChild("videoRef", { static: true }) videoRef: ElementRef<HTMLVideoElement>;
   @ViewChild("canvasRef", { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
+  @ViewChild("canvasMeshRef", { static: true }) canvasMeshRef: ElementRef<HTMLCanvasElement>;
   @ViewChild("canvasTmpRef", { static: true }) canvasTmpRef: ElementRef<HTMLCanvasElement>;
   @ViewChild(TimerComponent, { static: true }) timerRef: TimerComponent;
 
@@ -89,12 +93,16 @@ export class CameraComponent implements OnInit {
   @Input() deviceId: string;
   @Input() selectedFilter: Partial<EffectFilter>;
   canvasContextRef: CanvasRenderingContext2D;
+  canvasMeshContextRef: CanvasRenderingContext2D;
   canvasTmpContextRef: CanvasRenderingContext2D;
 
   isCameraOn: boolean;
 
   mediaStream: MediaStream;
   flashDuration = 2; // in seconds
+
+  model;
+  isMeshOn = false;
 
   @Select(TimerState.isTicking) timerIsTicking$: Observable<boolean>;
   @Select(CameraState.mediaStream) mediaStream$: Observable<MediaStream>;
@@ -109,7 +117,18 @@ export class CameraComponent implements OnInit {
 
   async ngOnInit() {
     this.canvasContextRef = this.canvasRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
+    this.canvasMeshContextRef = this.canvasMeshRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
     this.canvasTmpContextRef = this.canvasTmpRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
+
+    this.videoRef.nativeElement.onloadedmetadata = async () => {
+      this.videoRef.nativeElement.width = this.width;
+      this.videoRef.nativeElement.height = this.height;
+
+      this.model = await facemesh.load();
+      // load first predictions
+      await this.printFaceWireframe();
+      
+    };
 
     this.preview$.subscribe((preview) => {
       if (preview) {
@@ -119,7 +138,7 @@ export class CameraComponent implements OnInit {
       }
     });
 
-    this.mediaStream$.subscribe((mediaStream) => {
+    this.mediaStream$.subscribe(async (mediaStream) => {
       // Note: when stopping the device, mediaStream is set to null.
       this.mediaStream = mediaStream;
       this.isCameraOn = !!mediaStream;
@@ -130,13 +149,24 @@ export class CameraComponent implements OnInit {
         let { width, height, deviceId } = mediaStream.getTracks()[0].getSettings();
         this.videoRef.nativeElement.width = width;
         this.videoRef.nativeElement.height = height;
-        this.loop(new WebGLFilter());
+
+        window.requestAnimationFrame(async () => await this.loop(new WebGLFilter()));
 
         this.onCameraStart.emit(deviceId);
       }
     });
 
     this.startMediaStream();
+  }
+
+  @HostListener("document:keyup.shift", ["$event"])
+  onShiftKeyupHandler(event: KeyboardEvent) {
+    this.isMeshOn = false;
+  }
+
+  @HostListener("document:keydown.shift", ["$event"])
+  onShiftKeydownHandler(event: KeyboardEvent) {
+    this.isMeshOn = true
   }
 
   startTimer() {
@@ -174,10 +204,10 @@ export class CameraComponent implements OnInit {
     return this.store.dispatch(new StartMediaStream(this.deviceId));
   }
 
-  private loop(filter?: WebGLFilter) {
+  private async loop(filter: WebGLFilter) {
     if (this.isCameraOn) {
       try {
-        if (this.selectedFilter?.id) {
+        if (this.selectedFilter && this.selectedFilter.id !== "none") {
           // use WebGL filtered stream
 
           this.canvasTmpContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
@@ -196,7 +226,35 @@ export class CameraComponent implements OnInit {
         console.log(err);
       }
 
-      requestAnimationFrame(() => this.loop(filter));
+      this.printFaceWireframe();
+      window.requestAnimationFrame(async () => await this.loop(filter));
+    }
+  }
+
+  async printFaceWireframe() {
+    if (this.model) {
+      const predictions = await this.model.estimateFaces(this.canvasRef.nativeElement);
+
+      if (predictions.length > 0) {
+        predictions.forEach((prediction) => {
+          const keypoints = prediction.scaledMesh;
+          this.drawPath(this.canvasMeshContextRef, keypoints, true);
+        });
+      }
+    }
+  }
+
+  drawPath(ctx: CanvasRenderingContext2D, points) {
+    ctx.clearRect(0, 0, this.width, this.height);
+    for (let i = 0; i < points.length; i++) {
+      const x = points[i][0];
+      const y = points[i][1];
+
+      ctx.beginPath();
+      ctx.arc(x, y, 1 /* radius */, 0, 2 * Math.PI);
+      ctx.closePath();
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
     }
   }
 }
