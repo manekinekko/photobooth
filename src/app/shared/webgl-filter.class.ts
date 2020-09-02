@@ -83,29 +83,29 @@ export class WebGLFilter {
   }
 
   initializePresets() {
-    this.registerFilter(bgr);
-    this.registerFilter(blurHorizontal);
-    this.registerFilter(blurVertical);
-    this.registerFilter(blur);
-    this.registerFilter(brightness);
-    this.registerFilter(brownie);
-    this.registerFilter(contrast);
-    this.registerFilter(desaturateLuminance);
-    this.registerFilter(desaturate);
-    this.registerFilter(edges);
-    this.registerFilter(emboss);
-    this.registerFilter(hue);
-    this.registerFilter(kodachrome);
-    this.registerFilter(negative);
-    this.registerFilter(pixelate);
-    this.registerFilter(polaroid);
-    this.registerFilter(saturate);
-    this.registerFilter(sepia);
-    this.registerFilter(sharpen);
-    this.registerFilter(sobelHorizontal);
-    this.registerFilter(sobelVertical);
-    this.registerFilter(technicolor);
-    this.registerFilter(vintagePinhole);
+    this.registerFilter("bgr", bgr);
+    this.registerFilter("blurHorizontal", blurHorizontal);
+    this.registerFilter("blurVertical", blurVertical);
+    this.registerFilter("blur", blur);
+    this.registerFilter("brightness", brightness);
+    this.registerFilter("brownie", brownie);
+    this.registerFilter("contrast", contrast);
+    this.registerFilter("desaturateLuminance", desaturateLuminance);
+    this.registerFilter("desaturate", desaturate);
+    this.registerFilter("edges", edges);
+    this.registerFilter("emboss", emboss);
+    this.registerFilter("hue", hue);
+    this.registerFilter("kodachrome", kodachrome);
+    this.registerFilter("negative", negative);
+    this.registerFilter("pixelate", pixelate);
+    this.registerFilter("polaroid", polaroid);
+    this.registerFilter("saturate", saturate);
+    this.registerFilter("sepia", sepia);
+    this.registerFilter("sharpen", sharpen);
+    this.registerFilter("sobelHorizontal", sobelHorizontal);
+    this.registerFilter("sobelVertical", sobelVertical);
+    this.registerFilter("technicolor", technicolor);
+    this.registerFilter("vintagePinhole", vintagePinhole);
   }
 
   addFilter(name: string, ...args: any[]) {
@@ -276,8 +276,8 @@ export class WebGLFilter {
     return this.program;
   }
 
-  private registerFilter(filter: Function) {
+  private registerFilter(name: string, filter: Function) {
     // pass in "this" to the filter function
-    this.filter[filter.name] = filter.call(this);
+    this.filter[name] = filter.call(this);
   }
 }
