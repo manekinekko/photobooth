@@ -238,7 +238,7 @@ export class CameraComponent implements OnInit {
       if (predictions.length > 0) {
         predictions.forEach((prediction) => {
           const keypoints = prediction.scaledMesh;
-          this.drawPath(this.canvasMeshContextRef, keypoints, true);
+          this.drawPath(this.canvasMeshContextRef, keypoints);
         });
       }
     }
