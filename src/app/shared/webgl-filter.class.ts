@@ -52,22 +52,22 @@ export class WebGLFilter {
       precision highp float;
       attribute vec2 pos;
       attribute vec2 uv;
-      varying vec2 vUv;
+      varying vec2 imgCoord;
       uniform float flipY;
     
       void main(void) {
-        vUv = uv;
-        gl_Position = vec4(pos.x, pos.y*flipY, 0.0, 1.);
+        imgCoord = uv;
+        gl_Position = vec4(pos.x, pos.y * flipY, 0.0, 1.0);
       }
     `,
 
     FRAGMENT_IDENTITY: `
       precision highp float;
-      varying vec2 vUv;
+      varying vec2 imgCoord;
       uniform sampler2D texture;
 
       void main(void) {
-        gl_FragColor = texture2D(texture, vUv);
+        gl_FragColor = texture2D(texture, imgCoord);
       }
     `,
   };
@@ -77,7 +77,7 @@ export class WebGLFilter {
     this.gl = this.canvas.getContext("webgl");
 
     if (!this.gl) {
-      throw "Couldn't get WebGL context";
+      throw "[WebGL] Couldn't get WebGL context";
     }
 
     this.initializePresets();
@@ -112,7 +112,6 @@ export class WebGLFilter {
 
   addFilter(name: string, ...args: any[]) {
     const filter = this.filter[name];
-
     this.filterChain.push({ func: filter, args });
   }
 
@@ -260,7 +259,7 @@ export class WebGLFilter {
   private compileShader(fragmentSource: string) {
     if (this.shaderProgramCache[fragmentSource]) {
       this.program = this.shaderProgramCache[fragmentSource];
-      this.gl.useProgram(this.program.id);
+      this.gl.useProgram(this.program.program);
       return this.program;
     }
 

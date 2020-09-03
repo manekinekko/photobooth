@@ -4,7 +4,7 @@ export function pixelate() {
     const blurSizeY = size / this.height;
     const SHADER = `
       precision highp float;
-      varying vec2 vUv;
+      varying vec2 imgCoord;
       uniform vec2 size;
       uniform sampler2D texture;
    
@@ -14,7 +14,7 @@ export function pixelate() {
    
       void main(void) {
        gl_FragColor = vec4(0.0);
-       vec2 coord = pixelate(vUv, size);
+       vec2 coord = pixelate(imgCoord, size);
        gl_FragColor += texture2D(texture, coord);
       }
     `;

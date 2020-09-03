@@ -1,51 +1,60 @@
 export class CustomWebGLProgram {
   public uniform: { [key: string]: WebGLUniformLocation } = {};
   public attribute: { [key: string]: number } = {};
-  public id: WebGLProgram;
+  public program: WebGLProgram;
 
   constructor(gl: WebGLRenderingContext, vertexSource: string, fragmentSource: string) {
-    const vsh = this._compile(gl, vertexSource, gl.VERTEX_SHADER);
-    const _fsh = this._compile(gl, fragmentSource, gl.FRAGMENT_SHADER);
+    const vertexShader = this.compile(gl, vertexSource, gl.VERTEX_SHADER);
+    const fragmentShader = this.compile(gl, fragmentSource, gl.FRAGMENT_SHADER);
 
-    this.id = gl.createProgram();
-    gl.attachShader(this.id, vsh);
-    gl.attachShader(this.id, _fsh);
-    gl.linkProgram(this.id);
+    this.program = gl.createProgram();
+    gl.attachShader(this.program, vertexShader);
+    gl.attachShader(this.program, fragmentShader);
+    gl.linkProgram(this.program);
 
-    if (!gl.getProgramParameter(this.id, gl.LINK_STATUS)) {
+    if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
+      console.error(`[WebGL::LINK_STATUS]`, gl.getProgramInfoLog(this.program));
+      return;
     }
 
-    gl.useProgram(this.id);
+    gl.validateProgram(this.program);
+    if (!gl.getProgramParameter(this.program, gl.VALIDATE_STATUS)) {
+      console.error(`[WebGL::VALIDATE_STATUS]`, gl.getProgramInfoLog(this.program));
+      return;
+    }
+
+    gl.useProgram(this.program);
 
     // Collect attributes
-    this._collect(vertexSource, "attribute", this.attribute);
+    this.extract(vertexSource, "attribute", this.attribute);
     for (const a in this.attribute) {
-      this.attribute[a] = gl.getAttribLocation(this.id, a);
+      this.attribute[a] = gl.getAttribLocation(this.program, a);
     }
 
     // Collect uniforms
-    this._collect(vertexSource, "uniform", this.uniform);
-    this._collect(fragmentSource, "uniform", this.uniform);
+    this.extract(vertexSource, "uniform", this.uniform);
+    this.extract(fragmentSource, "uniform", this.uniform);
     for (const u in this.uniform) {
-      this.uniform[u] = gl.getUniformLocation(this.id, u);
+      this.uniform[u] = gl.getUniformLocation(this.program, u);
     }
   }
 
-  private _collect(source: string, prefix: string, collection: object) {
+  private extract(source: string, prefix: string, collection: object) {
     const r = new RegExp("\\b" + prefix + " \\w+ (\\w+)", "ig");
-    source.replace(r, function (match, name) {
+    source.replace(r, (match, name) => {
       collection[name] = 0;
       return match;
     });
   }
 
-  private _compile(gl: WebGLRenderingContext, source: string, type: number) {
+  private compile(gl: WebGLRenderingContext, source: string, type: number) {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      return null;
+      console.error(`[WebGL::COMPILE_STATUS]`, gl.getShaderInfoLog(shader));
+      return;
     }
     return shader;
   }
