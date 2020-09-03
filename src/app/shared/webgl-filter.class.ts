@@ -39,9 +39,8 @@ export class WebGLFilter {
   private vertexBuffer: WebGLBuffer = null;
   private program: CustomWebGLProgram = null;
   private canvas: HTMLCanvasElement = null;
-  // key is the shader program source, value is the compiled program
-  private shaderProgramCache = {};
-  private filter: any = {};
+  private shaderProgramCache: { [key: string]: CustomWebGLProgram } = {};
+  private filter: { [key: string]: Function } = {};
 
   private DRAW = {
     INTERMEDIATE: 1,
@@ -83,7 +82,7 @@ export class WebGLFilter {
     this.initializePresets();
   }
 
-  initializePresets() {
+  private initializePresets() {
     this.registerFilter("bgr", bgr);
     this.registerFilter("blurHorizontal", blurHorizontal);
     this.registerFilter("blurVertical", blurVertical);
@@ -136,7 +135,6 @@ export class WebGLFilter {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, imageOrCanvas);
 
-    // No filters? Just draw
     if (this.filterChain.length == 0) {
       this.compileShader(this.SHADER.FRAGMENT_IDENTITY);
       this.draw();
@@ -154,7 +152,6 @@ export class WebGLFilter {
   }
 
   private resize(width: number, height: number) {
-    // Same width/height? Nothing to do here
     if (width == this.width && height == this.height) {
       return;
     }
@@ -168,9 +165,6 @@ export class WebGLFilter {
       const vertices = new Float32Array([-1, -1, 0, 1, 1, -1, 1, 1, -1, 1, 0, 0, -1, 1, 0, 0, 1, -1, 1, 1, 1, 1, 1, 0]);
       (this.vertexBuffer = this.gl.createBuffer()), this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
       this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
-
-      // Note sure if this is a good idea; at least it makes texture loading
-      // in Ejecta instant.
       this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     }
 
@@ -218,7 +212,7 @@ export class WebGLFilter {
     this.gl.bindTexture(this.gl.TEXTURE_2D, null);
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
-    return { fbo: fbo, texture: texture };
+    return { fbo, texture };
   }
 
   private draw(flags = null) {
@@ -278,7 +272,7 @@ export class WebGLFilter {
   }
 
   private registerFilter(name: string, filter: Function) {
-    // pass in "this" to the filter function
+    // pass in "this" context to the filter function
     this.filter[name] = filter.call(this);
   }
 }
