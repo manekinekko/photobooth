@@ -20,6 +20,7 @@ import {
   sharpen,
   sobelHorizontal,
   sobelVertical,
+  vignette,
   technicolor,
   vintagePinhole,
 } from "./filters";
@@ -104,6 +105,7 @@ export class WebGLFilter {
     this.registerFilter("sharpen", sharpen);
     this.registerFilter("sobelHorizontal", sobelHorizontal);
     this.registerFilter("sobelVertical", sobelVertical);
+    this.registerFilter("vignette", vignette);
     this.registerFilter("technicolor", technicolor);
     this.registerFilter("vintagePinhole", vintagePinhole);
   }

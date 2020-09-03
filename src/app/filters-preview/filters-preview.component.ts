@@ -115,6 +115,7 @@ export class FiltersPreviewComponent implements OnInit {
     { id: "sobelHorizontal", label: "Sobel Hor." },
     { id: "sobelVertical", label: "Sobel Ver." },
     { id: "technicolor", label: "Technicolor" },
+    { id: "vignette", label: "Vignette" },
     { id: "vintagePinhole", label: "Vintage" },
   ];
   constructor() {

@@ -19,6 +19,7 @@ export { sepia } from "./presets/sepia";
 export { sharpen } from "./presets/sharpen";
 export { sobelHorizontal } from "./presets/sobel-horizontal";
 export { sobelVertical } from "./presets/sobel-vertical";
+export { vignette } from "./presets/vignette";
 export { technicolor } from "./presets/technicolor";
 export { vintagePinhole } from "./presets/vintage-pinhole";
 
