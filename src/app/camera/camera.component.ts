@@ -1,6 +1,15 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, ViewChild } from "@angular/core";
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Input,
+  NgZone,
+  OnInit,
+  Output,
+  ViewChild
+} from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
-import * as facemesh from "@tensorflow-models/facemesh";
 import { Observable } from "rxjs";
 import { delay } from "rxjs/operators";
 import { UnselectPicture } from "../camera-roll/camera-roll.state";
@@ -9,7 +18,7 @@ import { WebGLFilter } from "../shared/webgl-filter.class";
 import { TimerComponent } from "../timer/timer.component";
 import { StartTimer, TimerState } from "../timer/timer.state";
 import { CameraState, CapturePicture, CapturePictureData, StartMediaStream, StopMediaStream } from "./camera.state";
-
+import { FaceMeshService } from "./face-mesh.service";
 
 @Component({
   selector: "app-camera",
@@ -18,7 +27,13 @@ import { CameraState, CapturePicture, CapturePictureData, StartMediaStream, Stop
     <canvas #canvasTmpRef hidden [width]="width" [height]="height"></canvas>
 
     <ng-content select="app-filters"></ng-content>
-    <canvas #canvasMeshRef [hidden]="!isMeshOn" [width]="width" [height]="height" style="position: absolute"></canvas>
+    <canvas
+      #canvasMeshRef
+      [hidden]="!shouldDrawFaceMesh"
+      [width]="width"
+      [height]="height"
+      style="position: absolute"
+    ></canvas>
     <canvas #canvasRef [width]="width" [height]="height"></canvas>
     <ng-content select="app-camera-roll"></ng-content>
 
@@ -101,14 +116,18 @@ export class CameraComponent implements OnInit {
   mediaStream: MediaStream;
   flashDuration = 2; // in seconds
 
-  model;
-  isMeshOn = false;
+  shouldDrawFaceMesh = false;
 
   @Select(TimerState.isTicking) timerIsTicking$: Observable<boolean>;
   @Select(CameraState.mediaStream) mediaStream$: Observable<MediaStream>;
   @Select(CameraState.preview) preview$: Observable<string>;
 
-  constructor(private store: Store, private actions$: Actions) {
+  constructor(
+    private faceMesh: FaceMeshService,
+    private store: Store,
+    private actions$: Actions,
+    private ngZone: NgZone
+  ) {
     this.onCapture = this.actions$.pipe(ofActionSuccessful(CapturePictureData));
     this.onCameraStatus = new EventEmitter<boolean>();
     this.onCameraStart = new EventEmitter<string>();
@@ -120,14 +139,9 @@ export class CameraComponent implements OnInit {
     this.canvasMeshContextRef = this.canvasMeshRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
     this.canvasTmpContextRef = this.canvasTmpRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
 
-    this.videoRef.nativeElement.onloadedmetadata = async () => {
+    this.videoRef.nativeElement.onloadedmetadata = () => {
       this.videoRef.nativeElement.width = this.width;
       this.videoRef.nativeElement.height = this.height;
-
-      this.model = await facemesh.load();
-      // load first predictions
-      await this.printFaceWireframe();
-      
     };
 
     this.preview$.subscribe((preview) => {
@@ -150,7 +164,9 @@ export class CameraComponent implements OnInit {
         this.videoRef.nativeElement.width = width;
         this.videoRef.nativeElement.height = height;
 
-        window.requestAnimationFrame(async () => await this.loop(new WebGLFilter()));
+        this.ngZone.runOutsideAngular(() => {
+          window.requestAnimationFrame(async () => await this.loop(new WebGLFilter()));
+        });
 
         this.onCameraStart.emit(deviceId);
       }
@@ -161,12 +177,12 @@ export class CameraComponent implements OnInit {
 
   @HostListener("document:keyup.shift", ["$event"])
   onShiftKeyupHandler(event: KeyboardEvent) {
-    this.isMeshOn = false;
+    this.shouldDrawFaceMesh = false;
   }
 
   @HostListener("document:keydown.shift", ["$event"])
   onShiftKeydownHandler(event: KeyboardEvent) {
-    this.isMeshOn = true
+    this.shouldDrawFaceMesh = true;
   }
 
   startTimer() {
@@ -226,32 +242,24 @@ export class CameraComponent implements OnInit {
         console.log(err);
       }
 
-      this.printFaceWireframe();
+      if (this.shouldDrawFaceMesh) {
+        const scaledMesh = await this.faceMesh.predictFaceMesh(this.canvasRef.nativeElement);
+        this.drawFaceMeshPath(scaledMesh);
+      }
+
       window.requestAnimationFrame(async () => await this.loop(filter));
     }
   }
 
-  async printFaceWireframe() {
-    if (this.model) {
-      const predictions = await this.model.estimateFaces(this.canvasRef.nativeElement);
-
-      if (predictions.length > 0) {
-        predictions.forEach((prediction) => {
-          const keypoints = prediction.scaledMesh;
-          this.drawPath(this.canvasMeshContextRef, keypoints);
-        });
-      }
-    }
-  }
-
-  drawPath(ctx: CanvasRenderingContext2D, points) {
+  drawFaceMeshPath(scaledMesh) {
+    const ctx = this.canvasMeshContextRef;
     ctx.clearRect(0, 0, this.width, this.height);
-    for (let i = 0; i < points.length; i++) {
-      const x = points[i][0];
-      const y = points[i][1];
+    for (let i = 0; i < scaledMesh.length; i++) {
+      const x = scaledMesh[i][0];
+      const y = scaledMesh[i][1];
 
       ctx.beginPath();
-      ctx.arc(x, y, 1 /* radius */, 0, 2 * Math.PI);
+      ctx.arc(x | 0, y | 0, 1 /* radius */, 0, 2 * Math.PI);
       ctx.closePath();
       ctx.fillStyle = "#ffffff";
       ctx.fill();
