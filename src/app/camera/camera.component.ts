@@ -7,7 +7,7 @@ import {
   NgZone,
   OnInit,
   Output,
-  ViewChild
+  ViewChild,
 } from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
@@ -221,34 +221,36 @@ export class CameraComponent implements OnInit {
   }
 
   private async loop(filter: WebGLFilter) {
-    if (this.isCameraOn) {
-      try {
-        if (this.selectedFilter && this.selectedFilter.id !== "none") {
-          // use WebGL filtered stream
+    this.ngZone.runOutsideAngular(async () => {
+      if (this.isCameraOn) {
+        try {
+          if (this.selectedFilter && this.selectedFilter.id !== "none") {
+            // use WebGL filtered stream
 
-          this.canvasTmpContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
+            this.canvasTmpContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
 
-          filter.reset();
-          filter.addFilter(this.selectedFilter.id, this.selectedFilter.args);
+            filter.reset();
+            filter.addFilter(this.selectedFilter.id, this.selectedFilter.args);
 
-          const filteredImage = filter.apply(this.canvasTmpRef.nativeElement);
-          this.canvasContextRef.drawImage(filteredImage, 0, 0, this.width, this.height);
-        } else {
-          // use direct stream (no filters)
+            const filteredImage = filter.apply(this.canvasTmpRef.nativeElement);
+            this.canvasContextRef.drawImage(filteredImage, 0, 0, this.width, this.height);
+          } else {
+            // use direct stream (no filters)
 
-          this.canvasContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
+            this.canvasContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
+          }
+        } catch (err) {
+          console.log(err);
         }
-      } catch (err) {
-        console.log(err);
-      }
 
-      if (this.shouldDrawFaceMesh) {
-        const scaledMesh = await this.faceMesh.predictFaceMesh(this.canvasRef.nativeElement);
-        this.drawFaceMeshPath(scaledMesh);
-      }
+        if (this.shouldDrawFaceMesh) {
+          const scaledMesh = await this.faceMesh.predictFaceMesh(this.canvasRef.nativeElement);
+          this.drawFaceMeshPath(scaledMesh);
+        }
 
-      window.requestAnimationFrame(async () => await this.loop(filter));
-    }
+        window.requestAnimationFrame(async () => await this.loop(filter));
+      }
+    });
   }
 
   drawFaceMeshPath(scaledMesh) {
