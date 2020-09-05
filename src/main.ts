@@ -1,10 +1,7 @@
-import "@tensorflow/tfjs-backend-webgl";
-import "@tensorflow/tfjs-backend-cpu";
-// import "@tensorflow/tfjs-backend-wasm";
-
 import { enableProdMode } from "@angular/core";
 import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
-
+import "@tensorflow/tfjs-backend-cpu";
+import "@tensorflow/tfjs-backend-webgl";
 import { AppModule } from "./app/app.module";
 import { environment } from "./environments/environment";
 
