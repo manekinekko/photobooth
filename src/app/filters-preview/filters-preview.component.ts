@@ -88,7 +88,6 @@ export interface EffectFilter {
 })
 export class FiltersPreviewComponent implements OnInit {
   @Output() onFilterSelected: EventEmitter<Partial<EffectFilter>>;
-  @Input() width: number;
   selectedFilterId: string;
 
   filters: EffectFilter[] = [
@@ -141,13 +140,12 @@ export class FiltersPreviewComponent implements OnInit {
 
   private initializeFilters() {
     const image = new Image();
-    const webGlFilter = new WebGLFilter();
     image.onload = () => {
+      const webGlFilter = new WebGLFilter(image.width, image.height);
+
       this.filters
         .filter((filter) => filter.id !== "none")
         .map((filter) => {
-          console.log("Loading preset: ", filter.id);
-
           webGlFilter.reset();
           webGlFilter.addFilter(filter.id, filter.args);
           const filteredImage = webGlFilter.apply(image);

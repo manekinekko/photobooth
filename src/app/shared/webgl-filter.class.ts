@@ -20,8 +20,8 @@ import {
   sharpen,
   sobelHorizontal,
   sobelVertical,
-  vignette,
   technicolor,
+  vignette,
   vintagePinhole,
 } from "./filters";
 import { CustomWebGLProgram } from "./webgl-program.class";
@@ -38,6 +38,7 @@ export class WebGLFilter {
   private height = -1;
   private vertexBuffer: WebGLBuffer = null;
   private program: CustomWebGLProgram = null;
+  private offscreen: OffscreenCanvas = null;
   private canvas: HTMLCanvasElement = null;
   private shaderProgramCache: { [key: string]: CustomWebGLProgram } = {};
   private filter: { [key: string]: Function } = {};
@@ -71,9 +72,10 @@ export class WebGLFilter {
     `,
   };
 
-  constructor() {
+  constructor(width: number, height: number) {
     this.canvas = document.createElement("canvas");
-    this.gl = this.canvas.getContext("webgl");
+    this.offscreen = new OffscreenCanvas(width, height);
+    this.gl = this.offscreen.getContext("webgl");
 
     if (!this.gl) {
       throw "[WebGL] Couldn't get WebGL context";
@@ -119,7 +121,7 @@ export class WebGLFilter {
   }
 
   apply(imageOrCanvas: HTMLCanvasElement | HTMLImageElement) {
-    this.resize(imageOrCanvas.width, imageOrCanvas.height);
+    this.resize(imageOrCanvas);
 
     this.drawCount = 0;
 
@@ -138,7 +140,7 @@ export class WebGLFilter {
     if (this.filterChain.length == 0) {
       this.compileShader(this.SHADER.FRAGMENT_IDENTITY);
       this.draw();
-      return this.canvas;
+      return this.commitChanges();
     }
 
     for (let i = 0; i < this.filterChain.length; i++) {
@@ -148,11 +150,21 @@ export class WebGLFilter {
       f.func.apply(this, f.args || []);
     }
 
+    return this.commitChanges();
+  }
+
+  private commitChanges() {
+    var bitmap = this.offscreen.transferToImageBitmap();
+    this.canvas.width = bitmap.width;
+    this.canvas.height = bitmap.height;
+    this.canvas.getContext("bitmaprenderer").transferFromImageBitmap(bitmap);
     return this.canvas;
   }
 
-  private resize(width: number, height: number) {
-    if (width == this.width && height == this.height) {
+  private resize(imageOrCanvas: HTMLCanvasElement | HTMLImageElement) {
+    const width = imageOrCanvas.width;
+    const height = imageOrCanvas.height;
+    if (width === this.width && height === this.height) {
       return;
     }
 
