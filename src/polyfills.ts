@@ -56,34 +56,7 @@
  * Zone JS is required by default for Angular itself.
  */
 
-// Reduce overhead introduced by the Zone.js:
-
- // Not needed for Angular
-(window as any).__Zone_disable_requestAnimationFrame = true;
-(window as any).__Zone_disable_canvas = true;
-(window as any).__Zone_disable_Error = true;
-(window as any).__Zone_disable_geolocation = true;
-(window as any).__Zone_disable_toString = true;
-(window as any).__Zone_disable_blocking = true;
-(window as any).__Zone_disable_PromiseRejectionEvent = true;
-(window as any).__Zone_disable_MutationObserver = true;
-(window as any).__Zone_disable_Intersection = true;
-(window as any).__Zone_disable_FileReader = true;
-(window as any).__Zone_disable_IE_check = true;
-(window as any).__Zone_disable_geolocation = true;
-(window as any).__Zone_disable_mediaQuery = true;
-(window as any).__Zone_disable_notification = true;
-(window as any).__Zone_disable_MessagePort = true;
-(window as any).__zone_symbol__UNPATCHED_EVENTS = ['scroll', 'mousemove'];
-(window as any).__Zone_enable_cross_context_check = false;
-
-// Needed for Angular
-(window as any).__Zone_disable_ZoneAwarePromise = false;
-(window as any).__Zone_disable_timers = false;
-(window as any).__Zone_disable_EventTarget = false;
-(window as any).__Zone_disable_XHR = false;
-(window as any).__Zone_disable_on_property = false;
-
+import "./zone-flags";
 import "zone.js/dist/zone"; // Included with Angular CLI.
 
 /***************************************************************************************************
