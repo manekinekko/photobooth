@@ -1,10 +1,10 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
   HostListener,
   Input,
-  NgZone,
   OnInit,
   Output,
   ViewChild,
@@ -22,6 +22,7 @@ import { FaceMeshService } from "./face-mesh.service";
 
 @Component({
   selector: "app-camera",
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <video #videoRef hidden autoplay playsinline muted></video>
     <canvas #canvasTmpRef hidden [width]="width" [height]="height"></canvas>
@@ -122,12 +123,7 @@ export class CameraComponent implements OnInit {
   @Select(CameraState.mediaStream) mediaStream$: Observable<MediaStream>;
   @Select(CameraState.preview) preview$: Observable<string>;
 
-  constructor(
-    private faceMesh: FaceMeshService,
-    private store: Store,
-    private actions$: Actions,
-    private ngZone: NgZone
-  ) {
+  constructor(private faceMesh: FaceMeshService, private store: Store, private actions$: Actions) {
     this.onCapture = this.actions$.pipe(ofActionSuccessful(CapturePictureData));
     this.onCameraStatus = new EventEmitter<boolean>();
     this.onCameraStart = new EventEmitter<string>();
@@ -164,9 +160,7 @@ export class CameraComponent implements OnInit {
         this.videoRef.nativeElement.width = width;
         this.videoRef.nativeElement.height = height;
 
-        this.ngZone.runOutsideAngular(() => {
-          window.requestAnimationFrame(async () => await this.loop(new WebGLFilter()));
-        });
+        window.requestAnimationFrame(async () => await this.loop(new WebGLFilter(this.width, this.height)));
 
         this.onCameraStart.emit(deviceId);
       }
@@ -221,36 +215,34 @@ export class CameraComponent implements OnInit {
   }
 
   private async loop(filter: WebGLFilter) {
-    this.ngZone.runOutsideAngular(async () => {
-      if (this.isCameraOn) {
-        try {
-          if (this.selectedFilter && this.selectedFilter.id !== "none") {
-            // use WebGL filtered stream
+    if (this.isCameraOn) {
+      try {
+        if (this.selectedFilter && this.selectedFilter.id !== "none") {
+          // use WebGL filtered stream
 
-            this.canvasTmpContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
+          this.canvasTmpContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
 
-            filter.reset();
-            filter.addFilter(this.selectedFilter.id, this.selectedFilter.args);
+          filter.reset();
+          filter.addFilter(this.selectedFilter.id, this.selectedFilter.args);
 
-            const filteredImage = filter.apply(this.canvasTmpRef.nativeElement);
-            this.canvasContextRef.drawImage(filteredImage, 0, 0, this.width, this.height);
-          } else {
-            // use direct stream (no filters)
+          const filteredImage = filter.apply(this.canvasTmpRef.nativeElement);
+          this.canvasContextRef.drawImage(filteredImage, 0, 0, this.width, this.height);
+        } else {
+          // use direct stream (no filters)
 
-            this.canvasContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
-          }
-        } catch (err) {
-          console.log(err);
+          this.canvasContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
         }
-
-        if (this.shouldDrawFaceMesh) {
-          const scaledMesh = await this.faceMesh.predictFaceMesh(this.canvasRef.nativeElement);
-          this.drawFaceMeshPath(scaledMesh);
-        }
-
-        window.requestAnimationFrame(async () => await this.loop(filter));
+      } catch (err) {
+        console.log(err);
       }
-    });
+
+      if (this.shouldDrawFaceMesh) {
+        const scaledMesh = await this.faceMesh.predictFaceMesh(this.canvasRef.nativeElement);
+        this.drawFaceMeshPath(scaledMesh);
+      }
+
+      window.requestAnimationFrame(async () => await this.loop(filter));
+    }
   }
 
   drawFaceMeshPath(scaledMesh) {
