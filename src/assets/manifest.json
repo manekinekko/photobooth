@@ -1,0 +1,52 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.7/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.7",
+  "version": "1.0.0",
+  "showLoadingIndicator": true,
+  "isFullScreen": true,
+  "id": "970a36a3-7b73-45cd-a8d6-95059dd41e54",
+  "packageName": "dev.wassim.photobooth",
+  "developer": {
+    "name": "Wassim Chegham",
+    "websiteUrl": "https://wassim.dev",
+    "privacyUrl": "https://delightful-field-0c06d3203.azurestaticapps.net/",
+    "termsOfUseUrl": "https://delightful-field-0c06d3203.azurestaticapps.net/"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "PhotoBooth",
+    "full": "Photo Booth For Microsoft Teams"
+  },
+  "description": {
+    "short": "A photo booth app for Microsoft Teams",
+    "full": "A photo booth app for Microsoft Teams"
+  },
+  "accentColor": "#FFFFFF",
+  "configurableTabs": [
+    {
+      "configurationUrl": "https://delightful-field-0c06d3203.azurestaticapps.net/",
+      "canUpdateConfiguration": true,
+      "scopes": [
+        "team",
+        "groupchat"
+      ],
+      "supportedSharePointHosts": [
+        "sharePointFullPage"
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "*.azurestaticapps.net"
+  ],
+  "devicePermissions": [
+    "media",
+    "openExternal"
+  ]
+}
