@@ -23,6 +23,6 @@ export class AppService {
   }
 
   computeCameraAspectRatio() {
-    return this.isRunningInMSTeams() ? 0.6 : 0.8;
+    return this.isRunningInMSTeams() ? 0.5 : 0.8;
   }
 }

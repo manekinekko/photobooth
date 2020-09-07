@@ -54,6 +54,10 @@ import { PresetFilter } from "./filters-preview/filters-preview.component";
         background: #585454;
         padding: 10px 0 0;
       }
+      :host(.ms-teams) {
+        background: #464775;
+        border: 1px solid transparent;
+      }
       .flash-effect {
         background: white;
         opacity: 0;
@@ -105,20 +109,27 @@ export class AppComponent {
   @ViewChild("flashEffectRef", { static: true }) flashEffectRef: ElementRef;
   width: number = 1280;
   height: number = 720;
-  aspectRatio;
+  aspectRatio: number;
 
   selectedFilters: Array<PresetFilter>;
 
   activeSource: string;
+
+  isMsTeams: boolean;
   @Select(CameraState.source) activeSource$: Observable<string>;
 
-  constructor(private store: Store, private app: AppService) {
+  constructor(private store: Store, private app: AppService, private element: ElementRef<HTMLElement>) {
     this.aspectRatio = this.app.computeCameraAspectRatio();
+    this.isMsTeams = this.app.isRunningInMSTeams();
   }
 
   async ngOnInit() {
     this.width = this.width * this.aspectRatio;
     this.height = this.height * this.aspectRatio;
+
+    if (this.isMsTeams) {
+      this.element.nativeElement.classList.add("ms-teams");
+    }
   }
 
   onDeviceSelected(selectedDeviceId: string) {
