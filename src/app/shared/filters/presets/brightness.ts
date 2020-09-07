@@ -1,8 +1,12 @@
 import { colorMatrixShader } from "../shaders/color-matrix";
 
 export function brightness() {
+  /**
+   * value >= 0
+   * 0: dark
+   * 1+: brighter
+   */
   return (value: number) => {
-    const b = (value || 0) + 1;
-    colorMatrixShader.call(this)([b, 0, 0, 0, 0, 0, b, 0, 0, 0, 0, 0, b, 0, 0, 0, 0, 0, 1, 0]);
+    colorMatrixShader.call(this)([value, 0, 0, 0, 0, 0, value, 0, 0, 0, 0, 0, value, 0, 0, 0, 0, 0, 1, 0]);
   };
 }
