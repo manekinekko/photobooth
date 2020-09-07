@@ -4,7 +4,7 @@ import { Observable } from "rxjs";
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
-import { EffectFilter } from "./filters-preview/filters-preview.component";
+import { PresetFilter } from "./filters-preview/filters-preview.component";
 
 @Component({
   selector: "app-root",
@@ -19,7 +19,7 @@ import { EffectFilter } from "./filters-preview/filters-preview.component";
       <app-camera
         [width]="width"
         [height]="height"
-        [selectedFilter]="selectedFilter"
+        [selectedFilters]="selectedFilters"
         (onCameraStart)="onCameraStart($event)"
         (onCapture)="onCapture($event)"
         (onFlash)="flashEffect($event)"
@@ -87,7 +87,7 @@ export class AppComponent {
   height: number = 720;
   aspectRatio = 0.8;
 
-  selectedFilter: Partial<EffectFilter>;
+  selectedFilters: Array<PresetFilter>;
 
   activeSource: string;
   @Select(CameraState.source) activeSource$: Observable<string>;
@@ -126,7 +126,7 @@ export class AppComponent {
     this.store.dispatch([new StopMediaStream(), new PreviewPictureData(picture.data)]);
   }
 
-  onFilterSelected(filter: Partial<EffectFilter>) {
-    this.selectedFilter = filter;
+  onFilterSelected(filters: Array<PresetFilter>) {
+    this.selectedFilters = filters;
   }
 }

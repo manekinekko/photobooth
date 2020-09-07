@@ -13,7 +13,7 @@ import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { delay } from "rxjs/operators";
 import { UnselectPicture } from "../camera-roll/camera-roll.state";
-import { EffectFilter } from "../filters-preview/filters-preview.component";
+import { PresetFilter } from "../filters-preview/filters-preview.component";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 import { TimerComponent } from "../timer/timer.component";
 import { StartTimer, TimerState } from "../timer/timer.state";
@@ -107,7 +107,7 @@ export class CameraComponent implements OnInit {
   @Input() width: number = 1280;
   @Input() height: number = 720;
   @Input() deviceId: string;
-  @Input() selectedFilter: Partial<EffectFilter>;
+  @Input() selectedFilters: Array<PresetFilter>;
   canvasContextRef: CanvasRenderingContext2D;
   canvasMeshContextRef: CanvasRenderingContext2D;
   canvasTmpContextRef: CanvasRenderingContext2D;
@@ -214,23 +214,29 @@ export class CameraComponent implements OnInit {
     return this.store.dispatch(new StartMediaStream(this.deviceId));
   }
 
-  private async loop(filter: WebGLFilter) {
+  private async loop(webGLFilter: WebGLFilter) {
     if (this.isCameraOn) {
       try {
-        if (this.selectedFilter && this.selectedFilter.id !== "none") {
+        // apply filters only if they are set
+        if (!this.selectedFilters || this.selectedFilters.length === 0) {
+          // draw direct stream from video (no filters applied)
+          this.canvasContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
+        } else {
           // use WebGL filtered stream
 
           this.canvasTmpContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
 
-          filter.reset();
-          filter.addFilter(this.selectedFilter.id, this.selectedFilter.args);
+          // reset any previously applied filters
+          webGLFilter.reset();
 
-          const filteredImage = filter.apply(this.canvasTmpRef.nativeElement);
+          // add selected filters/presets
+          this.selectedFilters.forEach((f) => webGLFilter.addFilter(f.id, f.args));
+
+          // apply filters
+          const filteredImage = webGLFilter.apply(this.canvasTmpRef.nativeElement);
+
+          // draw image data with applied filters
           this.canvasContextRef.drawImage(filteredImage, 0, 0, this.width, this.height);
-        } else {
-          // use direct stream (no filters)
-
-          this.canvasContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
         }
       } catch (err) {
         console.log(err);
@@ -241,11 +247,11 @@ export class CameraComponent implements OnInit {
         this.drawFaceMeshPath(scaledMesh);
       }
 
-      window.requestAnimationFrame(async () => await this.loop(filter));
+      window.requestAnimationFrame(async () => await this.loop(webGLFilter));
     }
   }
 
-  drawFaceMeshPath(scaledMesh) {
+  private drawFaceMeshPath(scaledMesh) {
     const ctx = this.canvasMeshContextRef;
     ctx.clearRect(0, 0, this.width, this.height);
     for (let i = 0; i < scaledMesh.length; i++) {
