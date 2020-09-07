@@ -15,9 +15,14 @@ platformBrowserDynamic()
   .bootstrapModule(AppModule)
   .then((moduleRef) => {
     if (environment.production) {
-      microsoftTeams.initialize(() => {
+      microsoftTeams.initialize();
+      microsoftTeams.getContext((context) => {
         const app = moduleRef.injector.get(AppService);
+        if (context === null || context === undefined) {
+          return app.setContext(CONTEXT.STANDALONE);
+        }
         app.setContext(CONTEXT.MS_TEAMS);
+        console.log("MS Teams context detected", context);
       });
 
       microsoftTeams.settings.setValidityState(true);

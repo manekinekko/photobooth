@@ -11,9 +11,6 @@ export enum CONTEXT {
 export class AppService {
   private context: CONTEXT = CONTEXT.STANDALONE;
   constructor() {
-    if (this.isRunningInMSTeams()) {
-      console.log("MS Teams context detected");
-    }
   }
   setContext(context: CONTEXT) {
     this.context = context;
