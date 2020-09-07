@@ -33,6 +33,14 @@ import { PresetFilter } from "./filters-preview/filters-preview.component";
     </main>
 
     <app-device-source [source]="activeSource" (onDeviceSelected)="onDeviceSelected($event)"></app-device-source>
+
+    <footer>
+      Made by <a href="https://twitter.com/@manekinekko">@manekinekko</a> (<a
+        target="__blank"
+        href="https://github.com/manekinekko/photobooth-teams"
+        >_BUILD_HASH_</a
+      >)
+    </footer>
   `,
   styles: [
     `
@@ -67,6 +75,17 @@ import { PresetFilter } from "./filters-preview/filters-preview.component";
 
       select::-ms-expand {
         display: none;
+      }
+
+      footer {
+        font-size: 10px;
+        right: 4px;
+        position: absolute;
+        bottom: 5px;
+      }
+      footer,
+      footer a {
+        color: white;
       }
 
       @keyframes flash {
