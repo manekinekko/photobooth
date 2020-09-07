@@ -41,12 +41,13 @@ export function loadTFMediaPipeModel(faceMesh: FaceMeshService) {
     NgxsReduxDevtoolsPluginModule.forRoot(),
   ],
   providers: [
-    {
-      provide: APP_INITIALIZER,
-      useFactory: loadTFMediaPipeModel,
-      multi: true,
-      deps: [FaceMeshService],
-    },
+    // @todo: uncomment to enable TF
+    // {
+    //   provide: APP_INITIALIZER,
+    //   useFactory: loadTFMediaPipeModel,
+    //   multi: true,
+    //   deps: [FaceMeshService],
+    // },
   ],
   bootstrap: [AppComponent],
 })
