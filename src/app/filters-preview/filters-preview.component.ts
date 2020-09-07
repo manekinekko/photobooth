@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from "@angular/core";
+import { Component, ElementRef, EventEmitter, OnInit, Output, Renderer2, ViewChild } from "@angular/core";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 
 export interface PresetFilter {
@@ -14,7 +14,12 @@ export interface PresetFilters {
 @Component({
   selector: "app-filters-preview",
   template: `
-    <ul class="filter-list">
+    <ul
+      class="filter-list"
+      #filterList
+      (mouseenter)="canScrollHorizontal(true)"
+      (mouseleave)="canScrollHorizontal(false)"
+    >
       <li
         class="filter-list-item"
         *ngFor="let filter of filters"
@@ -90,8 +95,10 @@ export interface PresetFilters {
   ],
 })
 export class FiltersPreviewComponent implements OnInit {
+  @ViewChild("filterList", { static: true }) filterListRef: ElementRef<HTMLUListElement>;
   @Output() onFilterSelected: EventEmitter<Array<PresetFilter>>;
   selectedFilterLabel: string;
+  isScrollFilterListEnabled = false;
 
   filters: PresetFilters[] = [
     { label: "Normal", filters: [] },
@@ -168,7 +175,7 @@ export class FiltersPreviewComponent implements OnInit {
       ],
     },
   ];
-  constructor() {
+  constructor(private renderer: Renderer2) {
     this.onFilterSelected = new EventEmitter<Array<PresetFilter>>();
     this.selectedFilterLabel = "Normal";
   }
@@ -176,6 +183,16 @@ export class FiltersPreviewComponent implements OnInit {
   ngOnInit(): void {
     this.initializeFilters();
     this.initializeSelectedFiltersFromUrlHash();
+    this.renderer.listen(this.filterListRef.nativeElement, "mousewheel", (event: WheelEvent) => {
+      if (this.isScrollFilterListEnabled) {
+        this.filterListRef.nativeElement.scrollLeft -= event.deltaY;
+        event.preventDefault();
+      }
+    });
+  }
+
+  canScrollHorizontal(enable: boolean) {
+    this.isScrollFilterListEnabled = enable;
   }
 
   private initializeSelectedFiltersFromUrlHash() {
@@ -185,7 +202,7 @@ export class FiltersPreviewComponent implements OnInit {
       // example: f=Gingham:sepia,0.5|contrast,0.9
       // ignore the key "k" and extract the filter definition
       const [_, filtersHash] = selectedFiltersHash.split("=");
-      
+
       // extract the label and filters setting
       // example: Gingham" and "sepia,0.5|contrast,0.9"
       let [label, filtersSetting] = filtersHash.split(":");
@@ -206,7 +223,7 @@ export class FiltersPreviewComponent implements OnInit {
       // trigger filter propagation
       this.onFilterClicked({
         label: decodeURIComponent(label),
-        filters: selectedFilters
+        filters: selectedFilters,
       });
     }
   }
