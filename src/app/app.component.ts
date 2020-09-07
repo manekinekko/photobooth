@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
 import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
+import { AppService } from "./app.service";
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
@@ -85,14 +86,16 @@ export class AppComponent {
   @ViewChild("flashEffectRef", { static: true }) flashEffectRef: ElementRef;
   width: number = 1280;
   height: number = 720;
-  aspectRatio = 0.8;
+  aspectRatio;
 
   selectedFilters: Array<PresetFilter>;
 
   activeSource: string;
   @Select(CameraState.source) activeSource$: Observable<string>;
 
-  constructor(private store: Store) {}
+  constructor(private store: Store, private app: AppService) {
+    this.aspectRatio = this.app.computeCameraAspectRatio();
+  }
 
   async ngOnInit() {
     this.width = this.width * this.aspectRatio;
