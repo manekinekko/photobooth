@@ -198,7 +198,6 @@ export class FiltersPreviewComponent implements OnInit {
     const filterElementRef = this.filterListItemRef.find(
       (item) => item.nativeElement.dataset.label === this.selectedFilterLabel
     );
-    console.log(filterElementRef.nativeElement);
 
     setTimeout((_) => {
       filterElementRef.nativeElement.scrollIntoView({ behavior: "smooth", inline: "center" });
