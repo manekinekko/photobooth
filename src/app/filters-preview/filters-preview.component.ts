@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, OnInit, Output, Renderer2, ViewChild } from "@angular/core";
+import { Component, ElementRef, EventEmitter, OnInit, Output, Renderer2, ViewChild, ViewChildren } from "@angular/core";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 
 export interface PresetFilter {
@@ -16,11 +16,13 @@ export interface PresetFilters {
   template: `
     <ul
       class="filter-list"
-      #filterList
-      (mouseenter)="canScrollHorizontal(true)"
-      (mouseleave)="canScrollHorizontal(false)"
+      #filterListRef
+      (mouseenter)="toggleScrollingInFilterList(true)"
+      (mouseleave)="toggleScrollingInFilterList(false)"
     >
       <li
+        #filterListItemRef
+        [attr.data-label]="filter.label"
         class="filter-list-item"
         *ngFor="let filter of filters"
         [ngClass]="{ selected: selectedFilterLabel === filter.label }"
@@ -80,7 +82,7 @@ export interface PresetFilters {
         min-width: 21px;
         text-align: center;
         position: absolute;
-        bottom: -20px;
+        bottom: -100px;
         transition: bottom 0.1s ease-in;
       }
       .filter-list-item.selected span,
@@ -88,14 +90,15 @@ export interface PresetFilters {
         bottom: 5px;
       }
       .filter-list-item.selected img {
-        border: 1px solid black;
+        border: 1px solid white;
         transition: 0.3s;
       }
     `,
   ],
 })
 export class FiltersPreviewComponent implements OnInit {
-  @ViewChild("filterList", { static: true }) filterListRef: ElementRef<HTMLUListElement>;
+  @ViewChild("filterListRef", { static: true }) filterListRef: ElementRef<HTMLUListElement>;
+  @ViewChildren("filterListItemRef") filterListItemRef: Array<ElementRef<HTMLLIElement>>;
   @Output() onFilterSelected: EventEmitter<Array<PresetFilter>>;
   selectedFilterLabel: string;
   isScrollFilterListEnabled = false;
@@ -191,7 +194,18 @@ export class FiltersPreviewComponent implements OnInit {
     });
   }
 
-  canScrollHorizontal(enable: boolean) {
+  ngAfterViewInit() {
+    const filterElementRef = this.filterListItemRef.find(
+      (item) => item.nativeElement.dataset.label === this.selectedFilterLabel
+    );
+    console.log(filterElementRef.nativeElement);
+
+    setTimeout((_) => {
+      filterElementRef.nativeElement.scrollIntoView({ behavior: "smooth", inline: "center" });
+    }, 900);
+  }
+
+  toggleScrollingInFilterList(enable: boolean) {
     this.isScrollFilterListEnabled = enable;
   }
 
@@ -232,7 +246,7 @@ export class FiltersPreviewComponent implements OnInit {
     if (this.selectedFilterLabel !== filter.label) {
       this.selectedFilterLabel = filter.label;
 
-      if (filter.label === "none") {
+      if (filter.filters.length === 0) {
         this.onFilterSelected.emit(null);
       } else {
         this.onFilterSelected.emit(filter.filters);
