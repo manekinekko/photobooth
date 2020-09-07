@@ -50,8 +50,8 @@
               "src/favicon.ico",
               "src/assets",
               {
-                "glob": "manifest.json",
-                "input": "src/assets",
+                "glob": "*.{json,png}",
+                "input": "src/assets/teams-manifest",
                 "output": "."
               }
             ],
