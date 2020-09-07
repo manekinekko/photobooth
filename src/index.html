@@ -14,6 +14,15 @@
     <script>
       microsoftTeams.initialize();
       microsoftTeams.settings.setValidityState(true);
+      microsoftTeams.settings.registerOnSaveHandler((saveEvent) => {
+        microsoftTeams.settings.setSettings({
+          websiteUrl: "https://delightful-field-0c06d3203.azurestaticapps.net",
+          contentUrl: "https://delightful-field-0c06d3203.azurestaticapps.net",
+          entityId: "dev.wassim.photobooth",
+          suggestedDisplayName: "Photo Booth",
+        });
+        saveEvent.notifySuccess();
+      });
     </script>
   </body>
 </html>

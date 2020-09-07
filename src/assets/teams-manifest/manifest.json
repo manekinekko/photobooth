@@ -33,6 +33,6 @@
     }
   ],
   "permissions": ["identity", "messageTeamMembers"],
-  "validDomains": ["delightful-field-0c06d3203.azurestaticapps.net"],
+  "validDomains": ["*.azurestaticapps.net"],
   "devicePermissions": ["media", "openExternal"]
 }
