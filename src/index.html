@@ -13,9 +13,7 @@
     <app-root></app-root>
     <script>
       microsoftTeams.initialize();
-      microsoftTeams.settings.registerOnSaveHandler((saveEvent) => {
-        saveEvent.notifySuccess();
-      });
+      microsoftTeams.settings.setValidityState(true);
     </script>
   </body>
 </html>
