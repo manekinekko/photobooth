@@ -19,7 +19,7 @@ export interface PresetFilters {
         class="filter-list-item"
         *ngFor="let filter of filters"
         [ngClass]="{ selected: selectedFilterLabel === filter.label }"
-        (click)="onFilterClicked(filter)"
+        (click)="onFilterClicked(filter, true)"
       >
         <span>{{ filter.label }}</span>
         <img [src]="filter.data || 'assets/filter-placeholder.jpg'" height="50" />
@@ -175,9 +175,43 @@ export class FiltersPreviewComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeFilters();
+    this.initializeSelectedFiltersFromUrlHash();
   }
 
-  onFilterClicked(filter: PresetFilters) {
+  private initializeSelectedFiltersFromUrlHash() {
+    const selectedFiltersHash = location.hash.replace("#", "");
+    // is there any hash?
+    if (selectedFiltersHash) {
+      // example: f=Gingham:sepia,0.5|contrast,0.9
+      // ignore the key "k" and extract the filter definition
+      const [_, filtersHash] = selectedFiltersHash.split("=");
+      
+      // extract the label and filters setting
+      // example: Gingham" and "sepia,0.5|contrast,0.9"
+      let [label, filtersSetting] = filtersHash.split(":");
+
+      // extract the array of filters
+      // example: sepia,0.5|contrast,0.9
+      const filters = filtersSetting.split("|");
+
+      // create a filter definition {id, args} for each filter setting
+      const selectedFilters: Array<PresetFilter> = filters.map((filter: string) => {
+        const [id, ...args] = filter.split(",");
+        return {
+          id,
+          args: args.map(Number),
+        };
+      });
+
+      // trigger filter propagation
+      this.onFilterClicked({
+        label: decodeURIComponent(label),
+        filters: selectedFilters
+      });
+    }
+  }
+
+  onFilterClicked(filter: PresetFilters, updateUrlHash = false) {
     if (this.selectedFilterLabel !== filter.label) {
       this.selectedFilterLabel = filter.label;
 
@@ -185,6 +219,17 @@ export class FiltersPreviewComponent implements OnInit {
         this.onFilterSelected.emit(null);
       } else {
         this.onFilterSelected.emit(filter.filters);
+      }
+
+      if (updateUrlHash) {
+        const serializedFilters = filter.filters.map((f) => {
+          let str = `${f.id}`;
+          if (f.args && f.args.length > 0) {
+            str = `${str},${f.args.join(",")}`;
+          }
+          return str;
+        });
+        location.hash = `f=${filter.label}:${serializedFilters.join("|")}`;
       }
     }
   }
