@@ -63,7 +63,6 @@ export interface PresetFilters {
         display: flex;
         align-items: flex-end;
         justify-content: center;
-        overflowL hidden;
       }
       .filter-list-item:last-child {
         padding-right: 4px;

@@ -10,54 +10,55 @@ import { PresetFilter } from "./filters-preview/filters-preview.component";
 @Component({
   selector: "app-root",
   template: `
-    <app-filters-preview
-      [ngStyle]="{ width: width + 'px' }"
-      (onFilterSelected)="onFilterSelected($event)"
-    ></app-filters-preview>
+    <section appTheme>
+      <app-filters-preview
+        [ngStyle]="{ width: width + 'px' }"
+        (onFilterSelected)="onFilterSelected($event)"
+      ></app-filters-preview>
 
-    <div #flashEffectRef></div>
-    <main [ngStyle]="{ width: width + 'px' }">
-      <app-camera
-        [width]="width"
-        [height]="height"
-        [selectedFilters]="selectedFilters"
-        (onCameraStart)="onCameraStart($event)"
-        (onCapture)="onCapture($event)"
-        (onFlash)="flashEffect($event)"
-      >
-        <app-camera-roll
-          (onEmptyPictures)="onEmptyPictures()"
-          (onPictureSelected)="onPictureSelected($event)"
-        ></app-camera-roll>
-      </app-camera>
-    </main>
+      <div #flashEffectRef></div>
+      <main [ngStyle]="{ width: width + 'px' }">
+        <app-camera
+          [width]="width"
+          [height]="height"
+          [selectedFilters]="selectedFilters"
+          (onCameraStart)="onCameraStart($event)"
+          (onCapture)="onCapture($event)"
+          (onFlash)="flashEffect($event)"
+        >
+          <app-camera-roll
+            (onEmptyPictures)="onEmptyPictures()"
+            (onPictureSelected)="onPictureSelected($event)"
+          ></app-camera-roll>
+        </app-camera>
+      </main>
 
-    <app-device-source [source]="activeSource" (onDeviceSelected)="onDeviceSelected($event)"></app-device-source>
+      <app-device-source [source]="activeSource" (onDeviceSelected)="onDeviceSelected($event)"></app-device-source>
 
-    <footer>
-      Made by <a href="https://twitter.com/@manekinekko">@manekinekko</a> (<a
-        target="__blank"
-        href="https://github.com/manekinekko/photobooth-teams"
-        >_BUILD_HASH_</a
-      >)
-    </footer>
+      <footer>
+        Made by <a href="https://twitter.com/@manekinekko">@manekinekko</a> (<a
+          target="__blank"
+          href="https://github.com/manekinekko/photobooth-teams"
+          >_BUILD_HASH_</a
+        >)
+      </footer>
+    </section>
   `,
   styles: [
     `
-      :host {
+      section {
         display: flex;
         position: relative;
         align-items: center;
         flex-direction: column;
-        border: 1px solid #474444;
+        border: 1px solid var(--border-color);
         border-radius: 4px;
-        background: #585454;
+        background: var(--background-color);
         padding: 10px 0 0;
+        min-width: 500px;
+        min-height: 400px;
       }
-      :host(.ms-teams) {
-        background: #464775;
-        border: 1px solid transparent;
-      }
+
       .flash-effect {
         background: white;
         opacity: 0;
@@ -115,21 +116,15 @@ export class AppComponent {
 
   activeSource: string;
 
-  isMsTeams: boolean;
   @Select(CameraState.source) activeSource$: Observable<string>;
 
-  constructor(private store: Store, private app: AppService, private element: ElementRef<HTMLElement>) {
+  constructor(private store: Store, private app: AppService) {}
+
+  ngOnInit() {
     this.aspectRatio = this.app.computeCameraAspectRatio();
-    this.isMsTeams = this.app.isRunningInMSTeams();
-  }
 
-  async ngOnInit() {
-    this.width = this.width * this.aspectRatio;
-    this.height = this.height * this.aspectRatio;
-
-    if (this.isMsTeams) {
-      this.element.nativeElement.classList.add("ms-teams");
-    }
+    this.width *= this.aspectRatio;
+    this.height *= this.aspectRatio;
   }
 
   onDeviceSelected(selectedDeviceId: string) {

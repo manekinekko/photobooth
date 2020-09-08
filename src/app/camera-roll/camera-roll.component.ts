@@ -1,4 +1,4 @@
-import { Component, Input, Output } from "@angular/core";
+import { Component, Output } from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import {
@@ -30,7 +30,6 @@ import {
   styles: [
     `
       .camera-roll {
-        border-bottom: 1px solid #474444;
         display: flex;
         height: 62px;
         padding: 0px 4px;

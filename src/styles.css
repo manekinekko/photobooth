@@ -4,5 +4,10 @@ body {
   margin: 0;
   display: flex;
   justify-content: center;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
+}
+
+:root {
+  --background-color: #585454;
+  --border-color: #474444;
 }

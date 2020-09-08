@@ -12,6 +12,7 @@ import { FaceMeshService } from "./camera/face-mesh.service";
 import { DeviceSourceComponent } from "./device-source/device-source.component";
 import { FiltersPreviewComponent } from "./filters-preview/filters-preview.component";
 import { DeviceIdFormatPipe } from "./shared/device-id-format.pipe";
+import { ThemeDirective } from "./shared/theme.directive";
 import { TimerComponent } from "./timer/timer.component";
 import { TimerState } from "./timer/timer.state";
 
@@ -32,6 +33,7 @@ export function loadTFMediaPipeModel(faceMesh: FaceMeshService) {
     DeviceIdFormatPipe,
     FiltersPreviewComponent,
     DeviceSourceComponent,
+    ThemeDirective,
   ],
   imports: [
     BrowserModule,

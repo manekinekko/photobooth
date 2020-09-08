@@ -1,18 +1,18 @@
-import { InvokeFunctionExpr } from "@angular/compiler";
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output } from "@angular/core";
 import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
+import { AppService } from "../app.service";
 import { CameraService } from "../camera/camera.service";
 import { CameraState, SwitchCameraDevice } from "../camera/camera.state";
 
 @Component({
   selector: "app-device-source",
   template: `
-    <section class="selection">
+    <section class="selection" appTheme>
       <select id="source" (change)="onDeviceSelect($event)" [value]="source">
-        <option *ngFor="let device of availableDevices" [value]="device.deviceId">{{
-          device.label | deviceIdFormat
-        }}</option>
+        <option *ngFor="let device of availableDevices" [value]="device.deviceId">
+          {{ device.label | deviceIdFormat }}
+        </option>
       </select>
     </section>
   `,
@@ -23,7 +23,7 @@ import { CameraState, SwitchCameraDevice } from "../camera/camera.state";
         display: flex;
         height: 30px;
         line-height: 1.9;
-        background: #343232;
+        background: var(--background-color);
         overflow: hidden;
         border-radius: 30px;
         padding: 0px 14px;
@@ -39,7 +39,7 @@ import { CameraState, SwitchCameraDevice } from "../camera/camera.state";
         text-align-last: center;
         box-shadow: none;
         border: 0 !important;
-        background: #343232;
+        background: var(--background-color);
         background-image: none;
         flex: 1;
         padding: 0 0.5em;
@@ -53,7 +53,7 @@ import { CameraState, SwitchCameraDevice } from "../camera/camera.state";
         top: 4px;
         right: 0;
         padding: 0 1em;
-        background: #343232;
+        background: var(--background-color);
         cursor: pointer;
         pointer-events: none;
         transition: 0.25s all ease;
@@ -72,13 +72,21 @@ export class DeviceSourceComponent implements OnInit {
   availableDevices: Array<{ deviceId: string; label: string }>;
   @Select(CameraState.source) source$: Observable<string>;
 
-  constructor(private cameraService: CameraService, private store: Store) {
+  constructor(
+    private app: AppService,
+    private cameraService: CameraService,
+    private store: Store,
+    private element: ElementRef<HTMLElement>
+  ) {
     this.onDeviceSelected = new EventEmitter();
-    this.source$.subscribe((source) => this.source);
+    this.source$.subscribe((source) => (this.source = source));
   }
 
   async ngOnInit() {
     this.availableDevices = await this.cameraService.getVideosDevices();
+    if (await this.app.isRunningInMSTeams()) {
+      this.element.nativeElement.classList.add("ms-teams");
+    }
   }
 
   onDeviceSelect(event: any /* Event */) {

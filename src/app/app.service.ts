@@ -1,25 +1,16 @@
+import { Location } from "@angular/common";
 import { Injectable } from "@angular/core";
-
-export enum CONTEXT {
-  STANDALONE,
-  MS_TEAMS,
-}
 
 @Injectable({
   providedIn: "root",
 })
 export class AppService {
-  private context: CONTEXT = CONTEXT.STANDALONE;
-  constructor() {
-  }
-  setContext(context: CONTEXT) {
-    this.context = context;
-  }
+  constructor(private location: Location) {}
   isRunningInMSTeams() {
-    return this.context === CONTEXT.MS_TEAMS;
+    return this.location.path().includes("context=teams");
   }
 
   computeCameraAspectRatio() {
-    return this.isRunningInMSTeams() ? 0.5 : 0.8;
+    return this.isRunningInMSTeams() ? 0.6 : 0.8;
   }
 }
