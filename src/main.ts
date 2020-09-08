@@ -14,6 +14,7 @@ platformBrowserDynamic()
   .bootstrapModule(AppModule)
   .then(() => {
     if (environment.production) {
+      microsoftTeams.initialize();
       microsoftTeams.settings.setValidityState(true);
       microsoftTeams.settings.registerOnSaveHandler((saveEvent) => {
         microsoftTeams.settings.setSettings(environment.msTeams);
