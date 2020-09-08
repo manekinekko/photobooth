@@ -6,6 +6,7 @@ import {
   brightness,
   brownie,
   contrast,
+  crt,
   desaturate,
   desaturateLuminance,
   edges,
@@ -21,6 +22,7 @@ import {
   sobelHorizontal,
   sobelVertical,
   technicolor,
+  tv,
   vignette,
   vintagePinhole,
 } from "./filters";
@@ -33,7 +35,7 @@ export class WebGLFilter {
   private lastInChain = false;
   private currentFramebufferIndex = -1;
   private tempFramebuffers = [null, null];
-  private filterChain: Array<{ func: Function; args: any[] }> = [];
+  private filterChain: Array<{ fn: Function; args: any[] }> = [];
   private width = -1;
   private height = -1;
   private vertexBuffer: WebGLBuffer = null;
@@ -52,7 +54,7 @@ export class WebGLFilter {
       precision highp float;
       attribute vec2 pos;
       attribute vec2 uv;
-      varying vec2 imgCoord;
+      varying vec2 imgCoord; // viewport resolution (in pixels)
       uniform float flipY;
     
       void main(void) {
@@ -92,6 +94,7 @@ export class WebGLFilter {
     this.registerFilter("brightness", brightness);
     this.registerFilter("brownie", brownie);
     this.registerFilter("contrast", contrast);
+    this.registerFilter("crt", crt);
     this.registerFilter("desaturateLuminance", desaturateLuminance);
     this.registerFilter("desaturate", desaturate);
     this.registerFilter("edges", edges);
@@ -108,12 +111,13 @@ export class WebGLFilter {
     this.registerFilter("sobelVertical", sobelVertical);
     this.registerFilter("vignette", vignette);
     this.registerFilter("technicolor", technicolor);
+    this.registerFilter("tv", tv);
     this.registerFilter("vintagePinhole", vintagePinhole);
   }
 
   addFilter(name: string, ...args: any[]) {
-    const filter = this.filter[name];
-    this.filterChain.push({ func: filter, args });
+    const filterFn = this.filter[name];
+    this.filterChain.push({ fn: filterFn, args });
   }
 
   reset() {
@@ -139,21 +143,21 @@ export class WebGLFilter {
 
     if (this.filterChain.length == 0) {
       this.compileShader(this.SHADER.FRAGMENT_IDENTITY);
-      this.draw();
-      return this.commitChanges();
+      this.render();
+      return this.commitRenderChangesToCanvas();
     }
 
-    for (let i = 0; i < this.filterChain.length; i++) {
-      this.lastInChain = i == this.filterChain.length - 1;
-      const f = this.filterChain[i];
+    for (let currentFilterIndex = 0; currentFilterIndex < this.filterChain.length; currentFilterIndex++) {
+      this.lastInChain = currentFilterIndex === this.filterChain.length - 1;
+      const filter = this.filterChain[currentFilterIndex];
 
-      f.func.apply(this, f.args || []);
+      filter.fn.apply(this, filter.args || []);
     }
 
-    return this.commitChanges();
+    return this.commitRenderChangesToCanvas();
   }
 
-  private commitChanges() {
+  private commitRenderChangesToCanvas() {
     var bitmap = this.offscreen.transferToImageBitmap();
     this.canvas.width = bitmap.width;
     this.canvas.height = bitmap.height;
@@ -164,13 +168,13 @@ export class WebGLFilter {
   private resize(imageOrCanvas: HTMLCanvasElement | HTMLImageElement) {
     const width = imageOrCanvas.width;
     const height = imageOrCanvas.height;
+
     if (width === this.width && height === this.height) {
       return;
     }
 
     this.canvas.width = this.width = width;
     this.canvas.height = this.height = height;
-
     // Create the context if we don't have it yet
     if (!this.vertexBuffer) {
       // Create the vertex buffer for the two triangles [x, y, u, v] * 6
@@ -227,7 +231,7 @@ export class WebGLFilter {
     return { fbo, texture };
   }
 
-  private draw(flags = null) {
+  private render(flags = null) {
     let source = null,
       target = null,
       flipY = false;
@@ -262,7 +266,7 @@ export class WebGLFilter {
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
   }
 
-  private compileShader(fragmentSource: string) {
+  private compileShader(fragmentSource: string, vertexSource?: string) {
     if (this.shaderProgramCache[fragmentSource]) {
       this.program = this.shaderProgramCache[fragmentSource];
       this.gl.useProgram(this.program.program);
@@ -270,7 +274,7 @@ export class WebGLFilter {
     }
 
     // Compile shaders
-    this.program = new CustomWebGLProgram(this.gl, this.SHADER.VERTEX_IDENTITY, fragmentSource);
+    this.program = new CustomWebGLProgram(this.gl, vertexSource || this.SHADER.VERTEX_IDENTITY, fragmentSource);
 
     const floatSize = Float32Array.BYTES_PER_ELEMENT;
     const vertSize = 4 * floatSize;

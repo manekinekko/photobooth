@@ -28,13 +28,13 @@ export function blurShader() {
     const blurSizeX = size / 7 / this.width;
     const blurSizeY = size / 7 / this.height;
     const program = this.compileShader(SHADER);
-    const h = (inter = false) => {
+    const h = (intermediate = false) => {
       this.gl.uniform2f(program.uniform.px, blurSizeX, 0);
-      this.draw(inter && this.DRAW.INTERMEDIATE);
+      this.render(intermediate && this.DRAW.INTERMEDIATE);
     };
-    const v = (inter = false) => {
+    const v = (intermediate = false) => {
       this.gl.uniform2f(program.uniform.px, 0, blurSizeY);
-      this.draw(inter && this.DRAW.INTERMEDIATE);
+      this.render(intermediate && this.DRAW.INTERMEDIATE);
     };
 
     switch (type) {

@@ -17,6 +17,6 @@ void main() {
     `;
 
     const program = this.compileShader(SHADER) as CustomWebGLProgram;
-    this.draw();
+    this.render();
   };
 }

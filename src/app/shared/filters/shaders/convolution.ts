@@ -1,5 +1,4 @@
-import { WebGLFilter } from '../../webgl-filter.class';
-import {CustomWebGLProgram} from "../../webgl-program.class";
+import { CustomWebGLProgram } from "../../webgl-program.class";
 
 export function convolutionShader() {
   return (matrix: number[]) => {
@@ -33,9 +32,9 @@ export function convolutionShader() {
         gl_FragColor.a = c22.a;
       }`;
 
-    const program  = this.compileShader(SHADER) as CustomWebGLProgram;
+    const program = this.compileShader(SHADER) as CustomWebGLProgram;
     this.gl.uniform1fv(program.uniform.m, m32);
     this.gl.uniform2f(program.uniform.px, pixelSizeX, pixelSizeY);
-    this.draw();
+    this.render();
   };
 }

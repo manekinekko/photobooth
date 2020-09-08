@@ -23,6 +23,6 @@ export function pixelate() {
 
     // Horizontal
     this.gl.uniform2f(program.uniform.size, blurSizeX, blurSizeY);
-    this.draw();
+    this.render();
   };
 }
