@@ -12,6 +12,7 @@ import {
   desaturateLuminance,
   edges,
   emboss,
+  greenScreen,
   hue,
   kodachrome,
   negative,
@@ -35,7 +36,7 @@ export class WebGLFilter {
   private lastInChain = false;
   private currentFramebufferIndex = -1;
   private tempFramebuffers = [null, null];
-  private filterChain: Array<{ fn: Function; args: any[] }> = [];
+  private filterChain: Array<{ fn: Function; id: string; args: any[] }> = [];
   private width = -1;
   private height = -1;
   private vertexBuffer: WebGLBuffer = null;
@@ -43,7 +44,7 @@ export class WebGLFilter {
   private offscreen: OffscreenCanvas = null;
   private canvas: HTMLCanvasElement = null;
   private shaderProgramCache: { [key: string]: CustomWebGLProgram } = {};
-  private filter: { [key: string]: Function } = {};
+  private registeredFilters: { [key: string]: Function } = {};
 
   private DRAW = {
     INTERMEDIATE: 1,
@@ -55,11 +56,12 @@ export class WebGLFilter {
       attribute vec2 pos;
       attribute vec2 uv;
       varying vec2 imgCoord; // viewport resolution (in pixels)
+      uniform float flipX;
       uniform float flipY;
     
       void main(void) {
         imgCoord = uv;
-        gl_Position = vec4(pos.xy * flipY, 0.0, 1.0);
+        gl_Position = vec4(pos.x * flipX, pos.y * flipY, 0.0, 1.0);
       }
     `,
 
@@ -100,6 +102,7 @@ export class WebGLFilter {
     this.registerFilter("desaturate", desaturate);
     this.registerFilter("edges", edges);
     this.registerFilter("emboss", emboss);
+    this.registerFilter("greenScreen", greenScreen);
     this.registerFilter("hue", hue);
     this.registerFilter("kodachrome", kodachrome);
     this.registerFilter("negative", negative);
@@ -115,9 +118,9 @@ export class WebGLFilter {
     this.registerFilter("vintagePinhole", vintagePinhole);
   }
 
-  addFilter(name: string, ...args: any[]) {
-    const filterFn = this.filter[name];
-    this.filterChain.push({ fn: filterFn, args });
+  addFilter(id: string, ...args: any[]) {
+    const filterFn = this.registeredFilters[id];
+    this.filterChain.push({ fn: filterFn, id, args });
   }
 
   reset() {
@@ -150,8 +153,11 @@ export class WebGLFilter {
     for (let currentFilterIndex = 0; currentFilterIndex < this.filterChain.length; currentFilterIndex++) {
       this.lastInChain = currentFilterIndex === this.filterChain.length - 1;
       const filter = this.filterChain[currentFilterIndex];
-
-      filter.fn.apply(this, filter.args || []);
+      try {
+        filter.fn.apply(this, filter.args || []);
+      } catch (error) {
+        console.error(`"[WebGL::Filter] Couldn't apply filter "${filter.id}"`);
+      }
     }
 
     return this.commitRenderChangesToCanvas();
@@ -179,7 +185,8 @@ export class WebGLFilter {
     if (!this.vertexBuffer) {
       // Create the vertex buffer for the two triangles [x, y, u, v] * 6
       const vertices = new Float32Array([-1, -1, 0, 1, 1, -1, 1, 1, -1, 1, 0, 0, -1, 1, 0, 0, 1, -1, 1, 1, 1, 1, 1, 0]);
-      (this.vertexBuffer = this.gl.createBuffer()), this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+      this.vertexBuffer = this.gl.createBuffer();
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
       this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
       this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     }
@@ -231,10 +238,11 @@ export class WebGLFilter {
     return { fbo, texture };
   }
 
-  private render(flags = null) {
+  private render(flags: number = null) {
     let source = null;
     let target = null;
     let flipY = false;
+    let flipX = true;
 
     // Set up the source
     if (this.drawCount == 0) {
@@ -251,7 +259,8 @@ export class WebGLFilter {
       // Last filter in our chain - draw directly to the WebGL Canvas. We may
       // also have to flip the image vertically now
       target = null;
-      flipY = this.drawCount % 2 == 0;
+      flipY = this.drawCount % 2 === 0;
+      flipX = flipY !== flipX;
     } else {
       // Intermediate draw call - get a temp buffer to draw to
       this.currentFramebufferIndex = (this.currentFramebufferIndex + 1) % 2;
@@ -262,7 +271,8 @@ export class WebGLFilter {
     this.gl.bindTexture(this.gl.TEXTURE_2D, source);
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, target);
 
-    this.gl.uniform1f(this.program.uniform.flipY, flipY ? -1 : 1);
+    this.gl.uniform1f(this.program.uniform.flipX, flipX ? -1.0 : 1.0);
+    this.gl.uniform1f(this.program.uniform.flipY, flipY ? -1.0 : 1.0);
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
   }
 
@@ -289,6 +299,6 @@ export class WebGLFilter {
 
   private registerFilter(name: string, filter: Function) {
     // pass in "this" context to the filter function
-    this.filter[name] = filter.call(this);
+    this.registeredFilters[name] = filter.call(this);
   }
 }
