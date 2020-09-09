@@ -16,6 +16,7 @@ import {
   hue,
   kodachrome,
   negative,
+  noop,
   pixelate,
   polaroid,
   saturate,
@@ -89,33 +90,36 @@ export class WebGLFilter {
   }
 
   private initializePresets() {
-    this.registerFilter("ascii", ascii);
-    this.registerFilter("bgr", bgr);
-    this.registerFilter("blurHorizontal", blurHorizontal);
-    this.registerFilter("blurVertical", blurVertical);
-    this.registerFilter("blur", blur);
-    this.registerFilter("brightness", brightness);
-    this.registerFilter("brownie", brownie);
-    this.registerFilter("contrast", contrast);
-    this.registerFilter("crt", crt);
-    this.registerFilter("desaturateLuminance", desaturateLuminance);
-    this.registerFilter("desaturate", desaturate);
-    this.registerFilter("edges", edges);
-    this.registerFilter("emboss", emboss);
-    this.registerFilter("greenScreen", greenScreen);
-    this.registerFilter("hue", hue);
-    this.registerFilter("kodachrome", kodachrome);
-    this.registerFilter("negative", negative);
-    this.registerFilter("pixelate", pixelate);
-    this.registerFilter("polaroid", polaroid);
-    this.registerFilter("saturate", saturate);
-    this.registerFilter("sepia", sepia);
-    this.registerFilter("sharpen", sharpen);
-    this.registerFilter("sobelHorizontal", sobelHorizontal);
-    this.registerFilter("sobelVertical", sobelVertical);
-    this.registerFilter("vignette", vignette);
-    this.registerFilter("technicolor", technicolor);
-    this.registerFilter("vintagePinhole", vintagePinhole);
+    [
+      ascii,
+      bgr,
+      blurHorizontal,
+      blurVertical,
+      blur,
+      brightness,
+      brownie,
+      contrast,
+      crt,
+      desaturateLuminance,
+      desaturate,
+      edges,
+      emboss,
+      greenScreen,
+      hue,
+      kodachrome,
+      negative,
+      noop,
+      pixelate,
+      polaroid,
+      saturate,
+      sepia,
+      sharpen,
+      sobelHorizontal,
+      sobelVertical,
+      vignette,
+      technicolor,
+      vintagePinhole,
+    ].forEach((filter) => this.registerFilter(filter.name, filter));
   }
 
   addFilter(id: string, ...args: any[]) {
@@ -156,7 +160,7 @@ export class WebGLFilter {
       try {
         filter.fn.apply(this, filter.args || []);
       } catch (error) {
-        console.error(`"[WebGL::Filter] Couldn't apply filter "${filter.id}"`);
+        console.error(`"[WebGL::Filter] Couldn't apply filter "${filter.id}"`, error);
       }
     }
 
@@ -238,11 +242,10 @@ export class WebGLFilter {
     return { fbo, texture };
   }
 
-  private render(flags: number = null) {
+  private render(flags: number = null, flipX = true) {
     let source = null;
     let target = null;
     let flipY = false;
-    let flipX = true;
 
     // Set up the source
     if (this.drawCount == 0) {
@@ -284,7 +287,11 @@ export class WebGLFilter {
     }
 
     // Compile shaders
-    this.program = new CustomWebGLProgram(this.gl, vertexSource || this.SHADER.VERTEX_IDENTITY, fragmentSource);
+    this.program = new CustomWebGLProgram(
+      this.gl,
+      vertexSource || this.SHADER.VERTEX_IDENTITY,
+      fragmentSource || this.SHADER.FRAGMENT_IDENTITY
+    );
 
     const floatSize = Float32Array.BYTES_PER_ELEMENT;
     const vertSize = 4 * floatSize;

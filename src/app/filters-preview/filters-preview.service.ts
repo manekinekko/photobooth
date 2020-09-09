@@ -8,7 +8,7 @@ export class FiltersPreviewService {
 
   getFilters() {
     return [
-      { label: "Normal", filters: [] },
+      { label: "Normal", filters: [{ id: "noop" }] },
 
       // presets
       { label: "ASCII", filters: [{ id: "ascii" }] },
