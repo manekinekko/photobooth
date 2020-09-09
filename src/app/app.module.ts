@@ -1,4 +1,4 @@
-import { NgModule } from "@angular/core";
+import { APP_INITIALIZER, NgModule } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
 import { NgxsReduxDevtoolsPluginModule } from "@ngxs/devtools-plugin";
 import { NgxsModule } from "@ngxs/store";
@@ -10,6 +10,7 @@ import { CameraComponent } from "./camera/camera.component";
 import { CameraState } from "./camera/camera.state";
 import { FaceMeshService } from "./camera/face-mesh.service";
 import { DeviceSourceComponent } from "./device-source/device-source.component";
+import { DeviceSourceService } from "./device-source/device-source.service";
 import { FiltersPreviewComponent } from "./filters-preview/filters-preview.component";
 import { DeviceIdFormatPipe } from "./shared/device-id-format.pipe";
 import { ThemeDirective } from "./shared/theme.directive";
@@ -21,6 +22,12 @@ export function loadTFMediaPipeModel(faceMesh: FaceMeshService) {
   return async () => {
     const model = await faceMesh.initialize();
     console.log("MediaPipe facemesh model assets loaded.");
+  };
+}
+
+export function installVirtualMediaDevice(deviceSource: DeviceSourceService) {
+  return async () => {
+    return Promise.resolve(deviceSource.installVirtualMediaDevice());
   };
 }
 
@@ -50,6 +57,12 @@ export function loadTFMediaPipeModel(faceMesh: FaceMeshService) {
     //   multi: true,
     //   deps: [FaceMeshService],
     // },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: installVirtualMediaDevice,
+      multi: true,
+      deps: [DeviceSourceService],
+    },
   ],
   bootstrap: [AppComponent],
 })
