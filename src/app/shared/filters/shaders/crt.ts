@@ -17,8 +17,10 @@ export function crtShader(
     precision highp float;
 
     varying vec2 imgCoord;
+
     const float SQRT_2 = 1.414213;
     const float light = 1.0;
+
     uniform sampler2D texture;
     uniform vec4 filterArea;
     uniform vec2 dimensions;
@@ -33,6 +35,7 @@ export function crtShader(
     uniform float vignettingBlur;
     uniform float seed;
     uniform float time;
+    
     float rand(vec2 co) {
       return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
     }

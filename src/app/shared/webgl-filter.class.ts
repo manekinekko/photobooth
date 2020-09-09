@@ -59,7 +59,7 @@ export class WebGLFilter {
     
       void main(void) {
         imgCoord = uv;
-        gl_Position = vec4(pos.x, pos.y * flipY, 0.0, 1.0);
+        gl_Position = vec4(pos.xy * flipY, 0.0, 1.0);
       }
     `,
 
@@ -232,9 +232,9 @@ export class WebGLFilter {
   }
 
   private render(flags = null) {
-    let source = null,
-      target = null,
-      flipY = false;
+    let source = null;
+    let target = null;
+    let flipY = false;
 
     // Set up the source
     if (this.drawCount == 0) {
