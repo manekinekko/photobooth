@@ -1,4 +1,5 @@
 import {
+  ascii,
   bgr,
   blur,
   blurHorizontal,
@@ -22,7 +23,6 @@ import {
   sobelHorizontal,
   sobelVertical,
   technicolor,
-  tv,
   vignette,
   vintagePinhole,
 } from "./filters";
@@ -87,6 +87,7 @@ export class WebGLFilter {
   }
 
   private initializePresets() {
+    this.registerFilter("ascii", ascii);
     this.registerFilter("bgr", bgr);
     this.registerFilter("blurHorizontal", blurHorizontal);
     this.registerFilter("blurVertical", blurVertical);
@@ -111,7 +112,6 @@ export class WebGLFilter {
     this.registerFilter("sobelVertical", sobelVertical);
     this.registerFilter("vignette", vignette);
     this.registerFilter("technicolor", technicolor);
-    this.registerFilter("tv", tv);
     this.registerFilter("vintagePinhole", vintagePinhole);
   }
 

@@ -11,7 +11,7 @@ export class FiltersPreviewService {
       { label: "Normal", filters: [] },
 
       // presets
-      // { label: "ASCII", filters: [{ id: "ascii" }] },
+      { label: "ASCII", filters: [{ id: "ascii" }] },
       { label: "BGR", filters: [{ id: "bgr" }] },
       { label: "Blur Hor.", filters: [{ id: "blurHorizontal", args: [20] }] },
       { label: "Blur Ver.", filters: [{ id: "blurVertical", args: [20] }] },
@@ -35,7 +35,6 @@ export class FiltersPreviewService {
       { label: "Sobel Hor.", filters: [{ id: "sobelHorizontal" }] },
       { label: "Sobel Ver.", filters: [{ id: "sobelVertical" }] },
       { label: "Technicolor", filters: [{ id: "technicolor" }] },
-      { label: "TV", filters: [{ id: "tv" }] },
       { label: "Vignette", filters: [{ id: "vignette" }] },
       { label: "Vintage", filters: [{ id: "vintagePinhole" }] },
       // instagram-like filters

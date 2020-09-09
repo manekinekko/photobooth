@@ -1,33 +1,18 @@
 import { CustomWebGLProgram } from "../../webgl-program.class";
 
 export function crtShader(
-  curvature = 1,
-  lineWidth = 1,
-  lineContrast = 1,
-  verticalLine = 0,
-  noise = 0.25,
-  noiseSize = 0,
-  vignetting = 0.3,
-  vignettingAlpha = 1,
+  curvature = 1, // 0 - 10
+  lineWidth = 1, // 0 - 5
+  lineContrast = 1, // 0 - 1
+  verticalLine = false, // true/false
+  noise = 0.25, // 0 - 1
+  noiseSize = 0, // 0 - 10
+  vignetting = 0.3, // 0 - 1
+  vignettingAlpha = 1, // 0 - 1
   vignettingBlur = 0.5,
-  seed = 0
+  seed = 0 // 0 - 1
 ) {
   return () => {
-    const VERTEX = `
-    precision highp float;
-    attribute vec2 pos;
-    attribute vec2 uv;
-
-    uniform mat3 projectionMatrix;
-
-    varying vec2 imgCoord;
-
-    void main(void)
-    {
-      gl_Position = vec4((projectionMatrix * vec3(pos, 1.0)).xy, 0.0, 1.0);
-      imgCoord = uv;
-    }
-    `;
     const SHADER = `
     precision highp float;
 

@@ -22,6 +22,5 @@ export { sharpen } from "./presets/sharpen";
 export { sobelHorizontal } from "./presets/sobel-horizontal";
 export { sobelVertical } from "./presets/sobel-vertical";
 export { technicolor } from "./presets/technicolor";
-export { tv } from "./presets/tv";
 export { vignette } from "./presets/vignette";
 export { vintagePinhole } from "./presets/vintage-pinhole";
