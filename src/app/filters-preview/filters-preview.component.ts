@@ -115,7 +115,12 @@ export class FiltersPreviewComponent implements OnInit {
     this.initializeSelectedFiltersFromUrlHash();
     this.renderer.listen(this.filterListRef.nativeElement, "mousewheel", (event: WheelEvent) => {
       if (this.isScrollFilterListEnabled) {
-        this.filterListRef.nativeElement.scrollLeft -= event.deltaY;
+        if (event.deltaX) {
+          this.filterListRef.nativeElement.scrollLeft += event.deltaX;
+        }
+        else {
+          this.filterListRef.nativeElement.scrollLeft -= event.deltaY;
+        }
         event.preventDefault();
       }
     });
