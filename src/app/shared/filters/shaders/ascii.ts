@@ -1,9 +1,12 @@
+// Adapted from https://www.shadertoy.com/view/lssGDj
+
 import { CustomWebGLProgram } from "../../webgl-program.class";
 
-export function asciiShader(pixelSize = 12 /* 2 - 20*/) {
+export function asciiShader(pixelSize = 12 /* 10 - 20*/) {
   return () => {
     const SHADER = `
     precision highp float;
+
     varying vec2 imgCoord;
     
     uniform vec4 filterArea;
@@ -13,7 +16,6 @@ export function asciiShader(pixelSize = 12 /* 2 - 20*/) {
     vec2 mapCoord( vec2 coord ) {
       coord *= filterArea.xy;
       coord += filterArea.zw;
-  
       return coord;
     }
     
@@ -32,12 +34,14 @@ export function asciiShader(pixelSize = 12 /* 2 - 20*/) {
       return mod( coord , size) / size;
     }
     
-    float character(float n, vec2 p) {
-      p = floor(p*vec2(4.0, -4.0) + 2.5);
+    float character(float asciiCode, vec2 p) {
+      p = floor( p * vec2(4.0, -4.0) + 2.5);
       
       if (clamp(p.x, 0.0, 4.0) == p.x) {
         if (clamp(p.y, 0.0, 4.0) == p.y) {
-          if (int(mod(n/exp2(p.x + 5.0*p.y), 2.0)) == 1) return 1.0;
+          if (int(mod(asciiCode / exp2(p.x + 5.0 * p.y), 2.0)) == 1) {
+            return 1.0;
+          }
         }
       }
       return 0.0;
@@ -53,21 +57,21 @@ export function asciiShader(pixelSize = 12 /* 2 - 20*/) {
       vec4 color = texture2D(texture, pixCoord);
   
       // determine the character to use
-      float gray = (color.r + color.g + color.b) / 3.0;
+      float gray = (color.r + color.g + color.b + color.a) / 4.0;
   
-      float n =  65536.0;             // .
-      if (gray > 0.2) n = 65600.0;    // :
-      if (gray > 0.3) n = 332772.0;   // *
-      if (gray > 0.4) n = 15255086.0; // o
-      if (gray > 0.5) n = 23385164.0; // &
-      if (gray > 0.6) n = 15252014.0; // 8
-      if (gray > 0.7) n = 13199452.0; // @
-      if (gray > 0.8) n = 11512810.0; // #
+      float asciiCode =  65536.0;             // .
+      if (gray > 0.2) asciiCode = 65600.0;    // :
+      if (gray > 0.3) asciiCode = 332772.0;   // *
+      if (gray > 0.4) asciiCode = 15255086.0; // o
+      if (gray > 0.5) asciiCode = 23385164.0; // &
+      if (gray > 0.6) asciiCode = 15252014.0; // 8
+      if (gray > 0.7) asciiCode = 13199452.0; // @
+      if (gray > 0.8) asciiCode = 11512810.0; // #
   
       // get the mod
       vec2 modd = getMod(coord, vec2(pixelSize));
   
-      gl_FragColor = color * character( n, vec2(-1.0) + modd * 2.0); 
+      gl_FragColor = color * character( asciiCode, vec2(-1.0) + modd * 2.0); 
     }
     `;
 
