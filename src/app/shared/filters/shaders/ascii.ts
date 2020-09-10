@@ -78,6 +78,6 @@ export function asciiShader(pixelSize = 12 /* 10 - 20*/) {
     const program = this.compileShader(SHADER) as CustomWebGLProgram;
     this.gl.uniform4fv(program.uniform.filterArea, [this.width, this.height, 0, 0]);
     this.gl.uniform1f(program.uniform.pixelSize, pixelSize);
-    this.render();
+    this.apply();
   };
 }

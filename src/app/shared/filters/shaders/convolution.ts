@@ -35,6 +35,6 @@ export function convolutionShader() {
     const program = this.compileShader(SHADER) as CustomWebGLProgram;
     this.gl.uniform1fv(program.uniform.m, m32);
     this.gl.uniform2f(program.uniform.px, pixelSizeX, pixelSizeY);
-    this.render();
+    this.apply();
   };
 }

@@ -20,6 +20,6 @@ export function vignetteShader() {
     const program = this.compileShader(SHADER) as CustomWebGLProgram;
     this.gl.uniform1f(program.uniform.size, size);
 
-    this.render();
+    this.apply();
   };
 }

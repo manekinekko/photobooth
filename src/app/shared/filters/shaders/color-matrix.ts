@@ -40,6 +40,6 @@ export function colorMatrixShader() {
 
     const program = this.compileShader(shader);
     this.gl.uniform1fv(program.uniform.m, m);
-    this.render();
+    this.apply();
   };
 }

@@ -88,6 +88,6 @@ export function crtShader(
     this.gl.uniform1f(program.uniform.vignettingBlur, vignettingBlur);
     this.gl.uniform1f(program.uniform.seed, seed);
 
-    this.render();
+    this.apply();
   };
 }

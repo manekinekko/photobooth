@@ -200,17 +200,17 @@ export class FiltersPreviewComponent implements OnInit {
   private initializeFilters() {
     const image = new Image();
     image.onload = () => {
-      const webGlFilter = new WebGLFilter(image.width, image.height);
+      const webGLFilter = new WebGLFilter(image.width, image.height);
 
       this.filters
         // skip the "Normal" filter
         .filter((filter) => filter.filters.length > 0)
         .map((filter) => {
-          webGlFilter.reset();
+          webGLFilter.reset();
           filter.filters.forEach((f) => {
-            webGlFilter.addFilter(f.id, f.args);
+            webGLFilter.addFilter(f.id, f.args);
           });
-          const filteredImage = webGlFilter.apply(image);
+          const filteredImage = webGLFilter.render(image);
           filter.data = filteredImage.toDataURL();
         });
     };

@@ -21,6 +21,6 @@ export function pixelate() {
 
     const program = this.compileShader(SHADER);
     this.gl.uniform2f(program.uniform.size, blurSizeX, blurSizeY);
-    this.render();
+    this.apply();
   };
 }

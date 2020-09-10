@@ -30,11 +30,11 @@ export function blurShader() {
     const program = this.compileShader(SHADER);
     const h = (intermediate = false) => {
       this.gl.uniform2f(program.uniform.px, blurSizeX, 0);
-      this.render(intermediate && this.DRAW.INTERMEDIATE);
+      this.apply(intermediate && this.DRAW.INTERMEDIATE);
     };
     const v = (intermediate = false) => {
       this.gl.uniform2f(program.uniform.px, 0, blurSizeY);
-      this.render(intermediate && this.DRAW.INTERMEDIATE);
+      this.apply(intermediate && this.DRAW.INTERMEDIATE);
     };
 
     switch (type) {
