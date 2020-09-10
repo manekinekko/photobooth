@@ -54,21 +54,26 @@ export class WebGLFilter {
   private SHADER = {
     VERTEX_IDENTITY: `
       precision highp float;
+      
       attribute vec2 pos;
       attribute vec2 uv;
-      varying vec2 imgCoord; // viewport resolution (in pixels)
-      uniform float flipX;
-      uniform float flipY;
+      
+      varying vec2 imgCoord;
+
+      uniform float flipHorizontal;
+      uniform float flipVertical;
     
       void main(void) {
         imgCoord = uv;
-        gl_Position = vec4(pos.x * flipX, pos.y * flipY, 0.0, 1.0);
+        gl_Position = vec4(pos.x * flipHorizontal, pos.y * flipVertical, 0.0, 1.0);
       }
     `,
 
     FRAGMENT_IDENTITY: `
       precision highp float;
+
       varying vec2 imgCoord;
+
       uniform sampler2D texture;
 
       void main(void) {
@@ -131,28 +136,22 @@ export class WebGLFilter {
     this.filterChain = [];
   }
 
-  apply(imageOrCanvas: HTMLCanvasElement | HTMLImageElement) {
-    this.resize(imageOrCanvas);
-
+  // Note: this method runs inside the rAF loop
+  render(imageOrCanvas: HTMLCanvasElement | HTMLImageElement) {
     this.drawCount = 0;
-
-    // Create the texture for the input image if we haven't yet
-    if (!this.sourceTexture) {
-      this.sourceTexture = this.gl.createTexture();
-    }
-
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.sourceTexture);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, imageOrCanvas);
+    this.resize(imageOrCanvas);
 
     if (this.filterChain.length == 0) {
       this.compileShader(this.SHADER.FRAGMENT_IDENTITY);
-      this.render();
-      return this.commitRenderChangesToCanvas();
+      this.apply();
+      return this.commitRenderingChangesToCanvas();
     }
+
+    // Create the texture for the input images if we haven't yet
+    if (!this.sourceTexture) {
+      this.sourceTexture = this.gl.createTexture();
+    }
+    this.initializeTexture(this.sourceTexture, imageOrCanvas);
 
     for (let currentFilterIndex = 0; currentFilterIndex < this.filterChain.length; currentFilterIndex++) {
       this.lastInChain = currentFilterIndex === this.filterChain.length - 1;
@@ -164,10 +163,23 @@ export class WebGLFilter {
       }
     }
 
-    return this.commitRenderChangesToCanvas();
+    return this.commitRenderingChangesToCanvas();
   }
 
-  private commitRenderChangesToCanvas() {
+  private initializeTexture(sourceTexture: WebGLTexture, textureData: HTMLCanvasElement | HTMLImageElement) {
+    this.gl.bindTexture(this.gl.TEXTURE_2D, sourceTexture);
+
+    // Set the parameters so we can render any size image
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+
+    // Upload the image into the texture
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, textureData);
+  }
+
+  private commitRenderingChangesToCanvas() {
     var bitmap = this.offscreen.transferToImageBitmap();
     this.canvas.width = bitmap.width;
     this.canvas.height = bitmap.height;
@@ -201,7 +213,7 @@ export class WebGLFilter {
     this.tempFramebuffers = [null, null];
   }
 
-  private getTempFramebuffer(index: number) {
+  private getCachedFrameBuffer(index: number) {
     this.tempFramebuffers[index] =
       this.tempFramebuffers[index] || this.createFramebufferTexture(this.width, this.height);
 
@@ -209,8 +221,8 @@ export class WebGLFilter {
   }
 
   private createFramebufferTexture(width: number, height: number) {
-    const fbo = this.gl.createFramebuffer();
-    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, fbo);
+    const frameBuffer = this.gl.createFramebuffer();
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, frameBuffer);
 
     const renderbuffer = this.gl.createRenderbuffer();
     this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, renderbuffer);
@@ -239,13 +251,13 @@ export class WebGLFilter {
     this.gl.bindTexture(this.gl.TEXTURE_2D, null);
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 
-    return { fbo, texture };
+    return { frameBuffer, texture };
   }
 
-  private render(flags: number = null, flipX = true) {
+  private apply(flags: number = null, flipHorizontal = true) {
     let source = null;
     let target = null;
-    let flipY = false;
+    let flipVertical = false;
 
     // Set up the source
     if (this.drawCount == 0) {
@@ -253,7 +265,7 @@ export class WebGLFilter {
       source = this.sourceTexture;
     } else {
       // All following draw calls use the temp buffer last drawn to
-      source = this.getTempFramebuffer(this.currentFramebufferIndex).texture;
+      source = this.getCachedFrameBuffer(this.currentFramebufferIndex).texture;
     }
     this.drawCount++;
 
@@ -262,20 +274,21 @@ export class WebGLFilter {
       // Last filter in our chain - draw directly to the WebGL Canvas. We may
       // also have to flip the image vertically now
       target = null;
-      flipY = this.drawCount % 2 === 0;
-      flipX = flipY !== flipX;
+      flipVertical = this.drawCount % 2 === 0;
+      // should we flip horizontally?
+      flipHorizontal = flipVertical !== flipHorizontal;
     } else {
       // Intermediate draw call - get a temp buffer to draw to
       this.currentFramebufferIndex = (this.currentFramebufferIndex + 1) % 2;
-      target = this.getTempFramebuffer(this.currentFramebufferIndex).fbo;
+      target = this.getCachedFrameBuffer(this.currentFramebufferIndex).frameBuffer;
     }
 
     // Bind the source and target and draw the two triangles
     this.gl.bindTexture(this.gl.TEXTURE_2D, source);
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, target);
 
-    this.gl.uniform1f(this.program.uniform.flipX, flipX ? -1.0 : 1.0);
-    this.gl.uniform1f(this.program.uniform.flipY, flipY ? -1.0 : 1.0);
+    this.gl.uniform1f(this.program.uniform.flipHorizontal, flipHorizontal ? -1.0 : 1.0);
+    this.gl.uniform1f(this.program.uniform.flipVertical, flipVertical ? -1.0 : 1.0);
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
   }
 

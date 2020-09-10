@@ -25,7 +25,7 @@ import { FaceMeshService } from "./face-mesh.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <video #videoRef hidden autoplay playsinline muted></video>
-    <canvas #canvasTmpRef hidden [width]="width" [height]="height"></canvas>
+    <canvas #canvasVideoRef hidden [width]="width" [height]="height"></canvas>
 
     <ng-content select="app-filters"></ng-content>
     <canvas
@@ -101,7 +101,7 @@ export class CameraComponent implements OnInit {
   @ViewChild("videoRef", { static: true }) videoRef: ElementRef<HTMLVideoElement>;
   @ViewChild("canvasRef", { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
   @ViewChild("canvasMeshRef", { static: true }) canvasMeshRef: ElementRef<HTMLCanvasElement>;
-  @ViewChild("canvasTmpRef", { static: true }) canvasTmpRef: ElementRef<HTMLCanvasElement>;
+  @ViewChild("canvasVideoRef", { static: true }) canvasVideoRef: ElementRef<HTMLCanvasElement>;
   @ViewChild(TimerComponent, { static: true }) timerRef: TimerComponent;
 
   @Input() width: number = 1280;
@@ -110,7 +110,7 @@ export class CameraComponent implements OnInit {
   @Input() selectedFilters: Array<PresetFilter>;
   canvasContextRef: CanvasRenderingContext2D;
   canvasMeshContextRef: CanvasRenderingContext2D;
-  canvasTmpContextRef: CanvasRenderingContext2D;
+  canvasVideoContextRef: CanvasRenderingContext2D;
 
   isCameraOn: boolean;
 
@@ -133,7 +133,7 @@ export class CameraComponent implements OnInit {
   async ngOnInit() {
     this.canvasContextRef = this.canvasRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
     this.canvasMeshContextRef = this.canvasMeshRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
-    this.canvasTmpContextRef = this.canvasTmpRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
+    this.canvasVideoContextRef = this.canvasVideoRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
 
     this.videoRef.nativeElement.onloadedmetadata = () => {
       this.videoRef.nativeElement.width = this.width;
@@ -216,6 +216,7 @@ export class CameraComponent implements OnInit {
 
   private async loop(webGLFilter: WebGLFilter) {
     if (this.isCameraOn) {
+      let shouldBlend = false;
       try {
         // apply filters only if they are set
         if (!this.selectedFilters || this.selectedFilters.length === 0) {
@@ -224,16 +225,25 @@ export class CameraComponent implements OnInit {
         } else {
           // use WebGL filtered stream
 
-          this.canvasTmpContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
+          this.canvasVideoContextRef.drawImage(this.videoRef.nativeElement, 0, 0, this.width, this.height);
 
           // reset any previously applied filters
           webGLFilter.reset();
 
           // add selected filters/presets
-          this.selectedFilters.forEach((f) => webGLFilter.addFilter(f.id, f.args));
+          this.selectedFilters.forEach((f) => {
+            if (f.id === 'greenScreen') {
+              shouldBlend = true;
+            }
+            webGLFilter.addFilter(f.id, f.args)
+          });
 
           // apply filters
-          const filteredImage = webGLFilter.apply(this.canvasTmpRef.nativeElement);
+          const filteredImage = webGLFilter.render(this.canvasVideoRef.nativeElement);
+          
+          if (shouldBlend) {
+            this.canvasContextRef.putImageData(this.canvasVideoContextRef.getImageData(0, 0, this.width, this.height), 0, 0);
+          }
 
           // draw image data with applied filters
           this.canvasContextRef.drawImage(filteredImage, 0, 0, this.width, this.height);
