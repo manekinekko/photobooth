@@ -39,8 +39,6 @@ export class VirtualMediaDevice {
 
   async getUserMedia(constraints: MediaStreamConstraints) {
     const video = constraints.video as MediaTrackConstraints;
-    debugger;
-
     if (video?.deviceId) {
       if (video?.deviceId === this.deviceId || video?.deviceId?.["exact"] === this.deviceId) {
         const constraints = {
