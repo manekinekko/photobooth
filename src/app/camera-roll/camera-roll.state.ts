@@ -22,11 +22,16 @@ export class DeletePicture {
 
 export class SelectPicture {
   static readonly type = "[CameraRoll] select picture";
-  constructor(public readonly currentPictureId: string) {}
+  constructor(public readonly currentPictureId: string, public readonly useForGreenScreen: boolean = false) {}
 }
 
 export class SelectPictureData {
   static readonly type = "[CameraRoll] select picture data";
+  constructor(public readonly data: string) {}
+}
+
+export class SelectPictureDataForGreenScreen {
+  static readonly type = "[CameraRoll] select picture data for green screen";
   constructor(public readonly data: string) {}
 }
 
@@ -95,11 +100,15 @@ export class CameraRollState {
     return this.cameraRollService.read(payload.currentPictureId).pipe(
       map((picture: PictureItem) => picture.data),
       tap((data: string) => {
-        patchState({
-          selectedPictureId: payload.currentPictureId,
-        });
+        if (payload.useForGreenScreen) {
+          dispatch(new SelectPictureDataForGreenScreen(data));
+        } else {
+          patchState({
+            selectedPictureId: payload.currentPictureId,
+          });
 
-        dispatch(new SelectPictureData(data));
+          dispatch(new SelectPictureData(data));
+        }
       })
     );
   }

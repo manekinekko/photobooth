@@ -13,6 +13,7 @@ import { DeviceSourceComponent } from "./device-source/device-source.component";
 import { DeviceSourceService } from "./device-source/device-source.service";
 import { FiltersPreviewComponent } from "./filters-preview/filters-preview.component";
 import { DeviceIdFormatPipe } from "./shared/device-id-format.pipe";
+import { StopEventPropagation } from "./shared/stop-event-propagation.directive";
 import { ThemeDirective } from "./shared/theme.directive";
 import { TimerComponent } from "./timer/timer.component";
 import { TimerState } from "./timer/timer.state";
@@ -41,6 +42,7 @@ export function installVirtualMediaDevice(deviceSource: DeviceSourceService) {
     FiltersPreviewComponent,
     DeviceSourceComponent,
     ThemeDirective,
+    StopEventPropagation,
   ],
   imports: [
     BrowserModule,

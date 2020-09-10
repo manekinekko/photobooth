@@ -22,6 +22,7 @@ import {
         [ngClass]="{ selected: (selectedPictureId$ | async) === pic.id }"
         style="--delay: {{ currentPictureId / 10 }}s "
       >
+        <b stopEventPropagation class="green-screen-blend" (click)="selectForGreenScreen(pic.id)">⭐</b>
         <span (click)="deletePicture()">&#x2715;</span>
         <img [src]="pic.data" height="50" />
       </li>
@@ -86,6 +87,16 @@ import {
       .camera-roll-item.selected span {
         display: block;
       }
+      .camera-roll-item .green-screen-blend {
+        cursor: pointer;
+        position: absolute;
+        bottom: 2px;
+        right: 4px;
+        display: none;
+      }
+      .camera-roll-item:hover .green-screen-blend {
+        display: block;
+      }
 
       @keyframes reveal {
         from {
@@ -142,6 +153,11 @@ export class CameraRollComponent {
 
   async deletePicture() {
     this.store.dispatch(new DeletePicture());
+  }
+
+  selectForGreenScreen(currentPictureId: string) {
+    this.store.dispatch(new SelectPicture(currentPictureId, true));
+    return false;
   }
 
   trackByFilename(index: number, item: PictureItem) {

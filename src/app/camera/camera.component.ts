@@ -12,7 +12,7 @@ import {
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { delay } from "rxjs/operators";
-import { UnselectPicture } from "../camera-roll/camera-roll.state";
+import { SelectPictureDataForGreenScreen, UnselectPicture } from "../camera-roll/camera-roll.state";
 import { PresetFilter } from "../filters-preview/filters-preview.component";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 import { TimerComponent } from "../timer/timer.component";
@@ -26,6 +26,7 @@ import { FaceMeshService } from "./face-mesh.service";
   template: `
     <video #videoRef hidden autoplay playsinline muted></video>
     <canvas #canvasVideoRef hidden [width]="width" [height]="height"></canvas>
+    <canvas #canvasGreenScreenRef hidden [width]="width" [height]="height"></canvas>
 
     <ng-content select="app-filters"></ng-content>
     <canvas
@@ -102,6 +103,7 @@ export class CameraComponent implements OnInit {
   @ViewChild("canvasRef", { static: true }) canvasRef: ElementRef<HTMLCanvasElement>;
   @ViewChild("canvasMeshRef", { static: true }) canvasMeshRef: ElementRef<HTMLCanvasElement>;
   @ViewChild("canvasVideoRef", { static: true }) canvasVideoRef: ElementRef<HTMLCanvasElement>;
+  @ViewChild("canvasGreenScreenRef", { static: true }) canvasGreenScreenRef: ElementRef<HTMLCanvasElement>;
   @ViewChild(TimerComponent, { static: true }) timerRef: TimerComponent;
 
   @Input() width: number = 1280;
@@ -111,6 +113,7 @@ export class CameraComponent implements OnInit {
   canvasContextRef: CanvasRenderingContext2D;
   canvasMeshContextRef: CanvasRenderingContext2D;
   canvasVideoContextRef: CanvasRenderingContext2D;
+  canvasGreenScreenContextRef: CanvasRenderingContext2D;
 
   isCameraOn: boolean;
 
@@ -123,8 +126,12 @@ export class CameraComponent implements OnInit {
   @Select(CameraState.mediaStream) mediaStream$: Observable<MediaStream>;
   @Select(CameraState.preview) preview$: Observable<string>;
 
+  onPictureSelectedForGreenScreen: Observable<CapturePictureData>;
+
   constructor(private faceMesh: FaceMeshService, private store: Store, private actions$: Actions) {
     this.onCapture = this.actions$.pipe(ofActionSuccessful(CapturePictureData));
+    this.onPictureSelectedForGreenScreen = this.actions$.pipe(ofActionSuccessful(SelectPictureDataForGreenScreen));
+
     this.onCameraStatus = new EventEmitter<boolean>();
     this.onCameraStart = new EventEmitter<string>();
     this.onFlash = new EventEmitter<number>();
@@ -135,17 +142,38 @@ export class CameraComponent implements OnInit {
     this.canvasMeshContextRef = this.canvasMeshRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
     this.canvasVideoContextRef = this.canvasVideoRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
 
+    this.canvasGreenScreenContextRef = this.canvasGreenScreenRef.nativeElement.getContext(
+      "2d"
+    ) as CanvasRenderingContext2D;
+    this.canvasGreenScreenContextRef.fillStyle = "white";
+    this.canvasGreenScreenContextRef.fillRect(
+      0,
+      0,
+      this.canvasGreenScreenRef.nativeElement.width,
+      this.canvasGreenScreenRef.nativeElement.height
+    );
+
     this.videoRef.nativeElement.onloadedmetadata = () => {
       this.videoRef.nativeElement.width = this.width;
       this.videoRef.nativeElement.height = this.height;
     };
 
+    // when a picture is selected for preview
     this.preview$.subscribe((preview) => {
       if (preview) {
         const image = new Image();
         image.onload = () => this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
         image.src = preview;
       }
+    });
+
+    // when a picture is selected as a background for the green screen filter
+    this.onPictureSelectedForGreenScreen.subscribe((data) => {
+      var image = new Image();
+      image.onload = () => {
+        this.canvasGreenScreenContextRef.drawImage(image, 0, 0);
+      };
+      image.src = data.data;
     });
 
     this.mediaStream$.subscribe(async (mediaStream) => {
@@ -232,17 +260,21 @@ export class CameraComponent implements OnInit {
 
           // add selected filters/presets
           this.selectedFilters.forEach((f) => {
-            if (f.id === 'greenScreen') {
+            if (f.id === "greenScreen") {
               shouldBlend = true;
             }
-            webGLFilter.addFilter(f.id, f.args)
+            webGLFilter.addFilter(f.id, f.args);
           });
 
           // apply filters
           const filteredImage = webGLFilter.render(this.canvasVideoRef.nativeElement);
-          
+
           if (shouldBlend) {
-            this.canvasContextRef.putImageData(this.canvasVideoContextRef.getImageData(0, 0, this.width, this.height), 0, 0);
+            this.canvasContextRef.putImageData(
+              this.canvasGreenScreenContextRef.getImageData(0, 0, this.width, this.height),
+              0,
+              0
+            );
           }
 
           // draw image data with applied filters
