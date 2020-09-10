@@ -16,18 +16,20 @@ export function greenScreenShader(
 
     void main() {
       lowp vec4 tempColor = texture2D(texture, imgCoord);
+      lowp float avg = 0.0;
+      lowp float delta = 0.0;
 
       // red
-      // lowp float avg = tempColor.g * 0.5 + tempColor.b * 0.5;
-      // lowp float delta = tempColor.r - avg;
+      // avg = tempColor.g * 0.5 + tempColor.b * 0.5;
+      // delta = tempColor.r - avg;
 
       // green
-      lowp float avg = tempColor.r * 0.5 + tempColor.b * 0.5;
-      lowp float delta = tempColor.g - avg;
+      avg = tempColor.r * 0.5 + tempColor.b * 0.5;
+      delta = tempColor.g - avg;
       
       // blue
-      // lowp float avg = tempColor.r * 0.5 + tempColor.g * 0.5;
-      // lowp float delta = tempColor.b - avg;
+      // avg = tempColor.r * 0.5 + tempColor.g * 0.5;
+      // delta = tempColor.b - avg;
 
       lowp float fact = 1.0 - smoothstep(threshold, 1.0 - smoothing, delta);
       tempColor.a = fact;

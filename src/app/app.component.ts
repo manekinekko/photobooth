@@ -57,6 +57,7 @@ import { PresetFilter } from "./filters-preview/filters-preview.component";
         padding: 10px 0 0;
         min-width: 500px;
         min-height: 400px;
+        box-shadow: 1px 3px 13px 4px rgba(0,0,0,0.5);
       }
 
       .flash-effect {
