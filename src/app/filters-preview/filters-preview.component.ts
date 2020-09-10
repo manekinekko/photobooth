@@ -1,16 +1,8 @@
 import { Component, ElementRef, EventEmitter, OnInit, Output, Renderer2, ViewChild, ViewChildren } from "@angular/core";
+import { Store } from "@ngxs/store";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 import { FiltersPreviewService } from "./filters-preview.service";
-
-export interface PresetFilter {
-  id: string;
-  args?: number[];
-}
-export interface PresetFilters {
-  label: string;
-  data?: string; // the applied filter result
-  filters: Array<PresetFilter>;
-}
+import { CameraFilter, CameraFilterItem, SelectFilter } from './filters-preview.state';
 
 @Component({
   selector: "app-filters-preview",
@@ -99,14 +91,14 @@ export interface PresetFilters {
 export class FiltersPreviewComponent implements OnInit {
   @ViewChild("filterListRef", { static: true }) filterListRef: ElementRef<HTMLUListElement>;
   @ViewChildren("filterListItemRef") filterListItemRef: Array<ElementRef<HTMLLIElement>>;
-  @Output() onFilterSelected: EventEmitter<Array<PresetFilter>>;
+  @Output() onFilterSelected: EventEmitter<Array<CameraFilterItem>>;
   selectedFilterLabel: string;
   isScrollFilterListEnabled = false;
 
-  filters: PresetFilters[] = [];
-  constructor(private renderer: Renderer2, private filtersService: FiltersPreviewService) {
-    this.onFilterSelected = new EventEmitter<Array<PresetFilter>>();
-    this.filters = filtersService.getFilters();
+  filters: CameraFilter[] = [];
+  constructor(private renderer: Renderer2, private filtersService: FiltersPreviewService, private store: Store) {
+    this.onFilterSelected = new EventEmitter<Array<CameraFilterItem>>();
+    this.filters = this.filtersService.getFilters();
   }
 
   ngOnInit(): void {
@@ -155,7 +147,7 @@ export class FiltersPreviewComponent implements OnInit {
       const filters = filtersSetting.split("|");
 
       // create a filter definition {id, args} for each filter setting
-      const selectedFilters: Array<PresetFilter> = filters.map((filter: string) => {
+      const selectedFilters: Array<CameraFilterItem> = filters.map((filter: string) => {
         const [id, ...args] = filter.split(",");
         return {
           id,
@@ -169,14 +161,17 @@ export class FiltersPreviewComponent implements OnInit {
       });
     } else {
       const noopFilter = this.filters.find((filter) => filter.label === "Normal");
-      this.onFilterClicked({
-        label: noopFilter.label,
-        filters: noopFilter.filters,
-      }, true);
+      this.onFilterClicked(
+        {
+          label: noopFilter.label,
+          filters: noopFilter.filters,
+        },
+        true
+      );
     }
   }
 
-  onFilterClicked(filter: PresetFilters, updateUrlHash = false) {
+  onFilterClicked(filter: CameraFilter, updateUrlHash = false) {
     if (this.selectedFilterLabel !== filter.label) {
       this.selectedFilterLabel = filter.label;
 
@@ -196,6 +191,8 @@ export class FiltersPreviewComponent implements OnInit {
         });
         location.hash = `f=${filter.label}:${serializedFilters.join("|")}`;
       }
+
+      this.store.dispatch(new SelectFilter(filter))
     }
   }
 

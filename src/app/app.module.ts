@@ -12,6 +12,7 @@ import { FaceMeshService } from "./camera/face-mesh.service";
 import { DeviceSourceComponent } from "./device-source/device-source.component";
 import { DeviceSourceService } from "./device-source/device-source.service";
 import { FiltersPreviewComponent } from "./filters-preview/filters-preview.component";
+import { FilterState } from "./filters-preview/filters-preview.state";
 import { DeviceIdFormatPipe } from "./shared/device-id-format.pipe";
 import { StopEventPropagation } from "./shared/stop-event-propagation.directive";
 import { ThemeDirective } from "./shared/theme.directive";
@@ -46,7 +47,7 @@ export function installVirtualMediaDevice(deviceSource: DeviceSourceService) {
   ],
   imports: [
     BrowserModule,
-    NgxsModule.forRoot([TimerState, CameraRollState, CameraState], {
+    NgxsModule.forRoot([TimerState, CameraRollState, CameraState, FilterState], {
       developmentMode: !environment.production,
     }),
     NgxsReduxDevtoolsPluginModule.forRoot(),

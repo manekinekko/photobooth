@@ -13,7 +13,7 @@ import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { delay } from "rxjs/operators";
 import { SelectPictureDataForGreenScreen, UnselectPicture } from "../camera-roll/camera-roll.state";
-import { PresetFilter } from "../filters-preview/filters-preview.component";
+import { CameraFilterItem } from '../filters-preview/filters-preview.state';
 import { WebGLFilter } from "../shared/webgl-filter.class";
 import { TimerComponent } from "../timer/timer.component";
 import { StartTimer, TimerState } from "../timer/timer.state";
@@ -109,7 +109,7 @@ export class CameraComponent implements OnInit {
   @Input() width: number = 1280;
   @Input() height: number = 720;
   @Input() deviceId: string;
-  @Input() selectedFilters: Array<PresetFilter>;
+  @Input() selectedFilters: Array<CameraFilterItem>;
   canvasContextRef: CanvasRenderingContext2D;
   canvasMeshContextRef: CanvasRenderingContext2D;
   canvasVideoContextRef: CanvasRenderingContext2D;
@@ -168,12 +168,18 @@ export class CameraComponent implements OnInit {
     });
 
     // when a picture is selected as a background for the green screen filter
-    this.onPictureSelectedForGreenScreen.subscribe((data) => {
-      var image = new Image();
-      image.onload = () => {
-        this.canvasGreenScreenContextRef.drawImage(image, 0, 0);
-      };
-      image.src = data.data;
+    this.onPictureSelectedForGreenScreen.subscribe((picture) => {
+      if (picture.data === null) {
+        // remove picture from green screen
+        this.canvasGreenScreenContextRef.clearRect(0, 0, this.width, this.height);
+      }
+      else {
+        var image = new Image();
+        image.onload = () => {
+          this.canvasGreenScreenContextRef.drawImage(image, 0, 0);
+        };
+        image.src = picture.data;
+      }
     });
 
     this.mediaStream$.subscribe(async (mediaStream) => {

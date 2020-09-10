@@ -1,6 +1,7 @@
 import { Component, Output } from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
+import { CameraFilter, FilterState } from "../filters-preview/filters-preview.state";
 import {
   CameraRollState,
   DeletePicture,
@@ -8,7 +9,7 @@ import {
   NoMorePictures,
   PictureItem,
   SelectPicture,
-  SelectPictureData,
+  SelectPictureData
 } from "./camera-roll.state";
 
 @Component({
@@ -22,7 +23,13 @@ import {
         [ngClass]="{ selected: (selectedPictureId$ | async) === pic.id }"
         style="--delay: {{ currentPictureId / 10 }}s "
       >
-        <b stopEventPropagation class="green-screen-blend" (click)="selectForGreenScreen(pic.id)">⭐</b>
+        <b
+          *ngIf="isGreenScreenFilterActive"
+          stopEventPropagation
+          class="green-screen-blend"
+          (click)="selectForGreenScreen(pic.id)"
+          >&#x2691;</b
+        >
         <span (click)="deletePicture()">&#x2715;</span>
         <img [src]="pic.data" height="50" />
       </li>
@@ -91,8 +98,9 @@ import {
         cursor: pointer;
         position: absolute;
         bottom: 2px;
-        right: 4px;
+        right: 6px;
         display: none;
+        color: white;
       }
       .camera-roll-item:hover .green-screen-blend {
         display: block;
@@ -137,7 +145,10 @@ export class CameraRollComponent {
 
   @Select(CameraRollState.selectedPictureId)
   selectedPictureId$: Observable<string>;
+  isGreenScreenApplied = false;
+  isGreenScreenFilterActive = false;
   @Select(CameraRollState.pictures) pictures$: Observable<PictureItem[]>;
+  @Select(FilterState.selectedFilter) selectedFilter$: Observable<CameraFilter>;
 
   constructor(private store: Store, private actions$: Actions) {
     this.onPictureDeleted = this.actions$.pipe(ofActionSuccessful(DeletePicture));
@@ -145,6 +156,12 @@ export class CameraRollComponent {
     this.onEmptyPictures = this.actions$.pipe(ofActionSuccessful(NoMorePictures));
 
     this.store.dispatch(new InitializePictures());
+
+    this.selectedFilter$.subscribe((selectedFilter) => {
+      if (selectedFilter) {
+        this.isGreenScreenFilterActive = !!selectedFilter.filters.find((filter) => filter.id.includes("greenScreen"));
+      }
+    });
   }
 
   async selectPicture(currentPictureId: string) {
@@ -156,8 +173,8 @@ export class CameraRollComponent {
   }
 
   selectForGreenScreen(currentPictureId: string) {
-    this.store.dispatch(new SelectPicture(currentPictureId, true));
-    return false;
+    this.store.dispatch(new SelectPicture(this.isGreenScreenApplied ? null : currentPictureId, true));
+    this.isGreenScreenApplied = !this.isGreenScreenApplied;
   }
 
   trackByFilename(index: number, item: PictureItem) {

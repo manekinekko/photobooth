@@ -5,7 +5,7 @@ import { AppService } from "./app.service";
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
-import { PresetFilter } from "./filters-preview/filters-preview.component";
+import { CameraFilter, FilterState } from "./filters-preview/filters-preview.state";
 
 @Component({
   selector: "app-root",
@@ -57,7 +57,7 @@ import { PresetFilter } from "./filters-preview/filters-preview.component";
         padding: 10px 0 0;
         min-width: 500px;
         min-height: 400px;
-        box-shadow: 1px 3px 13px 4px rgba(0,0,0,0.5);
+        box-shadow: 1px 3px 13px 4px rgba(0, 0, 0, 0.5);
       }
 
       .flash-effect {
@@ -113,11 +113,12 @@ export class AppComponent {
   height: number = 720;
   aspectRatio: number;
 
-  selectedFilters: Array<PresetFilter>;
+  selectedFilters: Array<CameraFilter>;
 
   activeSource: string;
 
   @Select(CameraState.source) activeSource$: Observable<string>;
+  @Select(FilterState.selectedFilter) selectedFilter$: Observable<CameraFilter>;
 
   constructor(private store: Store, private app: AppService) {}
 
@@ -155,7 +156,7 @@ export class AppComponent {
     this.store.dispatch([new StopMediaStream(), new PreviewPictureData(picture.data)]);
   }
 
-  onFilterSelected(filters: Array<PresetFilter>) {
+  onFilterSelected(filters: Array<CameraFilter>) {
     this.selectedFilters = filters;
   }
 }

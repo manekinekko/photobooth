@@ -89,6 +89,11 @@ export class CameraRollState {
 
   @Action(SelectPicture)
   selectPicture({ patchState, getState, dispatch }: StateContext<CameraRollStateModel>, payload: SelectPicture) {
+    if (payload.useForGreenScreen && payload.currentPictureId === null) {
+      // remove picture from green screen 
+      dispatch(new SelectPictureDataForGreenScreen(null));
+    }
+    
     const { selectedPictureId } = getState();
 
     if (selectedPictureId === payload.currentPictureId) {
