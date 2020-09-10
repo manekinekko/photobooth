@@ -1,6 +1,6 @@
 import { Component, ElementRef, EventEmitter, OnInit, Output, Renderer2, ViewChild, ViewChildren } from "@angular/core";
 import { WebGLFilter } from "../shared/webgl-filter.class";
-import { FiltersPreviewService } from './filters-preview.service';
+import { FiltersPreviewService } from "./filters-preview.service";
 
 export interface PresetFilter {
   id: string;
@@ -106,7 +106,6 @@ export class FiltersPreviewComponent implements OnInit {
   filters: PresetFilters[] = [];
   constructor(private renderer: Renderer2, private filtersService: FiltersPreviewService) {
     this.onFilterSelected = new EventEmitter<Array<PresetFilter>>();
-    this.selectedFilterLabel = "Normal";
     this.filters = filtersService.getFilters();
   }
 
@@ -117,8 +116,7 @@ export class FiltersPreviewComponent implements OnInit {
       if (this.isScrollFilterListEnabled) {
         if (event.deltaX) {
           this.filterListRef.nativeElement.scrollLeft += event.deltaX;
-        }
-        else {
+        } else {
           this.filterListRef.nativeElement.scrollLeft -= event.deltaY;
         }
         event.preventDefault();
@@ -164,12 +162,17 @@ export class FiltersPreviewComponent implements OnInit {
           args: args.map(Number),
         };
       });
-
       // trigger filter propagation
       this.onFilterClicked({
         label: decodeURIComponent(label),
         filters: selectedFilters,
       });
+    } else {
+      const noopFilter = this.filters.find((filter) => filter.label === "Normal");
+      this.onFilterClicked({
+        label: noopFilter.label,
+        filters: noopFilter.filters,
+      }, true);
     }
   }
 
