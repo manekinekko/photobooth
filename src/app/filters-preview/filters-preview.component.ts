@@ -2,7 +2,7 @@ import { Component, ElementRef, EventEmitter, OnInit, Output, Renderer2, ViewChi
 import { Store } from "@ngxs/store";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 import { FiltersPreviewService } from "./filters-preview.service";
-import { CameraFilter, CameraFilterItem, SelectFilter } from './filters-preview.state';
+import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.state";
 
 @Component({
   selector: "app-filters-preview",
@@ -71,11 +71,15 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from './filters-preview.
         padding: 2px 4px;
         border-radius: 7px;
         background: rgba(0, 0, 0, 1);
-        min-width: 21px;
+        min-width: 20px;
+        max-width: 60px;
         text-align: center;
         position: absolute;
         bottom: -100px;
         transition: bottom 0.1s ease-in;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
       }
       .filter-list-item.selected span,
       .filter-list-item:hover span {
@@ -192,7 +196,7 @@ export class FiltersPreviewComponent implements OnInit {
         location.hash = `f=${filter.label}:${serializedFilters.join("|")}`;
       }
 
-      this.store.dispatch(new SelectFilter(filter))
+      this.store.dispatch(new SelectFilter(filter));
     }
   }
 
