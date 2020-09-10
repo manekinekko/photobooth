@@ -34,8 +34,6 @@ export class VirtualMediaDevice {
       },
     } as MediaDeviceInfo);
 
-    console.log(devices);
-
     return devices;
   }
 
@@ -44,7 +42,7 @@ export class VirtualMediaDevice {
     debugger;
 
     if (video?.deviceId) {
-      if (video?.deviceId === "virtual" || video?.deviceId?.["exact"] === this.deviceId) {
+      if (video?.deviceId === this.deviceId || video?.deviceId?.["exact"] === this.deviceId) {
         const constraints = {
           video: {
             facingMode: video.facingMode,
