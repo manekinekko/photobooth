@@ -1,6 +1,6 @@
 import { CustomWebGLProgram } from "../../webgl-program.class";
 
-export function greenScreenShader(
+export function chromaKeyShader(
   threshold = 0.13, // 0 - 1
   smoothing = 0.87 // 0 - 1
 ) {
