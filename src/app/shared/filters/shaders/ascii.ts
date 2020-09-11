@@ -2,7 +2,7 @@
 
 import { CustomWebGLProgram } from "../../webgl-program.class";
 
-export function asciiShader(pixelSize = 12 /* 10 - 20*/) {
+export function asciiShader(pixelSize = 10 /* 10 - 20*/) {
   return () => {
     const SHADER = `
     precision highp float;
@@ -72,6 +72,7 @@ export function asciiShader(pixelSize = 12 /* 10 - 20*/) {
       vec2 modd = getMod(coord, vec2(pixelSize));
   
       gl_FragColor = color * character( asciiCode, vec2(-1.0) + modd * 2.0); 
+      gl_FragColor.a = 1.0;
     }
     `;
 
