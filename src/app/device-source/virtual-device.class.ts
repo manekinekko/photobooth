@@ -1,6 +1,6 @@
 export class VirtualMediaDevice {
-  private readonly deviceId = "715dca83d20f15b206344f923c98cede6c4f235e0aa18b425848c0f6a8d5f5c4";
-  private readonly groupId = "cb6c7f43fe34fffee0b7335c5aec9f3ac12567ef44e9b47f1bbb44a5583160ac";
+  private readonly deviceId = "photo-booth-virtual-camera-device-id";
+  private readonly groupId = "photo-booth-virtual-camera-group-id";
   enumerateDevicesFn: Function;
   getUserMediaFn: Function;
 
@@ -37,7 +37,7 @@ export class VirtualMediaDevice {
     return devices;
   }
 
-  async getUserMedia(constraints: MediaStreamConstraints) {
+  async getUserMedia(constraints: MediaStreamConstraints): Promise<MediaStream> {
     const video = constraints.video as MediaTrackConstraints;
     if (video?.deviceId) {
       if (video?.deviceId === this.deviceId || video?.deviceId?.["exact"] === this.deviceId) {
@@ -50,13 +50,50 @@ export class VirtualMediaDevice {
           },
           audio: false,
         };
-        const res = await this.getUserMediaFn.call(navigator.mediaDevices, constraints);
-        // if (res) {
-        //   const filter = new FilterStream(res, shader);
-        //   return filter.outputStream;
-        // }
+
+        // https://w3c.github.io/mediacapture-main/#dom-mediadevices-getusermedia
+        const res: MediaStream = await this.getUserMediaFn.call(navigator.mediaDevices, constraints);
+
+        if (res) {
+          // rewire virtual cam to our custom source
+          const { width, height } = res.getTracks()[0].getSettings();
+          return this.captureStream(width, height);
+        }
+
+        // otherwise, return whatever getUserMediaFn returns
+        return res;
       }
     }
     return await this.getUserMediaFn.call(navigator.mediaDevices, constraints);
+  }
+
+  private captureStream(width: number, height: number): MediaStream {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+
+    // use static image
+    const image = new Image();
+    image.onload = () => ctx.drawImage(image, 0, 0, image.width, image.height);
+    image.src = "assets/tv-signal.jpg";
+
+    // use video
+    // const loop = () => {
+    //   ctx.drawImage(video, 0, 0, video.width, video.height);
+    //   requestAnimationFrame(loop);
+    // };
+    // const video = document.createElement("video");
+    // video.onloadedmetadata = () => loop();
+    // video.height = height;
+    // video.width = width;
+    // video.loop = true;
+    // video.autoplay = true;
+    // video.preload = "0";
+    // video.src = "assets/tv-signal.mp4";
+
+    const mediaStream = canvas["captureStream"](25) as MediaStream;
+
+    return mediaStream.clone();
   }
 }
