@@ -4,7 +4,13 @@ import { Observable } from "rxjs";
 import { AppService } from "./app.service";
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
-import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
+import {
+  CameraDeviceSource,
+  CameraState,
+  PreviewPictureData,
+  StartMediaStream,
+  StopMediaStream,
+} from "./camera/camera.state";
 import { CameraFilter, FilterState } from "./filters-preview/filters-preview.state";
 
 @Component({
@@ -22,7 +28,6 @@ import { CameraFilter, FilterState } from "./filters-preview/filters-preview.sta
           [width]="width"
           [height]="height"
           [selectedFilters]="selectedFilters"
-          (onCameraStart)="onCameraStart($event)"
           (onCapture)="onCapture($event)"
           (onFlash)="flashEffect($event)"
         >
@@ -33,7 +38,7 @@ import { CameraFilter, FilterState } from "./filters-preview/filters-preview.sta
         </app-camera>
       </main>
 
-      <app-device-source [source]="activeSource" (onDeviceSelected)="onDeviceSelected($event)"></app-device-source>
+      <app-device-source></app-device-source>
 
       <footer>
         Made by <a href="https://twitter.com/@manekinekko">@manekinekko</a> (<a
@@ -119,22 +124,25 @@ export class AppComponent {
 
   @Select(CameraState.source) activeSource$: Observable<string>;
   @Select(FilterState.selectedFilter) selectedFilter$: Observable<CameraFilter>;
+  @Select(CameraState.devices) devices$: Observable<CameraDeviceSource[]>;
 
-  constructor(private store: Store, private app: AppService) {}
+  constructor(private store: Store, private app: AppService) {
+    this.activeSource$.subscribe((source) => {
+      this.activeSource = source;
+    });
+
+    this.devices$.subscribe((devices) => {
+      if (devices.length > 0) {
+        this.store.dispatch(new StartMediaStream(devices[0].deviceId));
+      }
+    });
+  }
 
   ngOnInit() {
     this.aspectRatio = this.app.computeCameraAspectRatio();
 
     this.width *= this.aspectRatio;
     this.height *= this.aspectRatio;
-  }
-
-  onDeviceSelected(selectedDeviceId: string) {
-    this.activeSource = selectedDeviceId;
-  }
-
-  onCameraStart(activeSource: string) {
-    this.activeSource = activeSource;
   }
 
   onCapture(capturedPicture: { data: string }) {

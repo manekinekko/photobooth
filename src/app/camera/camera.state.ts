@@ -40,13 +40,24 @@ export class SwitchCameraDevice {
   constructor(public readonly deviceId: string) {}
 }
 
+export class CameraDevices {
+  static readonly type = "[Camera] devices";
+  constructor(public readonly devices: CameraDeviceSource[]) {}
+}
+
 // state
+
+export interface CameraDeviceSource {
+  deviceId: string;
+  label: string;
+}
 export interface CameraStateModel {
   mediaStream: MediaStream;
   source: string;
   width: number;
   height: number;
   preview: string;
+  devices: CameraDeviceSource[];
 }
 
 @State<CameraStateModel>({
@@ -57,6 +68,7 @@ export interface CameraStateModel {
     width: 1280,
     height: 720,
     preview: null,
+    devices: [],
   },
 })
 @Injectable()
@@ -78,6 +90,11 @@ export class CameraState {
     return camera.source;
   }
 
+  @Selector()
+  static devices(camera: CameraStateModel) {
+    return camera.devices;
+  }
+
   @Action(StartMediaStream)
   startMediaStream({ patchState, getState }: StateContext<CameraStateModel>, payload: StartMediaStream) {
     const { mediaStream } = getState();
@@ -91,6 +108,7 @@ export class CameraState {
       tap((mediaStream) => {
         patchState({
           mediaStream,
+          source: payload.deviceId,
         });
       })
     );
@@ -98,17 +116,7 @@ export class CameraState {
 
   @Action(RestartMediaStream)
   restartMediaStream({ patchState, getState, dispatch }: StateContext<CameraStateModel>, payload: RestartMediaStream) {
-    const { mediaStream } = getState();
-
-    if (mediaStream) {
-      mediaStream.getTracks().forEach((track) => track.stop());
-
-      patchState({
-        mediaStream: null,
-      });
-
-      dispatch(new StartMediaStream(payload.deviceId));
-    }
+    dispatch([new StopMediaStream(), new StartMediaStream(payload.deviceId)]);
   }
 
   @Action(SwitchCameraDevice)
@@ -148,6 +156,12 @@ export class CameraState {
   previewPictureData({ patchState }: StateContext<CameraStateModel>, payload: PreviewPictureData) {
     patchState({
       preview: payload.data,
+    });
+  }
+  @Action(CameraDevices)
+  cameraDevices({ patchState }: StateContext<CameraStateModel>, payload: CameraDevices) {
+    patchState({
+      devices: payload.devices,
     });
   }
 }

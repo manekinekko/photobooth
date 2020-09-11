@@ -13,7 +13,7 @@ import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { delay } from "rxjs/operators";
 import { SelectPictureDataForGreenScreen, UnselectPicture } from "../camera-roll/camera-roll.state";
-import { CameraFilterItem } from '../filters-preview/filters-preview.state';
+import { CameraFilterItem } from "../filters-preview/filters-preview.state";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 import { TimerComponent } from "../timer/timer.component";
 import { StartTimer, TimerState } from "../timer/timer.state";
@@ -145,13 +145,6 @@ export class CameraComponent implements OnInit {
     this.canvasGreenScreenContextRef = this.canvasGreenScreenRef.nativeElement.getContext(
       "2d"
     ) as CanvasRenderingContext2D;
-    this.canvasGreenScreenContextRef.fillStyle = "white";
-    this.canvasGreenScreenContextRef.fillRect(
-      0,
-      0,
-      this.canvasGreenScreenRef.nativeElement.width,
-      this.canvasGreenScreenRef.nativeElement.height
-    );
 
     this.videoRef.nativeElement.onloadedmetadata = () => {
       this.videoRef.nativeElement.width = this.width;
@@ -172,8 +165,7 @@ export class CameraComponent implements OnInit {
       if (picture.data === null) {
         // remove picture from green screen
         this.canvasGreenScreenContextRef.clearRect(0, 0, this.width, this.height);
-      }
-      else {
+      } else {
         var image = new Image();
         image.onload = () => {
           this.canvasGreenScreenContextRef.drawImage(image, 0, 0);
@@ -199,8 +191,6 @@ export class CameraComponent implements OnInit {
         this.onCameraStart.emit(deviceId);
       }
     });
-
-    this.startMediaStream();
   }
 
   @HostListener("document:keyup.shift", ["$event"])

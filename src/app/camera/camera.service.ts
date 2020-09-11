@@ -34,14 +34,4 @@ export class CameraService {
       console.error("getUserMedia() error:", error);
     }
   }
-
-  cropImage(videoElement: HTMLVideoElement, inContext: CanvasRenderingContext2D, target: HTMLElement, threshold = 0) {
-    const { left, top, width, height } = target.getBoundingClientRect();
-    const imageData = inContext.getImageData(left - threshold, top - threshold, width + threshold, height + threshold);
-    let canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    canvas.getContext("2d").drawImage(videoElement, left, top, width, height, 0, 0, width, height);
-    return canvas;
-  }
 }
