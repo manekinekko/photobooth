@@ -17,6 +17,8 @@ import { CameraFilter, FilterState } from "./filters-preview/filters-preview.sta
   selector: "app-root",
   template: `
     <section appTheme>
+      <app-device-source></app-device-source>
+
       <app-filters-preview
         [ngStyle]="{ width: width + 'px' }"
         (onFilterSelected)="onFilterSelected($event)"
@@ -37,9 +39,6 @@ import { CameraFilter, FilterState } from "./filters-preview/filters-preview.sta
           ></app-camera-roll>
         </app-camera>
       </main>
-
-      <app-device-source></app-device-source>
-
       <footer>
         Made by <a href="https://twitter.com/@manekinekko">@manekinekko</a> (<a
           target="__blank"

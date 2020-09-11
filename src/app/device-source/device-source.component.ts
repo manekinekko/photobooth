@@ -8,9 +8,9 @@ import { CameraDevices, SwitchCameraDevice } from "../camera/camera.state";
   selector: "app-device-source",
   template: `
     <section class="selection" appTheme>
-      <select (change)="onDeviceSelect($event)">
+      <select (change)="onDeviceSelect($event)" tabindex="1">
         <option *ngFor="let device of availableDevices" [value]="device.deviceId">
-          {{ device.label | deviceIdFormat }}
+        {{ device.label | deviceIdFormat }}
         </option>
       </select>
     </section>
@@ -25,10 +25,11 @@ import { CameraDevices, SwitchCameraDevice } from "../camera/camera.state";
         background: var(--background-color);
         overflow: hidden;
         border-radius: 30px;
-        padding: 0px 14px;
+        padding: 0px 14px 0 0;
         margin: 10px;
         color: white;
         border: 1px solid rgba(255, 255, 255, 0.6);
+        width: 220px;
       }
 
       .selection select {

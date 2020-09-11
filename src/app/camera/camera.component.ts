@@ -72,9 +72,9 @@ import { FaceMeshService } from "./face-mesh.service";
         background: transparent;
         border: 0 none;
         display: block;
-        width: 64px;
-        height: 64px;
-        margin: 10px;
+        width: 76px;
+        height: 76px;
+        margin: 5px;
         border-radius: 50%;
       }
       button[disabled] {
