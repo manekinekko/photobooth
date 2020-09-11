@@ -48,7 +48,15 @@ export class FilterState {
 
   @Action(SelectFilter)
   selectFilter({ patchState }: StateContext<FilterStateModel>, payload: SelectFilter) {
-    payload.currentFilter.data = null;
+    
+    payload = {
+      ...payload,
+      currentFilter: {
+        ...payload.currentFilter,
+        data: null
+      }
+    }
+
     patchState({
       selectedFilter: payload.currentFilter,
     });
