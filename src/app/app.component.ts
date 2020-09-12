@@ -40,11 +40,12 @@ import { CameraFilter, FilterState } from "./filters-preview/filters-preview.sta
         </app-camera>
       </main>
       <footer>
-        Made by <a href="https://twitter.com/@manekinekko">@manekinekko</a> (<a
-          target="__blank"
-          href="https://github.com/manekinekko/photobooth-teams"
-          >_BUILD_HASH_</a
-        >)
+        <span
+          >Photo Booth (developer preview: <a target="__blank" href="https://github.com/manekinekko/photobooth-teams"
+            >_BUILD_HASH_</a
+          >)</span
+        >
+        <span>Made by <a href="https://twitter.com/@manekinekko">@manekinekko</a> </span>
       </footer>
     </section>
   `,
@@ -89,9 +90,14 @@ import { CameraFilter, FilterState } from "./filters-preview/filters-preview.sta
 
       footer {
         font-size: 10px;
-        right: 4px;
-        position: absolute;
-        bottom: 5px;
+        justify-content: space-between;
+        width: 100%;
+        display: flex;
+        padding: 10px;
+      }
+      footer span {
+        display: inline-block;
+        margin: 0 10px;
       }
       footer,
       footer a {
