@@ -1,28 +1,20 @@
-import { Component, ElementRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, ViewChild } from "@angular/core";
 import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { AppService } from "./app.service";
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
-import {
-  CameraDeviceSource,
-  CameraState,
-  PreviewPictureData,
-  StartMediaStream,
-  StopMediaStream,
-} from "./camera/camera.state";
-import { CameraFilter, FilterState } from "./filters-preview/filters-preview.state";
+import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
+import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/filters-preview.state";
 
 @Component({
   selector: "app-root",
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section appTheme>
       <app-device-source></app-device-source>
 
-      <app-filters-preview
-        [ngStyle]="{ width: width + 'px' }"
-        (onFilterSelected)="onFilterSelected($event)"
-      ></app-filters-preview>
+      <app-filters-preview [ngStyle]="{ width: width + 'px' }"></app-filters-preview>
 
       <div #flashEffectRef></div>
       <main [ngStyle]="{ width: width + 'px' }">
@@ -41,9 +33,8 @@ import { CameraFilter, FilterState } from "./filters-preview/filters-preview.sta
       </main>
       <footer>
         <span
-          >Photo Booth (developer preview: <a target="__blank" href="https://github.com/manekinekko/photobooth-teams"
-            >_BUILD_HASH_</a
-          >)</span
+          >Photo Booth (developer preview:
+          <a target="__blank" href="https://github.com/manekinekko/photobooth-teams">_BUILD_HASH_</a>)</span
         >
         <span>Made by <a href="https://twitter.com/@manekinekko">@manekinekko</a> </span>
       </footer>
@@ -123,27 +114,25 @@ export class AppComponent {
   height: number = 720;
   aspectRatio: number;
 
-  selectedFilters: Array<CameraFilter>;
+  selectedFilters: Array<CameraFilterItem>;
 
   activeSource: string;
 
   @Select(CameraState.source) activeSource$: Observable<string>;
   @Select(FilterState.selectedFilter) selectedFilter$: Observable<CameraFilter>;
-  @Select(CameraState.devices) devices$: Observable<CameraDeviceSource[]>;
 
   constructor(private store: Store, private app: AppService) {
     this.activeSource = null;
+
+    this.selectedFilter$.subscribe((selectedFilter) => (this.selectedFilters = selectedFilter?.filters));
+
     this.activeSource$.subscribe((source) => {
-      // set the initial source from the store
+      // set the initial source from the store's default value
+      // but do it only this.activeSource is not set yet
       if (this.activeSource === null && typeof source === "string") {
         this.store.dispatch(new StartMediaStream(source));
       }
       this.activeSource = source;
-    });
-
-    this.devices$.subscribe((devices) => {
-      if (devices.length > 0) {
-      }
     });
   }
 
@@ -171,9 +160,5 @@ export class AppComponent {
 
   onPictureSelected(picture: SelectPictureData) {
     this.store.dispatch([new StopMediaStream(), new PreviewPictureData(picture.data)]);
-  }
-
-  onFilterSelected(filters: Array<CameraFilter>) {
-    this.selectedFilters = filters;
   }
 }

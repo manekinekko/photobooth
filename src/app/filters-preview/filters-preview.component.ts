@@ -5,6 +5,7 @@ import {
   HostListener,
   OnInit,
   Output,
+  QueryList,
   Renderer2,
   ViewChild,
   ViewChildren,
@@ -111,7 +112,7 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
 })
 export class FiltersPreviewComponent implements OnInit {
   @ViewChild("filterListRef", { static: true }) filterListRef: ElementRef<HTMLUListElement>;
-  @ViewChildren("filterListItemRef") filterListItemRef: Array<ElementRef<HTMLLIElement>>;
+  @ViewChildren("filterListItemRef") filterListItemRef: QueryList<ElementRef<HTMLLIElement>>;
   @Output() onFilterSelected: EventEmitter<Array<CameraFilterItem>>;
   selectedFilterLabel: string;
   selectedFilterIndex: number;
@@ -127,7 +128,6 @@ export class FiltersPreviewComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeFilters();
-    this.initializeSelectedFiltersFromUrlHash();
     this.renderer.listen(this.filterListRef.nativeElement, "mousewheel", (event: WheelEvent) => {
       if (this.isScrollFilterListEnabled) {
         if (event.deltaX) {
@@ -141,52 +141,55 @@ export class FiltersPreviewComponent implements OnInit {
   }
 
   ngAfterViewInit() {
-    const filterElementRef = this.filterListItemRef.find(
-      (item) => item.nativeElement.dataset.label === this.selectedFilterLabel
-    );
+    this.initializeSelectedFiltersFromUrlHash();
 
-    setTimeout((_) => {
-      filterElementRef.nativeElement.scrollIntoView({ behavior: "smooth", inline: "center" });
-    }, 900);
+    // const filterElementRef = this.filterListItemRef.find(
+    //   (item) => item.nativeElement.dataset.label === this.selectedFilterLabel
+    // );
+
+    // setTimeout((_) => {
+    //   filterElementRef.nativeElement.scrollIntoView({ behavior: "smooth", inline: "center" });
+    // }, 100);
   }
 
   toggleScrollingInFilterList(enable: boolean) {
     this.isScrollFilterListEnabled = enable;
   }
 
+  @HostListener("window:hashchange", ["$event"])
+  onUrlHashChange(event: HashChangeEvent) {
+    this.initializeSelectedFiltersFromUrlHash();
+  }
+
   private initializeSelectedFiltersFromUrlHash() {
     const selectedFiltersHash = location.hash.replace("#", "");
     // is there any hash?
-    let filterIndex = 0;
     if (selectedFiltersHash) {
-      // example: f=Gingham:sepia,0.5|contrast,0.9
-      // ignore the key "k" and extract the filter definition
-      const [_, filtersHash] = selectedFiltersHash.split("=");
-
-      // extract the label and filters setting
-      // example: Gingham" and "sepia,0.5|contrast,0.9"
-      let [label, filtersSetting] = filtersHash.split(":");
+      // example: f/Gingham/sepia,0.5|contrast,0.9
+      const [
+        _, // ignore the key "f"
+        label, // Gingham
+        filtersSetting, // sepia,0.5|contrast,0.9
+      ] = selectedFiltersHash.split("/");
 
       // extract the array of filters
       // example: sepia,0.5|contrast,0.9
       const filters = filtersSetting.split("|");
 
       // create a filter definition {id, args} for each filter setting
-      const selectedFilters: Array<CameraFilterItem> = filters.map((filter: string, index: number) => {
+      const selectedFilters: Array<CameraFilterItem> = filters.map((filter: string) => {
         const [id, ...args] = filter.split(",");
         return {
           id,
           args: args.map(Number),
         };
       });
+
       // trigger filter propagation
-      this.onFilterClicked(
-        {
-          label: decodeURIComponent(label),
-          filters: selectedFilters,
-        },
-        filterIndex
-      );
+      this.onFilterClicked({
+        label: decodeURIComponent(label),
+        filters: selectedFilters,
+      });
     } else {
       const noopFilter = this.filters.find((filter) => filter.label === "Normal");
       this.onFilterClicked(
@@ -194,31 +197,24 @@ export class FiltersPreviewComponent implements OnInit {
           label: noopFilter.label,
           filters: noopFilter.filters,
         },
-        filterIndex,
         true
       );
     }
   }
 
-  onFilterClicked(filter: CameraFilter, filterIndex: number, updateUrlHash = false) {
-    if (this.selectedFilterLabel !== filter.label) {
+  onFilterClicked(filter: CameraFilter, updateUrlHash = false) {
+    // if (this.selectedFilterLabel !== filter.label) {
+    if (true) {
       this.selectedFilterLabel = filter.label;
-      this.selectedFilterIndex = filterIndex;
+      this.selectedFilterIndex = this.filters.findIndex((f) => f.label === filter.label);
 
-      if (filter.filters.length === 0) {
-        this.onFilterSelected.emit(null);
-      } else {
-        this.onFilterSelected.emit(filter.filters);
-      }
-
-      // run only after filterListItemRef is populated
-      if (this.filterListItemRef) {
-        this.filterListItemRef
-          .find((filter, index) => index === this.selectedFilterIndex)
-          .nativeElement.scrollIntoView({
+      if (this.selectedFilterIndex >= 0) {
+        setTimeout((_) => {
+          this.filterListItemRef.toArray()[this.selectedFilterIndex].nativeElement.scrollIntoView({
             behavior: "smooth",
             inline: "center",
           });
+        }, 100);
       }
 
       if (updateUrlHash) {
@@ -229,7 +225,7 @@ export class FiltersPreviewComponent implements OnInit {
           }
           return str;
         });
-        location.hash = `f=${filter.label}:${serializedFilters.join("|")}`;
+        location.hash = `f/${filter.label}/${serializedFilters.join("|")}`;
       }
 
       this.store.dispatch(new SelectFilter(filter));
@@ -239,18 +235,15 @@ export class FiltersPreviewComponent implements OnInit {
   @HostListener("window:keyup.arrowright", ["$event"])
   onFilterNext(event: KeyboardEvent) {
     this.selectedFilterIndex = this.computeNewFilterIndex(this.selectedFilterIndex, 1);
-    console.log(this.selectedFilterIndex);
-
     const filter = this.filters[this.selectedFilterIndex];
-    this.onFilterClicked(filter, this.selectedFilterIndex, true);
+    this.onFilterClicked(filter, true);
   }
 
   @HostListener("window:keyup.arrowleft", ["$event"])
   onFilterPrevious(event: KeyboardEvent) {
     this.selectedFilterIndex = this.computeNewFilterIndex(this.selectedFilterIndex, -1);
-
     const filter = this.filters[this.selectedFilterIndex];
-    this.onFilterClicked(filter, this.selectedFilterIndex, true);
+    this.onFilterClicked(filter, true);
   }
 
   computeNewFilterIndex(index: number, sign: 1 | -1) {
