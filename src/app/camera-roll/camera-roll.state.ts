@@ -30,8 +30,8 @@ export class SelectPictureData {
   constructor(public readonly data: string) {}
 }
 
-export class SelectPictureDataForGreenScreen {
-  static readonly type = "[CameraRoll] select picture data for green screen";
+export class SelectPictureDataForChromaKey {
+  static readonly type = "[CameraRoll] select picture data for chroma key";
   constructor(public readonly data: string) {}
 }
 
@@ -90,8 +90,8 @@ export class CameraRollState {
   @Action(SelectPicture)
   selectPicture({ patchState, getState, dispatch }: StateContext<CameraRollStateModel>, payload: SelectPicture) {
     if (payload.useForGreenScreen && payload.currentPictureId === null) {
-      // remove picture from green screen 
-      dispatch(new SelectPictureDataForGreenScreen(null));
+      // remove background picture from chroma key 
+      dispatch(new SelectPictureDataForChromaKey(null));
     }
     
     const { selectedPictureId } = getState();
@@ -106,7 +106,7 @@ export class CameraRollState {
       map((picture: PictureItem) => picture.data),
       tap((data: string) => {
         if (payload.useForGreenScreen) {
-          dispatch(new SelectPictureDataForGreenScreen(data));
+          dispatch(new SelectPictureDataForChromaKey(data));
         } else {
           patchState({
             selectedPictureId: payload.currentPictureId,

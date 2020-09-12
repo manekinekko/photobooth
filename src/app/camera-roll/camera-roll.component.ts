@@ -26,7 +26,7 @@ import {
         <b
           *ngIf="isGreenScreenFilterActive"
           stopEventPropagation
-          class="green-screen-blend"
+          class="chroma-key-blend"
           (click)="selectForGreenScreen(pic.id)"
           >&#x2691;</b
         >
@@ -94,7 +94,7 @@ import {
       .camera-roll-item.selected span {
         display: block;
       }
-      .camera-roll-item .green-screen-blend {
+      .camera-roll-item .chroma-key-blend {
         cursor: pointer;
         position: absolute;
         bottom: 2px;
@@ -102,7 +102,7 @@ import {
         display: none;
         color: white;
       }
-      .camera-roll-item:hover .green-screen-blend {
+      .camera-roll-item:hover .chroma-key-blend {
         display: block;
       }
 
@@ -159,7 +159,7 @@ export class CameraRollComponent {
 
     this.selectedFilter$.subscribe((selectedFilter) => {
       if (selectedFilter) {
-        this.isGreenScreenFilterActive = !!selectedFilter.filters.find((filter) => filter.id.includes("greenScreen"));
+        this.isGreenScreenFilterActive = !!selectedFilter.filters.find((filter) => filter.id.includes("chromaKey"));
       }
     });
   }

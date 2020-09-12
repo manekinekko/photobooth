@@ -12,7 +12,7 @@ import {
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { delay } from "rxjs/operators";
-import { SelectPictureDataForGreenScreen, UnselectPicture } from "../camera-roll/camera-roll.state";
+import { SelectPictureDataForChromaKey, UnselectPicture } from "../camera-roll/camera-roll.state";
 import { CameraFilterItem } from "../filters-preview/filters-preview.state";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 import { TimerComponent } from "../timer/timer.component";
@@ -130,7 +130,7 @@ export class CameraComponent implements OnInit {
 
   constructor(private faceMesh: FaceMeshService, private store: Store, private actions$: Actions) {
     this.onCapture = this.actions$.pipe(ofActionSuccessful(CapturePictureData));
-    this.onPictureSelectedForGreenScreen = this.actions$.pipe(ofActionSuccessful(SelectPictureDataForGreenScreen));
+    this.onPictureSelectedForGreenScreen = this.actions$.pipe(ofActionSuccessful(SelectPictureDataForChromaKey));
 
     this.onCameraStatus = new EventEmitter<boolean>();
     this.onCameraStart = new EventEmitter<string>();
@@ -160,10 +160,10 @@ export class CameraComponent implements OnInit {
       }
     });
 
-    // when a picture is selected as a background for the green screen filter
+    // when a picture is selected as a background for the chroma-key filter
     this.onPictureSelectedForGreenScreen.subscribe((picture) => {
       if (picture.data === null) {
-        // remove picture from green screen
+        // remove background picture from chroma-key
         this.canvasGreenScreenContextRef.clearRect(0, 0, this.width, this.height);
       } else {
         var image = new Image();
@@ -256,7 +256,7 @@ export class CameraComponent implements OnInit {
 
           // add selected filters/presets
           this.selectedFilters.forEach((f) => {
-            if (f.id === "greenScreen") {
+            if (f.id === "chromaKey") {
               shouldBlend = true;
             }
             webGLFilter.addFilter(f.id, f.args);
