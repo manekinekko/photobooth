@@ -1,17 +1,18 @@
 import { Component, ElementRef, OnInit } from "@angular/core";
-import { Store } from "@ngxs/store";
+import { Select, Store } from "@ngxs/store";
+import { Observable } from "rxjs";
 import { AppService } from "../app.service";
-import { UnselectPicture } from '../camera-roll/camera-roll.state';
+import { UnselectPicture } from "../camera-roll/camera-roll.state";
 import { CameraService } from "../camera/camera.service";
-import { CameraDevices, SwitchCameraDevice } from "../camera/camera.state";
+import { CameraDevices, CameraState, SwitchCameraDevice } from "../camera/camera.state";
 
 @Component({
   selector: "app-device-source",
   template: `
     <section class="selection" appTheme>
-      <select (change)="onDeviceSelect($event)" tabindex="1">
+      <select (change)="onDeviceSelect($event)" tabindex="1" [(ngModel)]="source">
         <option *ngFor="let device of availableDevices" [value]="device.deviceId">
-        {{ device.label | deviceIdFormat }}
+          {{ device.label | deviceIdFormat }}
         </option>
       </select>
     </section>
@@ -69,6 +70,9 @@ import { CameraDevices, SwitchCameraDevice } from "../camera/camera.state";
 })
 export class DeviceSourceComponent implements OnInit {
   availableDevices: Array<{ deviceId: string; label: string }>;
+  source: string;
+
+  @Select(CameraState.source) source$: Observable<string>;
 
   constructor(
     private app: AppService,
@@ -80,10 +84,14 @@ export class DeviceSourceComponent implements OnInit {
   async ngOnInit() {
     this.availableDevices = await this.cameraService.getVideosDevices();
     this.store.dispatch(new CameraDevices(this.availableDevices));
-
+    
     if (this.app.isRunningInMSTeams()) {
       this.element.nativeElement.classList.add("ms-teams");
     }
+    
+    this.source$.subscribe((source) => {
+      this.source = source;
+    });
   }
 
   onDeviceSelect(event: Event) {

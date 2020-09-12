@@ -1,4 +1,5 @@
 import { APP_INITIALIZER, NgModule } from "@angular/core";
+import { FormsModule } from '@angular/forms';
 import { BrowserModule } from "@angular/platform-browser";
 import { NgxsReduxDevtoolsPluginModule } from "@ngxs/devtools-plugin";
 import { NgxsModule } from "@ngxs/store";
@@ -47,6 +48,7 @@ export function installVirtualMediaDevice(deviceSource: DeviceSourceService) {
   ],
   imports: [
     BrowserModule,
+    FormsModule,
     NgxsModule.forRoot([TimerState, CameraRollState, CameraState, FilterState], {
       developmentMode: !environment.production,
     }),

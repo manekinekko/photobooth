@@ -1,7 +1,8 @@
 import { Injectable } from "@angular/core";
-import { Action, Selector, State, StateContext } from "@ngxs/store";
+import { Action, NgxsOnInit, Selector, State, StateContext } from "@ngxs/store";
 import { of } from "rxjs";
 import { switchMap, tap } from "rxjs/operators";
+import { DeviceSourceService } from "../device-source/device-source.service";
 import { BlobService } from "./blob.service";
 import { CameraService } from "./camera.service";
 
@@ -72,8 +73,18 @@ export interface CameraStateModel {
   },
 })
 @Injectable()
-export class CameraState {
-  constructor(private cameraService: CameraService, private blobService: BlobService) {}
+export class CameraState implements NgxsOnInit {
+  constructor(
+    private cameraService: CameraService,
+    private blobService: BlobService,
+    private sourceService: DeviceSourceService
+  ) {}
+
+  ngxsOnInit({ patchState }: StateContext<CameraStateModel>) {
+    patchState({
+      source: this.sourceService.restoreSourceId(),
+    });
+  }
 
   @Selector()
   static mediaStream(camera: CameraStateModel) {
@@ -115,7 +126,7 @@ export class CameraState {
   }
 
   @Action(RestartMediaStream)
-  restartMediaStream({ patchState, getState, dispatch }: StateContext<CameraStateModel>, payload: RestartMediaStream) {
+  restartMediaStream({ dispatch }: StateContext<CameraStateModel>, payload: RestartMediaStream) {
     dispatch([new StopMediaStream(), new StartMediaStream(payload.deviceId)]);
   }
 
@@ -125,6 +136,7 @@ export class CameraState {
       source: payload.deviceId,
     });
 
+    this.sourceService.saveSourceId(payload.deviceId);
     dispatch(new RestartMediaStream(payload.deviceId));
   }
 
@@ -152,12 +164,14 @@ export class CameraState {
       })
     );
   }
+
   @Action(PreviewPictureData)
   previewPictureData({ patchState }: StateContext<CameraStateModel>, payload: PreviewPictureData) {
     patchState({
       preview: payload.data,
     });
   }
+
   @Action(CameraDevices)
   cameraDevices({ patchState }: StateContext<CameraStateModel>, payload: CameraDevices) {
     patchState({

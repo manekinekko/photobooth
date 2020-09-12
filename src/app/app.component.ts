@@ -126,13 +126,17 @@ export class AppComponent {
   @Select(CameraState.devices) devices$: Observable<CameraDeviceSource[]>;
 
   constructor(private store: Store, private app: AppService) {
+    this.activeSource = null;
     this.activeSource$.subscribe((source) => {
+      // set the initial source from the store
+      if (this.activeSource === null && typeof source === "string") {
+        this.store.dispatch(new StartMediaStream(source));
+      }
       this.activeSource = source;
     });
 
     this.devices$.subscribe((devices) => {
       if (devices.length > 0) {
-        this.store.dispatch(new StartMediaStream(devices[0].deviceId));
       }
     });
   }
