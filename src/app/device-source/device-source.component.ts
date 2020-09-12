@@ -1,6 +1,7 @@
 import { Component, ElementRef, OnInit } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { AppService } from "../app.service";
+import { UnselectPicture } from '../camera-roll/camera-roll.state';
 import { CameraService } from "../camera/camera.service";
 import { CameraDevices, SwitchCameraDevice } from "../camera/camera.state";
 
@@ -87,6 +88,6 @@ export class DeviceSourceComponent implements OnInit {
 
   onDeviceSelect(event: Event) {
     const selectedSource = (event.target as HTMLSelectElement).value;
-    this.store.dispatch(new SwitchCameraDevice(selectedSource));
+    this.store.dispatch([new SwitchCameraDevice(selectedSource), new UnselectPicture()]);
   }
 }
