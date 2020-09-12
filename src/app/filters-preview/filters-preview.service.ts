@@ -11,7 +11,7 @@ export class FiltersPreviewService {
       { label: "Normal", filters: [{ id: "noop" }] },
 
       // presets
-      { label: "ASCII", filters: [{ id: "ascii" }] },
+      { label: "ASCII", filters: [{ id: "ascii", args: [20] }] },
       { label: "BGR", filters: [{ id: "bgr" }] },
       { label: "Blur Hor.", filters: [{ id: "blurHorizontal", args: [20] }] },
       { label: "Blur Ver.", filters: [{ id: "blurVertical", args: [20] }] },
@@ -74,7 +74,6 @@ export class FiltersPreviewService {
         filters: [
           {
             id: "desaturateLuminance",
-            args: [],
           },
           {
             id: "contrast",
