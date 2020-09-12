@@ -90,10 +90,10 @@ export class CameraRollState {
   @Action(SelectPicture)
   selectPicture({ patchState, getState, dispatch }: StateContext<CameraRollStateModel>, payload: SelectPicture) {
     if (payload.useForGreenScreen && payload.currentPictureId === null) {
-      // remove background picture from chroma key 
+      // remove background picture from chroma key
       dispatch(new SelectPictureDataForChromaKey(null));
     }
-    
+
     const { selectedPictureId } = getState();
 
     if (selectedPictureId === payload.currentPictureId) {

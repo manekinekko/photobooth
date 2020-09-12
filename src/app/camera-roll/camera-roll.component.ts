@@ -1,6 +1,7 @@
 import { Component, Output } from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
+import { CameraState, StartMediaStream } from "../camera/camera.state";
 import { CameraFilter, FilterState } from "../filters-preview/filters-preview.state";
 import {
   CameraRollState,
@@ -9,7 +10,8 @@ import {
   NoMorePictures,
   PictureItem,
   SelectPicture,
-  SelectPictureData
+  SelectPictureData,
+  UnselectPicture,
 } from "./camera-roll.state";
 
 @Component({
@@ -19,15 +21,16 @@ import {
       <li
         class="camera-roll-item"
         *ngFor="let pic of pictures$ | async; let currentPictureId = index; trackBy: trackByFilename"
-        (click)="selectPicture(pic.id)"
-        [ngClass]="{ selected: (selectedPictureId$ | async) === pic.id }"
+        (click)="toggleSelectPicture(pic.id)"
+        [ngClass]="{ selected: selectedPictureId === pic.id }"
         style="--delay: {{ currentPictureId / 10 }}s "
       >
         <b
-          *ngIf="isGreenScreenFilterActive"
+          *ngIf="isChromaKeyFilterActive"
           stopEventPropagation
           class="chroma-key-blend"
-          (click)="selectForGreenScreen(pic.id)"
+          [ngClass]="{ selected: currentChromaKeyPictureId === pic.id }"
+          (click)="toggleSelectForChromaKeyFilter(pic.id)"
           >&#x2691;</b
         >
         <span (click)="deletePicture()">&#x2715;</span>
@@ -102,6 +105,7 @@ import {
         display: none;
         color: white;
       }
+      .camera-roll-item .chroma-key-blend.selected,
       .camera-roll-item:hover .chroma-key-blend {
         display: block;
       }
@@ -143,12 +147,15 @@ export class CameraRollComponent {
   @Output() onPictureSelected: Observable<string>;
   @Output() onEmptyPictures: Observable<void>;
 
-  @Select(CameraRollState.selectedPictureId)
-  selectedPictureId$: Observable<string>;
-  isGreenScreenApplied = false;
-  isGreenScreenFilterActive = false;
+  selectedPictureId: string;
+  isChromaKeyBackgroundApplied = false;
+  isChromaKeyFilterActive = false;
+  currentChromaKeyPictureId: string;
+  source: string;
+  @Select(CameraRollState.selectedPictureId) selectedPictureId$: Observable<string>;
   @Select(CameraRollState.pictures) pictures$: Observable<PictureItem[]>;
   @Select(FilterState.selectedFilter) selectedFilter$: Observable<CameraFilter>;
+  @Select(CameraState.source) source$: Observable<string>;
 
   constructor(private store: Store, private actions$: Actions) {
     this.onPictureDeleted = this.actions$.pipe(ofActionSuccessful(DeletePicture));
@@ -157,24 +164,60 @@ export class CameraRollComponent {
 
     this.store.dispatch(new InitializePictures());
 
+    this.selectedPictureId$.subscribe((selectedPictureId) => (this.selectedPictureId = selectedPictureId));
+    this.source$.subscribe((source) => (this.source = source));
+
     this.selectedFilter$.subscribe((selectedFilter) => {
       if (selectedFilter) {
-        this.isGreenScreenFilterActive = !!selectedFilter.filters.find((filter) => filter.id.includes("chromaKey"));
+        this.isChromaKeyFilterActive = !!selectedFilter.filters.find((filter) => filter.id.includes("chromaKey"));
       }
     });
   }
 
-  async selectPicture(currentPictureId: string) {
-    this.store.dispatch(new SelectPicture(currentPictureId));
+  toggleSelectPicture(currentPictureId: string) {
+    if (this.selectedPictureId === currentPictureId) {
+      this.selectedPictureId = null;
+      this.store.dispatch([new UnselectPicture(), new StartMediaStream(this.source)]);
+    } else {
+      this.selectedPictureId = currentPictureId;
+      this.store.dispatch(new SelectPicture(this.selectedPictureId));
+    }
   }
 
-  async deletePicture() {
-    this.store.dispatch(new DeletePicture());
+  deletePicture() {
+    this.isChromaKeyBackgroundApplied = false;
+    this.currentChromaKeyPictureId = null;
+    this.store.dispatch([new SelectPicture(this.currentChromaKeyPictureId, true), new DeletePicture()]);
   }
 
-  selectForGreenScreen(currentPictureId: string) {
-    this.store.dispatch(new SelectPicture(this.isGreenScreenApplied ? null : currentPictureId, true));
-    this.isGreenScreenApplied = !this.isGreenScreenApplied;
+  toggleSelectForChromaKeyFilter(currentPictureId: string) {
+    if (this.selectedPictureId) {
+      return;
+    }
+
+    // when clicking on a picture that is already applied
+    // we will turn it off (unselect it)
+    if (this.currentChromaKeyPictureId === currentPictureId) {
+      // if the chroma key is applied
+      // let's remove the current background picture
+      if (this.isChromaKeyBackgroundApplied) {
+        this.isChromaKeyBackgroundApplied = false;
+        this.currentChromaKeyPictureId = null;
+        this.store.dispatch(new SelectPicture(this.currentChromaKeyPictureId, true));
+      }
+      // otherwise, go ahead and apply the current background picture
+      else {
+        this.isChromaKeyBackgroundApplied = true;
+        this.currentChromaKeyPictureId = currentPictureId;
+        this.store.dispatch(new SelectPicture(this.currentChromaKeyPictureId, true));
+      }
+    } else {
+      // when clicking on a new picture
+      // apply it as a background for the chroma key filter
+      this.isChromaKeyBackgroundApplied = true;
+      this.currentChromaKeyPictureId = currentPictureId;
+      this.store.dispatch(new SelectPicture(this.currentChromaKeyPictureId, true));
+    }
   }
 
   trackByFilename(index: number, item: PictureItem) {
