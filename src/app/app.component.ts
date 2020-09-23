@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, ViewChild } from "@angu
 import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { AppService } from "./app.service";
+import { IframeMessage } from "./app.state";
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
@@ -144,7 +145,7 @@ export class AppComponent {
   }
 
   onCapture(capturedPicture: { data: string }) {
-    this.store.dispatch(new AddPicture(capturedPicture.data));
+    this.store.dispatch([new AddPicture(capturedPicture.data), new IframeMessage(capturedPicture.data)]);
   }
 
   flashEffect(duration: number) {
