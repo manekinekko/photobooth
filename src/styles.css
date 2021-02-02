@@ -12,6 +12,9 @@ body {
   user-select: none;
   overflow: hidden;
   align-items: center;
+  flex-direction: column;
+  background-image: url(/assets/tiles-cubes.webp);
+  animation: color-cycle 44s linear infinite;
 }
 
 :root {

@@ -35,9 +35,15 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
       <footer>
         <span
           >Photo Booth (developer preview:
-          <a target="__blank" href="https://github.com/manekinekko/photobooth-teams">_BUILD_HASH_</a>)
-          - No data is collected. Pictures are stored in browser.</span>
-        <span>Made by Wassim Chegham (<a href="https://twitter.com/@manekinekko">@manekinekko</a>)</span>
+          <a target="__blank" href="https://github.com/manekinekko/photobooth-teams">_BUILD_HASH_</a>) - No data is
+          collected. Pictures are stored in browser.</span
+        >
+        <span
+          >Made by Wassim Chegham (<a href="https://twitter.com/@manekinekko">@manekinekko</a>) •
+          <a target="__blank" href="https://github.com/manekinekko/hue-action-app">Contribute</a>
+          •
+          <a target="__blank" href="https://github.com/manekinekko/hue-action-app/blob/master//PRIVACY.md">Privacy</a>
+        </span>
       </footer>
     </section>
   `,
