@@ -10,7 +10,9 @@
   <a href="https://photobooth.staticweb.app">
     <img src="https://img.shields.io/badge/visit-photobooth.staticweb.app-brightgreen" />
   </a>
-  <img src="https://img.shields.io/badge/deployed-Azure%20Static%20Web%20Apps-blue" />
+  <a href="https://azure.microsoft.com/services/app-service/static/?WT.mc_id=javascript-00000-wachegha">
+    <img src="https://img.shields.io/badge/deployed-Azure%20Static%20Web%20Apps-blue" />
+  </a>
 </p>
 
 # Contribute
