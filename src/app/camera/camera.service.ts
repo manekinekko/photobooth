@@ -9,7 +9,7 @@ export class CameraService {
 
   async getVideosDevices() {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    return devices.filter((device) => device.kind === "videoinput");
+    return devices.filter((device) => device.kind === "videoinput" && device.deviceId !== "");
   }
 
   getUserMedia({ width = 1280, height = 720, deviceId }): Observable<MediaStream> {
@@ -28,10 +28,6 @@ export class CameraService {
       },
     };
 
-    try {
-      return defer(async () => await navigator.mediaDevices.getUserMedia(constraints));
-    } catch (error) {
-      console.error("getUserMedia() error:", error);
-    }
+    return defer(async () => await navigator.mediaDevices.getUserMedia(constraints));
   }
 }

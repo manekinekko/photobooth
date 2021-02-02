@@ -12,7 +12,8 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
   selector: "app-root",
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section appTheme>
+    <span class="requesting-access" *ngIf="activeSource === null">Can't access camera. Please check your settings!</span>
+    <section appTheme [class.disabled]="activeSource === null">
       <app-device-source></app-device-source>
 
       <app-filters-preview [ngStyle]="{ width: width + 'px' }"></app-filters-preview>
@@ -61,6 +62,27 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
         min-width: 500px;
         min-height: 400px;
         box-shadow: 1px 3px 13px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      section.disabled {
+        filter: blur(7px);
+      }
+
+      span.requesting-access {
+        color: white;
+        font-size: 1em;
+        display: inline-block;
+        border: 1px solid white;
+        padding: 2px 27px;
+        border-radius: 20px;
+        background: rgb(14 14 14);
+        text-align: center;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        position: absolute;
+        top: 480px;
+        z-index: 1;
       }
 
       .flash-effect {
@@ -123,20 +145,19 @@ export class AppComponent {
 
   selectedFilters: Array<CameraFilterItem>;
 
-  activeSource: string;
+  activeSource: string | null;
 
   @Select(CameraState.source) activeSource$: Observable<string>;
   @Select(FilterState.selectedFilter) selectedFilter$: Observable<CameraFilter>;
 
   constructor(private store: Store, private app: AppService) {
     this.activeSource = null;
-
     this.selectedFilter$.subscribe((selectedFilter) => (this.selectedFilters = selectedFilter?.filters));
 
     this.activeSource$.subscribe((source) => {
       // set the initial source from the store's default value
       // but do it only this.activeSource is not set yet
-      if (this.activeSource === null && typeof source === "string") {
+      if (this.activeSource === null && typeof source === "string" && source !== "") {
         this.store.dispatch(new StartMediaStream(source));
       }
       this.activeSource = source;

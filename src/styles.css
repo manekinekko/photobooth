@@ -23,7 +23,9 @@ body {
 }
 
 app-root {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 app-root.hidden {

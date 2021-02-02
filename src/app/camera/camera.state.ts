@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Action, NgxsOnInit, Selector, State, StateContext } from "@ngxs/store";
 import { of } from "rxjs";
-import { switchMap, tap } from "rxjs/operators";
+import { catchError, switchMap, tap } from "rxjs/operators";
 import { DeviceSourceService } from "../device-source/device-source.service";
 import { BlobService } from "./blob.service";
 import { CameraService } from "./camera.service";
@@ -107,7 +107,7 @@ export class CameraState implements NgxsOnInit {
   }
 
   @Action(StartMediaStream)
-  startMediaStream({ patchState, getState }: StateContext<CameraStateModel>, payload: StartMediaStream) {
+  startMediaStream({ patchState, getState, dispatch }: StateContext<CameraStateModel>, payload: StartMediaStream) {
     const { mediaStream } = getState();
 
     if (mediaStream) {
@@ -116,11 +116,22 @@ export class CameraState implements NgxsOnInit {
     }
 
     return this.cameraService.getUserMedia({ deviceId: payload.deviceId }).pipe(
+      tap(async (_) => {
+        const availableDevices = await this.cameraService.getVideosDevices();
+        dispatch(new CameraDevices(availableDevices));
+      }),
       tap((mediaStream) => {
         patchState({
           mediaStream,
           source: payload.deviceId,
         });
+      }),
+      catchError((err) => {
+        patchState({
+          source: null,
+          devices: [],
+        });
+        return of();
       })
     );
   }

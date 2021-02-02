@@ -1,13 +1,13 @@
-import { Component, ElementRef, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit } from "@angular/core";
 import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { AppService } from "../app.service";
 import { UnselectPicture } from "../camera-roll/camera-roll.state";
-import { CameraService } from "../camera/camera.service";
-import { CameraDevices, CameraState, SwitchCameraDevice } from "../camera/camera.state";
+import { CameraDeviceSource, CameraState, SwitchCameraDevice } from "../camera/camera.state";
 
 @Component({
   selector: "app-device-source",
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="selection" appTheme>
       <select (change)="onDeviceSelect($event)" tabindex="1" [(ngModel)]="source">
@@ -69,29 +69,31 @@ import { CameraDevices, CameraState, SwitchCameraDevice } from "../camera/camera
   ],
 })
 export class DeviceSourceComponent implements OnInit {
-  availableDevices: Array<{ deviceId: string; label: string }>;
+  availableDevices: Array<CameraDeviceSource>;
   source: string;
 
   @Select(CameraState.source) source$: Observable<string>;
+  @Select(CameraState.devices) devices$: Observable<CameraDeviceSource[]>;
 
   constructor(
+    private cd: ChangeDetectorRef,
     private app: AppService,
-    private cameraService: CameraService,
     private store: Store,
     private element: ElementRef<HTMLElement>
-  ) {}
-
-  async ngOnInit() {
-    this.availableDevices = await this.cameraService.getVideosDevices();
-    this.store.dispatch(new CameraDevices(this.availableDevices));
-    
-    if (this.app.isRunningInMSTeams()) {
-      this.element.nativeElement.classList.add("ms-teams");
-    }
-    
+  ) {
     this.source$.subscribe((source) => {
       this.source = source;
     });
+    this.devices$.subscribe((devices) => {
+      this.availableDevices = devices;
+      this.cd.markForCheck();
+    });
+  }
+
+  async ngOnInit() {
+    if (this.app.isRunningInMSTeams()) {
+      this.element.nativeElement.classList.add("ms-teams");
+    }
   }
 
   onDeviceSelect(event: Event) {

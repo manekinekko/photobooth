@@ -51,13 +51,18 @@ export class VirtualMediaDevice {
           audio: false,
         };
 
-        // https://w3c.github.io/mediacapture-main/#dom-mediadevices-getusermedia
-        const res: MediaStream = await this.getUserMediaFn.call(navigator.mediaDevices, constraints);
+        let res: MediaStream;
+        try {
+          // https://w3c.github.io/mediacapture-main/#dom-mediadevices-getusermedia
+          res = await this.getUserMediaFn.call(navigator.mediaDevices, constraints);
 
-        if (res) {
-          // rewire virtual cam to our custom source
-          const { width, height } = res.getTracks()[0].getSettings();
-          return this.captureStream(width, height);
+          if (res) {
+            // rewire virtual cam to our custom source
+            const { width, height } = res.getTracks()[0].getSettings();
+            return this.captureStream(width, height);
+          }
+        } catch (err) {
+          throw new Error(`\nCan't access the camera device.\n\nReason: ${err.message}`);
         }
 
         // otherwise, return whatever getUserMediaFn returns
