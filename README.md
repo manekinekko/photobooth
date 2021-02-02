@@ -15,5 +15,5 @@
   </a>
 </p>
 
-## Want to help? [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/manekinekko/photobooth-teams/issues)
-Want to file a bug, contribute some code, or improve the documentation? Excellent! Read up on our guidelines for [contributing](https://github.com/manekinekko/photobooth-teams/blob/master/CONTRIBUTING.md) and then check out one of our issues in the hotlist: [community-help](https://github.com/manekinekko/photobooth-teams/issues).
+## Want to help?
+Want to file a bug, contribute some code, or improve the documentation? Excellent! Read up on our guidelines for [contributing](https://github.com/manekinekko/photobooth-teams/blob/master/CONTRIBUTING.md) and then check out one of our issues in the hotlist: [community-help](https://github.com/manekinekko/photobooth-teams/issues?q=label%3Acommunity-help).
