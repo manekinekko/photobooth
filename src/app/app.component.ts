@@ -12,7 +12,10 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
   selector: "app-root",
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <span class="requesting-access" *ngIf="activeSource === null">Can't access camera. Please check your settings!</span>
+    <p class="error" *ngIf="activeSource === null">
+      Can't access your camera. Please check your settings! <br /><br />If you believe we made a mistake, please
+      <a href="https://github.com/manekinekko/photobooth-teams">submit an issue</a>.
+    </p>
     <section appTheme [class.disabled]="activeSource === null">
       <app-device-source></app-device-source>
 
@@ -62,27 +65,33 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
         min-width: 500px;
         min-height: 400px;
         box-shadow: 1px 3px 13px 4px rgba(0, 0, 0, 0.5);
+        transition: 1s all;
       }
 
       section.disabled {
-        filter: blur(7px);
       }
 
-      span.requesting-access {
-        color: white;
+      .error {
+        transition: 1s all;
+        color: red;
         font-size: 1em;
         display: inline-block;
-        border: 1px solid white;
-        padding: 2px 27px;
-        border-radius: 20px;
-        background: rgb(14 14 14);
+        border: 10px solid red;
+        padding: 10px 30px;
+        border-radius: 4px;
+        background: white;
         text-align: center;
         white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden;
         position: absolute;
-        top: 480px;
+        top: calc(50% - 60px);
         z-index: 1;
+        box-shadow: 1px 1px 1px #620000;
+      }
+
+      .error a {
+        color: red;
       }
 
       .flash-effect {

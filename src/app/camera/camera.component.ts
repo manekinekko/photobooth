@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -40,7 +41,7 @@ import { FaceMeshService } from "./face-mesh.service";
     <ng-content select="app-camera-roll"></ng-content>
 
     <section>
-      <button (click)="startTimer()">
+      <button (click)="startTimer()" [disabled]="!isCameraOn">
         <img src="assets/camera.png" width="64" height="64" alt="capture icon" />
       </button>
       <app-timer
@@ -128,7 +129,7 @@ export class CameraComponent implements OnInit {
 
   onPictureSelectedForGreenScreen: Observable<CapturePictureData>;
 
-  constructor(private faceMesh: FaceMeshService, private store: Store, private actions$: Actions) {
+  constructor(private cd: ChangeDetectorRef, private faceMesh: FaceMeshService, private store: Store, private actions$: Actions) {
     this.onCapture = this.actions$.pipe(ofActionSuccessful(CapturePictureData));
     this.onPictureSelectedForGreenScreen = this.actions$.pipe(ofActionSuccessful(SelectPictureDataForChromaKey));
 
@@ -178,6 +179,8 @@ export class CameraComponent implements OnInit {
       // Note: when stopping the device, mediaStream is set to null.
       this.mediaStream = mediaStream;
       this.isCameraOn = !!mediaStream;
+      this.cd.markForCheck();
+      
       this.onCameraStatus.emit(this.isCameraOn);
       this.videoRef.nativeElement.srcObject = mediaStream;
 
