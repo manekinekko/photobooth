@@ -1,4 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
+html,
+body {
+  height: 100vh;
+}
 body {
   padding: 10px;
   margin: 0;
@@ -6,9 +10,15 @@ body {
   justify-content: center;
   font-family: "Roboto", sans-serif;
   user-select: none;
+  overflow: hidden;
+  align-items: center;
 }
 
 :root {
   --background-color: #585454;
   --border-color: #474444;
+}
+
+app-root {
+  display: block;
 }
