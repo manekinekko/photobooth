@@ -1,14 +1,16 @@
 <p align="center">
-  <h1 align="center">Photo booth</h1>
+  <h1 align="center">Online Photo Booth app with 25+ built-in filters 📸</h1>
 </p>
+
 <p align="center">
-  <img width="460" src="https://user-images.githubusercontent.com/1699357/106653194-c46e6100-6596-11eb-9f0c-785bb021b782.png"/>
+  <img width="460" src="https://user-images.githubusercontent.com/1699357/106653194-c46e6100-6596-11eb-9f0c-785bb021b782.png" />
 </p>
+
 <p align="center">
-Take selfies in your browser with 25+ filters 📸<br>
-<a href="https://photobooth.staticweb.app">
-  <img src="https://img.shields.io/badge/visit-photobooth.staticweb.app-brightgreen" />
-</a>
+  <a href="https://photobooth.staticweb.app">
+    <img src="https://img.shields.io/badge/visit-photobooth.staticweb.app-brightgreen" />
+  </a>
+  <img src="https://img.shields.io/badge/deployed-Azure%20Static%20Web%20Apps-blue" />
 </p>
 
 # Contribute
