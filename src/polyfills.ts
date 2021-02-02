@@ -62,7 +62,12 @@ import "zone.js/dist/zone"; // Included with Angular CLI.
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
-if (!window.OffscreenCanvas) {
-  window.document.querySelector('app-root').classList.add('hidden');
-  window.document.querySelector('#unsupported').classList.remove('hidden');
+var canvas = document.createElement("canvas");
+var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+if (window.OffscreenCanvas && gl && gl instanceof WebGLRenderingContext) {
+  window.document.querySelector("app-root").classList.remove("hidden");
+  window.document.querySelector("#unsupported").classList.add("hidden");
+} else {
+  window.document.querySelector("app-root").classList.add("hidden");
+  window.document.querySelector("#unsupported").classList.remove("hidden");
 }

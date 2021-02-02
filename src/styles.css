@@ -40,6 +40,10 @@ app-root.hidden {
   border-radius: 4px7;
 }
 
+#unsupported.hidden {
+  display: none;;
+}
+
 #unsupported h1 {
   font-size: 24px;
   line-height: 36px;
