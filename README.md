@@ -3,7 +3,9 @@
 </p>
 
 <p align="center">
-  <img width="460" src="https://user-images.githubusercontent.com/1699357/106653194-c46e6100-6596-11eb-9f0c-785bb021b782.png" />
+  <a href="https://photobooth.staticweb.app">
+    <img width="460" src="https://user-images.githubusercontent.com/1699357/106653194-c46e6100-6596-11eb-9f0c-785bb021b782.png" />
+  </a>
 </p>
 
 <p align="center">
