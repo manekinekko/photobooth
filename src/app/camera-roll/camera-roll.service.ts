@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
-import { openDB } from "idb";
-import { defer, Observable, of } from "rxjs";
+import { IDBPDatabase, openDB } from "idb";
+import { defer, Observable } from "rxjs";
 import { PictureItem } from "./camera-roll.state";
 
 const PHOTO_DB = `photobooth_image`;
@@ -14,7 +14,7 @@ export const enum MODE {
   providedIn: "root",
 })
 export class CameraRollService {
-  db;
+  db: Promise<IDBPDatabase<unknown>>;
   constructor() {
     this.db = openDB(PHOTO_DB, 1, {
       upgrade(db) {

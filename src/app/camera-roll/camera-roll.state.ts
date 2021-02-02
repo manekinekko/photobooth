@@ -96,6 +96,10 @@ export class CameraRollState {
 
     const { selectedPictureId } = getState();
 
+    if (payload.currentPictureId === null) {
+      return of();
+    }
+
     if (selectedPictureId === payload.currentPictureId) {
       // if the picture is already selected, ignore it
       // TODO: should we toggle selection?

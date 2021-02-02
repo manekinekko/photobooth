@@ -70,7 +70,7 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
         animation-duration: 0.8s;
         animation-timing-function: cubic-bezier(0.26, 0.79, 0.72, 0.5);
         position: absolute;
-        top: 0;
+        top: -20px;
         bottom: 0;
         width: 200%;
         height: 200%;

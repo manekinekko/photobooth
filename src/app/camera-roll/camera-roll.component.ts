@@ -33,7 +33,7 @@ import {
           (click)="toggleSelectForChromaKeyFilter(pic.id)"
           >&#x2691;</b
         >
-        <span (click)="deletePicture()">&#x2715;</span>
+        <span stopEventPropagation (click)="deletePicture()">&#x2715;</span>
         <img [src]="pic.data" height="50" />
       </li>
     </ul>
@@ -80,8 +80,8 @@ import {
         opacity: 0.7;
         right: 2px;
         top: 2px;
-        height: 16px;
-        width: 16px;
+        height: 32px;
+        width: 32px;
         display: block;
         text-align: center;
         cursor: pointer;
@@ -187,7 +187,7 @@ export class CameraRollComponent {
   deletePicture() {
     this.isChromaKeyBackgroundApplied = false;
     this.currentChromaKeyPictureId = null;
-    this.store.dispatch([new SelectPicture(this.currentChromaKeyPictureId, true), new DeletePicture()]);
+    this.store.dispatch([new SelectPicture(null, true), new DeletePicture(), new UnselectPicture()]);
   }
 
   toggleSelectForChromaKeyFilter(currentPictureId: string) {
