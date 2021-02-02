@@ -1,6 +1,23 @@
-# PhotoboothTeams
+<p align="center">
+  <h1 align="center">Online Photo Booth app with 25+ built-in filters 📸</h1>
+</p>
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.1.0-next.5.
+<p align="center">
+  <img width="460" src="https://user-images.githubusercontent.com/1699357/106653194-c46e6100-6596-11eb-9f0c-785bb021b782.png" />
+</p>
+
+<p align="center">
+  <a href="https://photobooth.staticweb.app">
+    <img src="https://img.shields.io/badge/visit-photobooth.staticweb.app-brightgreen" />
+  </a>
+  <a href="https://azure.microsoft.com/services/app-service/static/?WT.mc_id=javascript-00000-wachegha">
+    <img src="https://img.shields.io/badge/deployed-Azure%20Static%20Web%20Apps-blue" />
+  </a>
+</p>
+
+# Contribute
+
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli).
 
 ## Development server
 
@@ -12,7 +29,7 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Run `ng build --prod` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
 
 ## Running unit tests
 
