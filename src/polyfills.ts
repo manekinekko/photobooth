@@ -62,3 +62,7 @@ import "zone.js/dist/zone"; // Included with Angular CLI.
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
+if (!window.OffscreenCanvas) {
+  window.document.querySelector('app-root').classList.add('hidden');
+  window.document.querySelector('#unsupported').classList.remove('hidden');
+}

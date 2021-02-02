@@ -25,3 +25,74 @@ body {
 app-root {
   display: block;
 }
+
+app-root.hidden {
+  display: none;
+}
+
+#unsupported {
+  max-width: 700px;
+  padding: 30px 20px;
+  margin: 0 auto;
+  text-align: center;
+  background-color: white;
+  border: 1px solid gray;
+  border-radius: 4px7;
+}
+
+#unsupported h1 {
+  font-size: 24px;
+  line-height: 36px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+#unsupported h2 {
+  font-size: 18px;
+  line-height: 36px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+#unsupported p {
+  margin-bottom: 15px;
+}
+
+#unsupported a {
+  color: #0091ff;
+  text-decoration: none;
+}
+
+.supported-browsers-list {
+  background: #fff;
+  border: 1px solid #c5c5c5;
+  margin-top: 30px;
+  border-radius: 4px;
+  list-style: none;
+  text-align: left;
+}
+
+.supported-browsers-list-item {
+  padding: 30px 30px 30px 85px;
+  border-bottom: 1px solid #dcdcdc;
+}
+
+.supported-browser-information {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+@media (min-width: 500px) {
+  .supported-browser-download {
+    text-align: right;
+    float: right;
+  }
+}
+
+.browser-chrome {
+  background: url(/assets/supported-browsers/chrome.png) no-repeat 30px 50%;
+}
+
+.browser-edge {
+  background: url(/assets/supported-browsers/edge.png) no-repeat 30px 50%;
+}

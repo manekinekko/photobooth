@@ -42,7 +42,7 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
           >Made by Wassim Chegham (<a href="https://twitter.com/@manekinekko">@manekinekko</a>) •
           <a target="__blank" href="https://github.com/manekinekko/photobooth-teams">Contribute</a>
           •
-          <a target="__blank" href="https://github.com/manekinekko/photobooth-teams/blob/master//PRIVACY.md">Privacy</a>
+          <a target="__blank" href="https://github.com/manekinekko/photobooth-teams/blob/master/PRIVACY.md">Privacy</a>
         </span>
       </footer>
     </section>
