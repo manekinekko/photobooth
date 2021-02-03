@@ -28,7 +28,7 @@ app-root {
   justify-content: center;
 }
 
-app-root.hidden {
+app-root.disabled {
   display: none;
 }
 

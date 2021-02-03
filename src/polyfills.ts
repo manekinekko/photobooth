@@ -64,10 +64,44 @@ import "zone.js/dist/zone"; // Included with Angular CLI.
  */
 var canvas = document.createElement("canvas");
 var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-if (window.OffscreenCanvas && gl && gl instanceof WebGLRenderingContext) {
-  window.document.querySelector("app-root").classList.remove("hidden");
+if (gl && gl instanceof WebGLRenderingContext && "createImageBitmap" in window) {
+  window.__SURPPORTED_BROWSER__ = true;
+  window.document.querySelector("app-root").classList.remove("disabled");
   window.document.querySelector("#unsupported").classList.add("hidden");
 } else {
-  window.document.querySelector("app-root").classList.add("hidden");
+  window.document.querySelector("app-root").classList.add("disabled");
   window.document.querySelector("#unsupported").classList.remove("hidden");
+}
+
+if (!("OffscreenCanvas" in window)) {
+  window.OffscreenCanvas = class OffscreenCanvas {
+    private canvas: HTMLCanvasElement;
+    constructor(width: number, height: number) {
+      this.canvas = document.createElement("canvas");
+      this.canvas.width = width;
+      this.canvas.height = height;
+    }
+    getContext(ctx: "webgl", args: any) {
+      return this.canvas.getContext(ctx, args);
+    }
+    // Warning: transferToImageBitmap() has to be async because of createImageBitmap() !!
+    async transferToImageBitmap(): Promise<ImageBitmap | HTMLImageElement> {
+      const webglCanvas = this.canvas;
+      const offscreenCanvas = document.createElement("canvas");
+      offscreenCanvas.width = webglCanvas.width;
+      offscreenCanvas.height = webglCanvas.height;
+      const ctx = offscreenCanvas.getContext("2d");
+
+      ctx.drawImage(webglCanvas, 0, 0);
+      const imageData = ctx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+
+      // Warning: createImageBitmap is not supported in Safari/iOS !!
+      return createImageBitmap(new ImageData(imageData.data, offscreenCanvas.width, offscreenCanvas.height));
+    }
+    convertToBlob(): Promise<Blob> {
+      return new Promise((resolve) => {
+        this.canvas.toBlob(resolve);
+      });
+    }
+  };
 }

@@ -137,14 +137,15 @@ export class WebGLFilter {
   }
 
   // Note: this method runs inside the rAF loop
-  render(imageOrCanvas: HTMLCanvasElement | HTMLImageElement) {
+  async render(imageOrCanvas: HTMLCanvasElement | HTMLImageElement) {
     this.drawCount = 0;
     this.resize(imageOrCanvas);
 
     if (this.filterChain.length == 0) {
+      
       this.compileShader(this.SHADER.FRAGMENT_IDENTITY);
       this.apply();
-      return this.commitRenderingChangesToCanvas();
+      return await this.commitRenderingChangesToCanvas();
     }
 
     // Create the texture for the input images if we haven't yet
@@ -157,9 +158,9 @@ export class WebGLFilter {
       this.lastInChain = currentFilterIndex === this.filterChain.length - 1;
       const filter = this.filterChain[currentFilterIndex];
       try {
-        filter.fn.apply(this, filter.args || []);
+        filter?.fn.apply(this, filter.args || []);
       } catch (error) {
-        console.error(`"[WebGL::Filter] Couldn't apply filter "${filter.id}"`, error);
+        console.warn(`"[WebGL::Filter] Couldn't apply filter "${filter.id}". Filter not found.`);
       }
     }
 
@@ -179,8 +180,12 @@ export class WebGLFilter {
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, textureData);
   }
 
-  private commitRenderingChangesToCanvas() {
-    var bitmap = this.offscreen.transferToImageBitmap();
+  private async commitRenderingChangesToCanvas() {
+    let bitmap: ImageBitmap | Promise<ImageBitmap> = this.offscreen.transferToImageBitmap();
+    if ((bitmap as any).then) {
+      bitmap = await bitmap;
+    } 
+
     this.canvas.width = bitmap.width;
     this.canvas.height = bitmap.height;
     this.canvas.getContext("bitmaprenderer").transferFromImageBitmap(bitmap);

@@ -10,16 +10,18 @@ if (environment.production) {
   enableProdMode();
 }
 
-platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .then(() => {
-    if (environment.production) {
-      microsoftTeams.initialize();
-      microsoftTeams.settings.setValidityState(true);
-      microsoftTeams.settings.registerOnSaveHandler((saveEvent) => {
-        microsoftTeams.settings.setSettings(environment.msTeams);
-        saveEvent.notifySuccess();
-      });
-    }
-  })
-  .catch((err) => console.error(err));
+if (window.__SURPPORTED_BROWSER__) {
+  platformBrowserDynamic()
+    .bootstrapModule(AppModule)
+    .then(() => {
+      if (environment.production) {
+        microsoftTeams.initialize();
+        microsoftTeams.settings.setValidityState(true);
+        microsoftTeams.settings.registerOnSaveHandler((saveEvent) => {
+          microsoftTeams.settings.setSettings(environment.msTeams);
+          saveEvent.notifySuccess();
+        });
+      }
+    })
+    .catch((err) => console.error(err));
+}

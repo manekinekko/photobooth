@@ -266,7 +266,7 @@ export class CameraComponent implements OnInit {
           });
 
           // apply filters
-          const filteredImage = webGLFilter.render(this.canvasVideoRef.nativeElement);
+          const filteredImage = await webGLFilter.render(this.canvasVideoRef.nativeElement);
 
           if (shouldBlend) {
             this.canvasContextRef.putImageData(

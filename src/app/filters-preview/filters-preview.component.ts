@@ -33,7 +33,7 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
         #filterListItemRef
         [attr.data-label]="filter.label"
         class="filter-list-item"
-        *ngFor="let filter of filters; let currentFilterIndex = index"
+        *ngFor="let filter of availableFilters; let currentFilterIndex = index"
         [ngClass]="{ selected: selectedFilterLabel === filter.label }"
         (click)="onFilterClicked(filter, currentFilterIndex, true)"
         (focus)="onFilterClicked(filter, currentFilterIndex, true)"
@@ -118,10 +118,10 @@ export class FiltersPreviewComponent implements OnInit {
   selectedFilterIndex: number;
   isScrollFilterListEnabled = false;
 
-  filters: CameraFilter[] = [];
+  availableFilters: CameraFilter[] = [];
   constructor(private renderer: Renderer2, private filtersService: FiltersPreviewService, private store: Store) {
     this.onFilterSelected = new EventEmitter<Array<CameraFilterItem>>();
-    this.filters = this.filtersService.getFilters();
+    this.availableFilters = this.filtersService.getFilters();
 
     this.selectedFilterIndex = 0;
   }
@@ -191,7 +191,7 @@ export class FiltersPreviewComponent implements OnInit {
         filters: selectedFilters,
       });
     } else {
-      const noopFilter = this.filters.find((filter) => filter.label === "Normal");
+      const noopFilter = this.availableFilters.find((filter) => filter.label === "Normal");
       this.onFilterClicked(
         {
           label: noopFilter.label,
@@ -206,7 +206,7 @@ export class FiltersPreviewComponent implements OnInit {
     // if (this.selectedFilterLabel !== filter.label) {
     if (true) {
       this.selectedFilterLabel = filter.label;
-      this.selectedFilterIndex = this.filters.findIndex((f) => f.label === filter.label);
+      this.selectedFilterIndex = this.availableFilters.findIndex((f) => f.label === filter.label);
 
       if (this.selectedFilterIndex >= 0) {
         setTimeout((_) => {
@@ -235,39 +235,55 @@ export class FiltersPreviewComponent implements OnInit {
   @HostListener("window:keyup.arrowright", ["$event"])
   onFilterNext(event: KeyboardEvent) {
     this.selectedFilterIndex = this.computeNewFilterIndex(this.selectedFilterIndex, 1);
-    const filter = this.filters[this.selectedFilterIndex];
+    const filter = this.availableFilters[this.selectedFilterIndex];
     this.onFilterClicked(filter, true);
   }
 
   @HostListener("window:keyup.arrowleft", ["$event"])
   onFilterPrevious(event: KeyboardEvent) {
     this.selectedFilterIndex = this.computeNewFilterIndex(this.selectedFilterIndex, -1);
-    const filter = this.filters[this.selectedFilterIndex];
+    const filter = this.availableFilters[this.selectedFilterIndex];
     this.onFilterClicked(filter, true);
   }
 
   computeNewFilterIndex(index: number, sign: 1 | -1) {
-    const length = this.filters.length;
+    const length = this.availableFilters.length;
     return (((index + sign) % length) + length) % length;
   }
 
   // initialize preview thumbnails
   private initializeFilters() {
     const image = new Image();
-    image.onload = () => {
+
+    // when image data is ready
+    image.onload = async () => {
+      // create a WebGL filter instance with image dimension
       const webGLFilter = new WebGLFilter(image.width, image.height);
 
-      this.filters
+      // for each availble WebGL filters
+      const filters = this.availableFilters
         // skip the "Normal" filter
-        .filter((filter) => filter.filters.length > 0)
-        .map((filter) => {
-          webGLFilter.reset();
-          filter.filters.forEach((f) => {
-            webGLFilter.addFilter(f.id, f.args);
-          });
-          const filteredImage = webGLFilter.render(image);
-          filter.data = filteredImage.toDataURL();
+        // keep only WebGL filters that have complex filter definition
+        .filter((filter) => filter.filters.length > 0);
+
+      for (let index = 0; index < filters.length; index++) {
+        const filter = filters[index];
+
+        // clear previous filters
+        webGLFilter.reset();
+
+        // for each composite WebGL filter
+        filter.filters.forEach((filterDefinition) => {
+          // add WebGL to queued list
+          webGLFilter.addFilter(filterDefinition.id, filterDefinition.args);
         });
+
+        // apply and render all filters
+        const filteredImage = await webGLFilter.render(image);
+
+        // send rendered image data back <img /> element
+        filter.data = (await filteredImage).toDataURL();
+      }
     };
 
     // set initial picture data
