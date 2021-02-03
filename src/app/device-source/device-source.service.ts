@@ -13,6 +13,6 @@ export class DeviceSourceService {
     localStorage.setItem('photobooth-device-source', sourceId);
   }
   restoreSourceId() {
-    return localStorage.getItem('photobooth-device-source');
+    return localStorage.getItem('photobooth-device-source') || "photo-booth-virtual-camera-device-id";
   }
 }
