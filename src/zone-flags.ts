@@ -1,5 +1,10 @@
 // Reduce overhead introduced by the Zone.js:
 
+// Instructions:
+// 1. Add this config in a different file, eg. zone-flags.ts
+// 2. make sure to check that your app is not relying on an API before disabling it!!!
+// 3. import ./zone-flags.ts in polyfills.ts
+
 // Not needed for Angular
 (window as any).__Zone_disable_requestAnimationFrame = true;
 (window as any).__Zone_disable_canvas = true;
