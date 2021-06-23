@@ -53,6 +53,9 @@ import { CameraFilterItem, FilterState, CameraFilter } from "./filters-preview/f
       overflow: scroll;
       display: block;
     }
+    app-camera-roll {
+      padding-top: 14px;
+    }
     article {
       overflow: hidden;
     }
@@ -116,9 +119,8 @@ export class FoldableComponent {
   constructor(private store: Store, private app: AppService) {
     this.activeSource = null;
     this.selectedFilter$.subscribe((selectedFilter) => {
-      if (selectedFilter) {
-        // Run on the next macro task to avoid error NG0100
-        setTimeout(() => this.selectedFilters = selectedFilter.filters, 0);
+      if (selectedFilter && this.selectedFilters !== selectedFilter.filters) {
+        this.selectedFilters = selectedFilter.filters;
       }
     });
 

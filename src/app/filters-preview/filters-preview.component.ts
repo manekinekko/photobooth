@@ -36,9 +36,9 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
         class="filter-list-item"
         *ngFor="let filter of availableFilters; let currentFilterIndex = index"
         [ngClass]="{ selected: selectedFilterLabel === filter.label }"
-        (click)="onFilterClicked(filter, currentFilterIndex, true)"
-        (focus)="onFilterClicked(filter, currentFilterIndex, true)"
-        (keydown.enter)="onFilterClicked(filter, currentFilterIndex, true)"
+        (click)="onFilterClicked(filter, true)"
+        (focus)="onFilterClicked(filter, true)"
+        (keydown.enter)="onFilterClicked(filter, true)"
       >
         <span>{{ filter.label }}</span>
         <img alt="Filter {{ filter.label }}" [src]="filter.data || 'assets/filter-placeholder.jpg'" height="50" />
@@ -107,10 +107,29 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
         transition: 0.3s;
       }
 
-      @media (spanning: single-fold-vertical) {	
+      @media (spanning: single-fold-vertical){	
         .filter-list {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
+          gap: 2px;
+          margin: 0;
+          padding: 0;
+          height: auto;
+          border: none;
+        }
+        .filter-list-item {
+          overflow: hidden;
+        }
+        .filter-list-item img {
+          width: 130px;
+          height: 90px;
+        }
+      }
+
+      @media (spanning: single-fold-horizontal){	
+        .filter-list {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
           gap: 2px;
           margin: 0;
           padding: 0;
@@ -215,7 +234,7 @@ export class FiltersPreviewComponent implements OnInit {
         this.onFilterClicked({
           label: decodeURIComponent(label),
           filters: selectedFilters,
-        });
+        }, false);
         return;
       }
 
@@ -233,8 +252,7 @@ export class FiltersPreviewComponent implements OnInit {
   }
 
   onFilterClicked(filter: CameraFilter, updateUrlHash = false) {
-    // if (this.selectedFilterLabel !== filter.label) {
-    if (true) {
+    if (this.selectedFilterLabel !== filter.label) {
       this.selectedFilterLabel = filter.label;
       this.selectedFilterIndex = this.availableFilters.findIndex((f) => f.label === filter.label);
 
