@@ -11,7 +11,7 @@ import { CameraFilterItem, FilterState, CameraFilter } from "./filters-preview/f
 @Component({
   selector: 'app-foldable',
   template: `
-  <div fdSplitLayout="flex">
+  <div fdSplitLayout="flex reverse">
 
     <!-- Assign to first window segment -->
     <article fdWindow="0" class="screen-0">
