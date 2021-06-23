@@ -34,11 +34,11 @@ import { CameraFilterItem, FilterState, CameraFilter } from "./filters-preview/f
           [selectedFilters]="selectedFilters"
           (onCapture)="onCapture($event)"
           (onFlash)="flashEffect($event)"
-        >
-        </app-camera>
-        </main>
-      </article>
-    </div>
+        ></app-camera>
+      </main>
+    </article>
+
+  </div>
   `,
   styles: [`
     :host {
