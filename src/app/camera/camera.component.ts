@@ -37,10 +37,10 @@ import { FaceMeshService } from "./face-mesh.service";
       [height]="height"
       style="position: absolute"
     ></canvas>
-    <canvas class="is-multi-screen" #canvasRef [width]="width" [height]="height"></canvas>
+    <canvas class="foldable" #canvasRef [width]="width" [height]="height"></canvas>
     <ng-content select="app-camera-roll"></ng-content>
 
-    <section>
+    <section class="foldable">
       <button (click)="startTimer()" [disabled]="!isCameraOn">
         <img src="assets/camera.png" width="64" height="64" alt="capture icon" />
       </button>
@@ -93,15 +93,27 @@ import { FaceMeshService } from "./face-mesh.service";
       }
 
       @media (spanning: single-fold-vertical) {	
-        section {
+        section.foldable {
           margin-top: -85px;
           position: relative;
         }
 
-        canvas.is-multi-screen {
+        canvas.foldable {
           position: relative;
           background: black;
           width: 100%;
+        }
+      }
+      @media (spanning: single-fold-horizontal) {	
+        canvas.foldable {
+          position: relative;
+          background: black;
+          height: 100%;
+          width: 100%;
+        }
+        section.foldable {
+          margin-top: -85px;
+          position: absolute;
         }
       }
     `,
