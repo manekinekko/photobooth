@@ -3,11 +3,11 @@ name: Azure Static Web Apps CI/CD
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
-      - master
+      - main
 
 jobs:
   build_and_deploy_job:
@@ -20,17 +20,16 @@ jobs:
           submodules: true
       - name: Build And Deploy
         id: builddeploy
-        uses: Azure/static-web-apps-deploy@v0.0.1-preview
+        uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DELIGHTFUL_FIELD_0C06D3203 }}
           repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
           action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match you app requirements. ######
+          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "/" # App source code path
-          api_location: "api" # Api source code path - optional
-          app_artifact_location: "dist/photobooth-teams" # Built app content directory - optional
-          app_build_command: "npm run build -- --prod"
+          app_location: "." # App source code path
+          api_location: "." # Api source code path - optional
+          output_location: ".github/workflows" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
@@ -40,7 +39,7 @@ jobs:
     steps:
       - name: Close Pull Request
         id: closepullrequest
-        uses: Azure/static-web-apps-deploy@v0.0.1-preview
+        uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DELIGHTFUL_FIELD_0C06D3203 }}
           action: "close"
