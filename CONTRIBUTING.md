@@ -12,7 +12,7 @@ to follow:
  - [Commit Message Guidelines](#commit)
 
 ## <a name="coc"></a> Code of Conduct
-You can read about this project code of conduct [here](https://github.com/manekinekko/photobooth-teams/blob/master/CODE_OF_CONDUCT.md).
+You can read about this project code of conduct [here](https://github.com/manekinekko/photobooth/blob/master/CODE_OF_CONDUCT.md).
 
 ## <a name="question"></a> Got a Question or Problem?
 
@@ -54,13 +54,13 @@ We will be insisting on a minimal reproduce scenario in order to save maintainer
 
 Unfortunately we are not able to investigate / fix bugs without a minimal reproduction, so if we don't hear back from you we are going to close an issue that don't have enough info to be reproduced.
 
-You can file new issues by filling out our [new issue form](https://github.com/manekinekko/photobooth-teams/issues/new).
+You can file new issues by filling out our [new issue form](https://github.com/manekinekko/photobooth/issues/new).
 
 
 ### <a name="submit-pr"></a> Submitting a Pull Request (PR)
 Before you submit your Pull Request (PR) consider the following guidelines:
 
-* Search [GitHub](https://github.com/manekinekko/photobooth-teams/pulls) for an open or closed PR
+* Search [GitHub](https://github.com/manekinekko/photobooth/pulls) for an open or closed PR
   that relates to your submission. You don't want to duplicate effort.
 * Make your changes in a new git branch:
 
@@ -234,5 +234,5 @@ Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protrac
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
 
 [commit-message-format]: https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit#
-[GitHub]: https://github.com/manekinekko/photobooth-teams
+[GitHub]: https://github.com/manekinekko/photobooth
 [js-style-guide]: https://google.github.io/styleguide/jsguide.html

@@ -33,13 +33,15 @@ import { CameraFilterItem, FilterState, CameraFilter } from "./filters-preview/f
           (onCapture)="onCapture($event)"
           (onFlash)="flashEffect($event)"
         >
-          
         </app-camera>
         </main>
       </article>
     </div>
   `,
   styles: [`
+    :host {
+      background: var(--background-color);
+    }
     app-camera {
       position: relative;
       display: block;
@@ -49,13 +51,15 @@ import { CameraFilterItem, FilterState, CameraFilter } from "./filters-preview/f
       overflow: scroll;
       display: block;
     }
+    article {
+      overflow: hidden;
+    }
     article.screen-0 {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
     article.screen-1 {
-      margin-top: 10px;
       position: relative;
     }
     article.screen-1 main {
@@ -72,11 +76,11 @@ import { CameraFilterItem, FilterState, CameraFilter } from "./filters-preview/f
       top: -20px;
       bottom: 0;
       z-index: 1;
-      left: -50%;
       right: 0;
       margin: 0;
       padding: 0;
       display: block;
+      width: env(fold-right);
     }
     @keyframes flash {
       from {
@@ -96,7 +100,7 @@ export class FoldableComponent {
   height: number = 720;
   aspectRatio: number;
 
-  selectedFilters: Array<CameraFilterItem>;
+  selectedFilters: Array<CameraFilterItem> = [];
 
   activeSource: string | null;
 
@@ -105,7 +109,12 @@ export class FoldableComponent {
 
   constructor(private store: Store, private app: AppService) {
     this.activeSource = null;
-    this.selectedFilter$.subscribe((selectedFilter) => (this.selectedFilters = selectedFilter?.filters));
+    this.selectedFilter$.subscribe((selectedFilter) => {
+      if (selectedFilter) {
+        // Run on the next macro task to avoid error NG0100
+        setTimeout(() => this.selectedFilters = selectedFilter.filters, 0);
+      }
+    });
 
     this.activeSource$.subscribe((source) => {
       // set the initial source from the store's default value

@@ -1,6 +1,6 @@
 # Privacy Policy
 
-[photobooth.staticweb.app](https://photobooth.staticweb.app), code name "[Photo Booth](https://github.com/manekinekko/photobooth-teams)" is a open source app. This Service, [photobooth.staticweb.app](https://photobooth.staticweb.app), is provided by [Wassim Chegham](https://twitter.com/manekinekko) at no cost and is intended for use as is.
+[photobooth.staticweb.app](https://photobooth.staticweb.app), code name "[Photo Booth](https://github.com/manekinekko/photobooth)" is a open source app. This Service, [photobooth.staticweb.app](https://photobooth.staticweb.app), is provided by [Wassim Chegham](https://twitter.com/manekinekko) at no cost and is intended for use as is.
 
 This page is used to inform website visitors regarding our policies with the collection, use, and disclosure of Personal Information if anyone decided to use our Service.
 
@@ -54,7 +54,7 @@ If you have any questions or suggestions about our Privacy Policy, do not hesita
 ## Open Source Support
 
 Feel free to open an issue or contact us via e-mail [privacy@wassim.dev](mailto:privacy@wassim.dev).<br/>
-If you find any bug, please contribute by [opening an issue](https://github.com/manekinekko/photobooth-teams/issues/new/choose) or sending a [pull request](https://github.com/manekinekko/photobooth-teams/pulls) with the fix.
+If you find any bug, please contribute by [opening an issue](https://github.com/manekinekko/photobooth/issues/new/choose) or sending a [pull request](https://github.com/manekinekko/photobooth/pulls) with the fix.
 
 ---
 

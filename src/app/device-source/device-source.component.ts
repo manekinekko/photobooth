@@ -10,7 +10,7 @@ import { CameraDeviceSource, CameraState, SwitchCameraDevice } from "../camera/c
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="selection" appTheme>
-      <select (change)="onDeviceSelect($event)" tabindex="1" [(ngModel)]="source">
+      <select title="Select device" (change)="onDeviceSelect($event)" tabindex="1" [(ngModel)]="source">
         <option *ngFor="let device of availableDevices" [value]="device.deviceId">
           {{ device.label | deviceIdFormat }}
         </option>

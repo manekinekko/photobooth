@@ -13,9 +13,8 @@ body {
   animation: color-cycle 44s linear infinite;
 }
 
-@media (spanning: single-fold-vertical) {	
+@media (spanning: single-fold-vertical) {
   body {
-    background: var(--background-color);
     padding: 0;
   }
 }
@@ -25,14 +24,21 @@ body {
   --border-color: #474444;
 }
 
-app-root {
+app-boot {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 200px;
 }
 
-app-root.disabled {
+app-boot.disabled {
   display: none;
+}
+
+@media (spanning: single-fold-vertical) {
+  .loading-message {
+    width: calc(env(fold-left) - -220px);
+  }
 }
 
 #unsupported {
@@ -46,7 +52,7 @@ app-root.disabled {
 }
 
 #unsupported.hidden {
-  display: none;;
+  display: none;
 }
 
 #unsupported h1 {

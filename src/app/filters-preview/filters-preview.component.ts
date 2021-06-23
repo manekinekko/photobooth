@@ -28,7 +28,7 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
       (mouseleave)="toggleScrollingInFilterList(false)"
     >
       <li
-        role="preview-filter"
+        role="listitem"
         [attr.tabindex]="currentFilterIndex + 2"
         [attr.aria-label]="'Filter name ' + filter.label"
         #filterListItemRef
@@ -41,7 +41,7 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
         (keydown.enter)="onFilterClicked(filter, currentFilterIndex, true)"
       >
         <span>{{ filter.label }}</span>
-        <img [src]="filter.data || 'assets/filter-placeholder.jpg'" height="50" />
+        <img alt="Filter {{ filter.label }}" [src]="filter.data || 'assets/filter-placeholder.jpg'" height="50" />
       </li>
     </ul>
   `,
@@ -163,7 +163,8 @@ export class FiltersPreviewComponent implements OnInit {
   }
 
   ngAfterViewInit() {
-    this.initializeSelectedFiltersFromUrlHash();
+    // Run on the next macro task to avoid error NG0100
+    setTimeout(() => this.initializeSelectedFiltersFromUrlHash(), 0);
 
     // const filterElementRef = this.filterListItemRef.find(
     //   (item) => item.nativeElement.dataset.label === this.selectedFilterLabel
@@ -194,34 +195,41 @@ export class FiltersPreviewComponent implements OnInit {
         filtersSetting, // sepia,0.5|contrast,0.9
       ] = selectedFiltersHash.split("/");
 
-      // extract the array of filters
-      // example: sepia,0.5|contrast,0.9
-      const filters = filtersSetting.split("|");
+      if (filtersSetting) {
 
-      // create a filter definition {id, args} for each filter setting
-      const selectedFilters: Array<CameraFilterItem> = filters.map((filter: string) => {
-        const [id, ...args] = filter.split(",");
-        return {
-          id,
-          args: args.map(Number),
-        };
-      });
 
-      // trigger filter propagation
-      this.onFilterClicked({
-        label: decodeURIComponent(label),
-        filters: selectedFilters,
-      });
-    } else {
-      const noopFilter = this.availableFilters.find((filter) => filter.label === "Normal");
-      this.onFilterClicked(
-        {
-          label: noopFilter.label,
-          filters: noopFilter.filters,
-        },
-        true
-      );
+        // extract the array of filters
+        // example: sepia,0.5|contrast,0.9
+        const filters = filtersSetting.split("|");
+
+        // create a filter definition {id, args} for each filter setting
+        const selectedFilters: Array<CameraFilterItem> = filters.map((filter: string) => {
+          const [id, ...args] = filter.split(",");
+          return {
+            id,
+            args: args.map(Number),
+          };
+        });
+
+        // trigger filter propagation
+        this.onFilterClicked({
+          label: decodeURIComponent(label),
+          filters: selectedFilters,
+        });
+        return;
+      }
+
     }
+
+    const noopFilter = this.availableFilters.find((filter) => filter.label === "Normal");
+    this.onFilterClicked(
+      {
+        label: noopFilter.label,
+        filters: noopFilter.filters,
+      },
+      true
+    );
+
   }
 
   onFilterClicked(filter: CameraFilter, updateUrlHash = false) {

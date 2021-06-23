@@ -11,7 +11,7 @@ import { TimerStep } from "./timer.service";
       <li *ngFor="let step of timerSteps$ | async" [class.ticked]="step.ticked">
         <b *ngIf="step.value != 0; else showCameraIconTpl">{{ step.value }}</b>
         <ng-template #showCameraIconTpl>
-          <img *ngIf="step.value == 0" src="assets/camera-invert.png" width="64" height="64" />
+          <img alt="camera button" *ngIf="step.value == 0" src="assets/camera-invert.png" width="64" height="64" />
         </ng-template>
       </li>
     </ul>

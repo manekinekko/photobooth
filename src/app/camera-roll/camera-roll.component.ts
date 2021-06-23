@@ -34,7 +34,7 @@ import {
           >&#x2691;</b
         >
         <span stopEventPropagation (click)="deletePicture()">&#x2715;</span>
-        <img [src]="pic.data" height="50"/>
+        <img alt="picture {{ currentPictureId }}" [src]="pic.data" height="50"/>
       </li>
     </ul>
   `,
@@ -142,7 +142,10 @@ import {
       }
 
       @media (spanning: single-fold-vertical) {	
-        
+        :host {
+          display: block;
+          width: 100%;
+        }
       }
     `,
   ],

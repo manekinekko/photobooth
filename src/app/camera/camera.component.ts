@@ -94,13 +94,14 @@ import { FaceMeshService } from "./face-mesh.service";
 
       @media (spanning: single-fold-vertical) {	
         section {
-          margin-top: -110px;
+          margin-top: -85px;
           position: relative;
         }
 
         canvas.is-multi-screen {
           left: calc(1280px/4 * -1);
           position: relative;
+          background: black;
         }
       }
     `,
