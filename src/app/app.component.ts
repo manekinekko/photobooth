@@ -12,14 +12,11 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
   selector: "app-root",
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <p class="error" *ngIf="activeSource === null">
-      Can't access your camera. Please check your settings! <br /><br />If you believe we made a mistake, please
-      <a href="https://github.com/manekinekko/photobooth-teams">submit an issue</a>.
-    </p>
-    <section appTheme [class.disabled]="activeSource === null">
-      <app-device-source></app-device-source>
 
-      <app-filters-preview [ngStyle]="{ width: width + 'px' }"></app-filters-preview>
+    <section appTheme [class.disabled]="activeSource === null">
+      <app-device-source *ngIf="activeSource" ></app-device-source>
+
+      <app-filters-preview *ngIf="activeSource" [ngStyle]="{ width: width + 'px' }"></app-filters-preview>
 
       <div #flashEffectRef></div>
       <main [ngStyle]="{ width: width + 'px' }">
@@ -39,20 +36,24 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
       <footer>
         <span
           >Photo Booth (developer preview:
-          <a target="__blank" href="https://github.com/manekinekko/photobooth-teams">_BUILD_HASH_</a>) - No data is
+          <a target="__blank" href="https://github.com/manekinekko/photobooth">_BUILD_HASH_</a>) - No data is
           collected. Pictures are stored in browser.</span
         >
         <span
           >Made by Wassim Chegham (<a href="https://twitter.com/@manekinekko">@manekinekko</a>) •
-          <a target="__blank" href="https://github.com/manekinekko/photobooth-teams">Contribute</a>
+          <a target="__blank" href="https://github.com/manekinekko/photobooth">Contribute</a>
           •
-          <a target="__blank" href="https://github.com/manekinekko/photobooth-teams/blob/master/PRIVACY.md">Privacy</a>
+          <a target="__blank" href="https://github.com/manekinekko/photobooth/blob/master/PRIVACY.md">Privacy</a>
         </span>
       </footer>
     </section>
   `,
   styles: [
     `
+      :host {
+        position: relative;
+      }
+
       section {
         display: flex;
         position: relative;
@@ -66,32 +67,6 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
         min-height: 400px;
         box-shadow: 1px 3px 13px 4px rgba(0, 0, 0, 0.5);
         transition: 1s all;
-      }
-
-      section.disabled {
-      }
-
-      .error {
-        transition: 1s all;
-        color: red;
-        font-size: 1em;
-        display: inline-block;
-        border: 10px solid red;
-        padding: 10px 30px;
-        border-radius: 4px;
-        background: white;
-        text-align: center;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        position: absolute;
-        top: calc(50% - 60px);
-        z-index: 1;
-        box-shadow: 1px 1px 1px #620000;
-      }
-
-      .error a {
-        color: red;
       }
 
       .flash-effect {

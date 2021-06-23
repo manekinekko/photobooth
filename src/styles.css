@@ -6,15 +6,17 @@ body {
 body {
   padding: 10px;
   margin: 0;
-  display: flex;
-  justify-content: center;
   font-family: "Roboto", sans-serif;
   user-select: none;
   overflow: hidden;
-  align-items: center;
-  flex-direction: column;
   background-image: url(/assets/tiles-cubes.webp);
   animation: color-cycle 44s linear infinite;
+}
+
+@media (spanning: single-fold-vertical) {
+  body {
+    padding: 0;
+  }
 }
 
 :root {
@@ -22,14 +24,21 @@ body {
   --border-color: #474444;
 }
 
-app-root {
+app-boot {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 200px;
 }
 
-app-root.disabled {
+app-boot.disabled {
   display: none;
+}
+
+@media (spanning: single-fold-vertical) {
+  .loading-message {
+    width: calc(env(fold-left) - -220px);
+  }
 }
 
 #unsupported {
@@ -43,7 +52,7 @@ app-root.disabled {
 }
 
 #unsupported.hidden {
-  display: none;;
+  display: none;
 }
 
 #unsupported h1 {

@@ -159,7 +159,7 @@ export class CameraRollState {
       tap((newPicture: any) => {
         setState(
           patch({
-            pictures: insertItem<PictureItem>(newPicture, getState().pictures.length),
+            pictures: insertItem<PictureItem>(newPicture, 0),
           })
         );
       })

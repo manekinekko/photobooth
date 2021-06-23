@@ -66,10 +66,10 @@ var canvas = document.createElement("canvas");
 var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 if (gl && gl instanceof WebGLRenderingContext && "createImageBitmap" in window) {
   window.__SURPPORTED_BROWSER__ = true;
-  window.document.querySelector("app-root").classList.remove("disabled");
+  window.document.querySelector("app-boot").classList.remove("disabled");
   window.document.querySelector("#unsupported").classList.add("hidden");
 } else {
-  window.document.querySelector("app-root").classList.add("disabled");
+  window.document.querySelector("app-boot").classList.add("disabled");
   window.document.querySelector("#unsupported").classList.remove("hidden");
 }
 
