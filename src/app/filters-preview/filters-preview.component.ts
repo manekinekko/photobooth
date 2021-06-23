@@ -3,6 +3,7 @@ import {
   ElementRef,
   EventEmitter,
   HostListener,
+  Input,
   OnInit,
   Output,
   QueryList,
@@ -67,8 +68,6 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
         border-radius: 10px;
       }
       .filter-list-item {
-        margin: 2px;
-        border-radius: 2px;
         position: relative;
         cursor: pointer;
         display: flex;
@@ -107,6 +106,25 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
         border: 1px solid white;
         transition: 0.3s;
       }
+
+      @media (spanning: single-fold-vertical) {	
+        .filter-list {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 2px;
+          margin: 0;
+          padding: 0;
+          height: auto;
+          border: none;
+        }
+        .filter-list-item {
+          overflow: hidden;
+        }
+        .filter-list-item img {
+          width: 130px;
+          height: 90px;
+        }
+      }
     `,
   ],
 })
@@ -114,6 +132,7 @@ export class FiltersPreviewComponent implements OnInit {
   @ViewChild("filterListRef", { static: true }) filterListRef: ElementRef<HTMLUListElement>;
   @ViewChildren("filterListItemRef") filterListItemRef: QueryList<ElementRef<HTMLLIElement>>;
   @Output() onFilterSelected: EventEmitter<Array<CameraFilterItem>>;
+  @Input() isMultiScreen = false;
   selectedFilterLabel: string;
   selectedFilterIndex: number;
   isScrollFilterListEnabled = false;
@@ -128,16 +147,19 @@ export class FiltersPreviewComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeFilters();
-    this.renderer.listen(this.filterListRef.nativeElement, "mousewheel", (event: WheelEvent) => {
-      if (this.isScrollFilterListEnabled) {
-        if (event.deltaX) {
-          this.filterListRef.nativeElement.scrollLeft += event.deltaX;
-        } else {
-          this.filterListRef.nativeElement.scrollLeft -= event.deltaY;
+
+    if (this.isMultiScreen == false) {
+      this.renderer.listen(this.filterListRef.nativeElement, "mousewheel", (event: WheelEvent) => {
+        if (this.isScrollFilterListEnabled) {
+          if (event.deltaX) {
+            this.filterListRef.nativeElement.scrollLeft += event.deltaX;
+          } else {
+            this.filterListRef.nativeElement.scrollLeft -= event.deltaY;
+          }
+          event.preventDefault();
         }
-        event.preventDefault();
-      }
-    });
+      });
+    }
   }
 
   ngAfterViewInit() {
@@ -208,13 +230,15 @@ export class FiltersPreviewComponent implements OnInit {
       this.selectedFilterLabel = filter.label;
       this.selectedFilterIndex = this.availableFilters.findIndex((f) => f.label === filter.label);
 
-      if (this.selectedFilterIndex >= 0) {
-        setTimeout((_) => {
-          this.filterListItemRef.toArray()[this.selectedFilterIndex].nativeElement.scrollIntoView({
-            behavior: "smooth",
-            inline: "center",
-          });
-        }, 100);
+      if (this.isMultiScreen == false) {
+        if (this.selectedFilterIndex >= 0) {
+          setTimeout((_) => {
+            this.filterListItemRef.toArray()[this.selectedFilterIndex].nativeElement.scrollIntoView({
+              behavior: "smooth",
+              inline: "center",
+            });
+          }, 100);
+        }
       }
 
       if (updateUrlHash) {

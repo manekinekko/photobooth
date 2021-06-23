@@ -37,7 +37,7 @@ import { FaceMeshService } from "./face-mesh.service";
       [height]="height"
       style="position: absolute"
     ></canvas>
-    <canvas #canvasRef [width]="width" [height]="height"></canvas>
+    <canvas class="is-multi-screen" #canvasRef [width]="width" [height]="height"></canvas>
     <ng-content select="app-camera-roll"></ng-content>
 
     <section>
@@ -90,6 +90,18 @@ import { FaceMeshService } from "./face-mesh.service";
         height: 83px;
         padding: 1px;
         border-radius: 0 0 4px 4px;
+      }
+
+      @media (spanning: single-fold-vertical) {	
+        section {
+          margin-top: -110px;
+          position: relative;
+        }
+
+        canvas.is-multi-screen {
+          left: calc(1280px/4 * -1);
+          position: relative;
+        }
       }
     `,
   ],

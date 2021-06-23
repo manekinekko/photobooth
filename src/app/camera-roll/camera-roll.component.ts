@@ -34,7 +34,7 @@ import {
           >&#x2691;</b
         >
         <span stopEventPropagation (click)="deletePicture()">&#x2715;</span>
-        <img [src]="pic.data" height="50" />
+        <img [src]="pic.data" height="50"/>
       </li>
     </ul>
   `,
@@ -89,6 +89,7 @@ import {
       }
       .camera-roll-item img {
         border: 1px solid transparent;
+        width: 78px;
       }
       .camera-roll-item.selected img {
         border: 1px solid white;
@@ -138,6 +139,10 @@ import {
         100% {
           transform: translateY(0);
         }
+      }
+
+      @media (spanning: single-fold-vertical) {	
+        
       }
     `,
   ],

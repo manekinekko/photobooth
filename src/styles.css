@@ -6,15 +6,18 @@ body {
 body {
   padding: 10px;
   margin: 0;
-  display: flex;
-  justify-content: center;
   font-family: "Roboto", sans-serif;
   user-select: none;
   overflow: hidden;
-  align-items: center;
-  flex-direction: column;
   background-image: url(/assets/tiles-cubes.webp);
   animation: color-cycle 44s linear infinite;
+}
+
+@media (spanning: single-fold-vertical) {	
+  body {
+    background: var(--background-color);
+    padding: 0;
+  }
 }
 
 :root {
