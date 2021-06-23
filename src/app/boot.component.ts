@@ -83,8 +83,6 @@ export class BootComponent {
   constructor(private screenContext: ScreenContext) {
     this.hasSource = null;
     this.hasSource$.subscribe((source) => {
-      console.log(source);
-      
       this.hasSource = !!source;
     });
 

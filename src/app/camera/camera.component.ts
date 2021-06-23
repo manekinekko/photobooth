@@ -99,9 +99,9 @@ import { FaceMeshService } from "./face-mesh.service";
         }
 
         canvas.is-multi-screen {
-          left: calc(1280px/4 * -1);
           position: relative;
           background: black;
+          width: 100%;
         }
       }
     `,

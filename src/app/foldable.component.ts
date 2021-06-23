@@ -29,6 +29,8 @@ import { CameraFilterItem, FilterState, CameraFilter } from "./filters-preview/f
 
       <main>
         <app-camera
+          [width]="width"
+          [height]="height"
           [selectedFilters]="selectedFilters"
           (onCapture)="onCapture($event)"
           (onFlash)="flashEffect($event)"
@@ -64,7 +66,11 @@ import { CameraFilterItem, FilterState, CameraFilter } from "./filters-preview/f
     }
     article.screen-1 main {
       overflow: hidden;
-      width: calc(1114px / 2);
+      height: 100%;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .flash-effect {
       background: white;
@@ -96,8 +102,8 @@ import { CameraFilterItem, FilterState, CameraFilter } from "./filters-preview/f
 export class FoldableComponent {
   @ViewChild(CameraComponent, { static: true }) cameraRef: CameraComponent;
   @ViewChild("flashEffectRef", { static: true }) flashEffectRef: ElementRef;
-  width: number = 1280;
-  height: number = 720;
+  width: number = 1800;
+  height: number = 1350;
   aspectRatio: number;
 
   selectedFilters: Array<CameraFilterItem> = [];
