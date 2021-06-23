@@ -16,7 +16,7 @@ import { CameraFilterItem, FilterState, CameraFilter } from "./filters-preview/f
     <!-- Assign to first window segment -->
     <article fdWindow="0" class="screen-0">
       <app-device-source></app-device-source>
-      <app-filters-preview></app-filters-preview>
+      <app-filters-preview [isMultiScreen]="true"></app-filters-preview>
       <app-camera-roll
         (onEmptyPictures)="onEmptyPictures()"
         (onPictureSelected)="onPictureSelected($event)"
