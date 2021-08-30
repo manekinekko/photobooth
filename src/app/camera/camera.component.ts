@@ -8,7 +8,7 @@ import {
   Input,
   OnInit,
   Output,
-  ViewChild,
+  ViewChild
 } from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
@@ -21,10 +21,12 @@ import { StartTimer, TimerState } from "../timer/timer.state";
 import { CameraState, CapturePicture, CapturePictureData, StartMediaStream, StopMediaStream } from "./camera.state";
 import { FaceMeshService } from "./face-mesh.service";
 
+
 @Component({
   selector: "app-camera",
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <img hidden src="/assets/graf.jpeg" id="graf" alt="">
     <video #videoRef hidden autoplay playsinline muted></video>
     <canvas #canvasVideoRef hidden [width]="width" [height]="height"></canvas>
     <canvas #canvasGreenScreenRef hidden [width]="width" [height]="height"></canvas>
@@ -181,7 +183,9 @@ export class CameraComponent implements OnInit {
     this.preview$.subscribe((preview) => {
       if (preview) {
         const image = new Image();
-        image.onload = () => this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
+        image.onload = async () => {
+          this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
+        }
         image.src = preview;
       }
     });

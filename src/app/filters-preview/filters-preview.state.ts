@@ -1,11 +1,12 @@
 import { Injectable } from "@angular/core";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
+import { FiltersPreviewService } from "./filters-preview.service";
 
 // actions
 
 export class SelectFilter {
   static readonly type = "[filter] select filter";
-  constructor(public readonly currentFilter: CameraFilter) {}
+  constructor(public readonly currentFilter: CameraFilter) { }
 }
 
 // state
@@ -34,7 +35,7 @@ export interface FilterStateModel {
 })
 @Injectable()
 export class FilterState {
-  constructor() {}
+  constructor(private readonly filterPreviewService: FiltersPreviewService) { }
 
   @Selector()
   static filters(filtersModel: FilterStateModel) {
@@ -48,7 +49,7 @@ export class FilterState {
 
   @Action(SelectFilter)
   selectFilter({ patchState }: StateContext<FilterStateModel>, payload: SelectFilter) {
-    
+
     payload = {
       ...payload,
       currentFilter: {

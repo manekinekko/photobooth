@@ -79,7 +79,6 @@ export class BootComponent {
 
   @Select(CameraState.source) hasSource$: Observable<boolean>;
 
-
   constructor(private screenContext: ScreenContext) {
     this.hasSource = null;
     this.hasSource$.subscribe((source) => {

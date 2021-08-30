@@ -3,7 +3,7 @@ import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { AppService } from "./app.service";
 import { IframeMessage } from "./app.state";
-import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
+import { AddPicture, SelectPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
 import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/filters-preview.state";
@@ -163,7 +163,7 @@ export class AppComponent {
     this.flashEffectRef.nativeElement.classList.add("flash-effect");
     setTimeout((_) => {
       this.flashEffectRef.nativeElement.classList.remove("flash-effect");
-    }, duration * 1000 /* pause for 2 seconds before taking the next picture */);
+    }, duration * 1000 /* pause for X seconds before taking the next picture */);
   }
 
   onEmptyPictures() {

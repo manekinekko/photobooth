@@ -11,7 +11,10 @@ import {
   ViewChild,
   ViewChildren,
 } from "@angular/core";
-import { Store } from "@ngxs/store";
+import { Select, Store } from "@ngxs/store";
+import { Observable } from "rxjs";
+import { SelectStyleTranserImage, StyleTranser } from "../app.state";
+import { CameraState } from "../camera/camera.state";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 import { FiltersPreviewService } from "./filters-preview.service";
 import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.state";
@@ -20,6 +23,22 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
   selector: "app-filters-preview",
   template: `
     <ul
+      role="list"
+      aria-label="Style transfer preview images" 
+      class="filter-list"
+      [class.hide-filters-list]="isCameraOn">
+      <li 
+          role="listitem"
+          [attr.tabindex]="currentFilterIndex + 2"
+          class="filter-list-item"
+          (click)="applyStyleTransfer(imageStyle)"
+          *ngFor="let styleImage of styleTransferImages; let currentFilterIndex = index">
+        <img #imageStyle src="{{ styleImage.src }}" alt="{{ styleImage.alt }}" height="50">
+      </li>
+    </ul>
+    
+    <ul
+      [class.hide-filters-list]="!isCameraOn"
       role="list"
       aria-label="Filter preview items"
       class="filter-list"
@@ -56,6 +75,9 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
         position: relative;
         overflow-x: scroll;
         overflow-y: hidden;
+      }
+      .filter-list.hide-filters-list {
+        display: none;
       }
       .filter-list::-webkit-scrollbar-track {
         background-color: transparent;
@@ -155,13 +177,49 @@ export class FiltersPreviewComponent implements OnInit {
   selectedFilterLabel: string;
   selectedFilterIndex: number;
   isScrollFilterListEnabled = false;
+  @Select(CameraState.mediaStream) mediaStream$: Observable<MediaStream>;
+  isCameraOn = false;
 
   availableFilters: CameraFilter[] = [];
+  styleTransferImages: Array<{ src: string, alt: string }> = [{
+    src: "assets/style-transfer-images/style-01.jpg",
+    alt: "Style 01",
+  }, {
+    src: "assets/style-transfer-images/style-02.jpg",
+    alt: "Style 02",
+  }, {
+    src: "assets/style-transfer-images/style-03.jpg",
+    alt: "Style 03",
+  }, {
+    src: "assets/style-transfer-images/style-04.jpg",
+    alt: "Style 04",
+  }, {
+    src: "assets/style-transfer-images/style-05.jpg",
+    alt: "Style 05",
+  }, {
+    src: "assets/style-transfer-images/style-06.jpg",
+    alt: "Style 06",
+  }, {
+    src: "assets/style-transfer-images/style-07.jpg",
+    alt: "Style 07",
+  }, {
+    src: "assets/style-transfer-images/style-08.jpg",
+    alt: "Style 08",
+  }, {
+    src: "assets/style-transfer-images/style-09.jpg",
+    alt: "Style 09",
+  }];
+
   constructor(private renderer: Renderer2, private filtersService: FiltersPreviewService, private store: Store) {
     this.onFilterSelected = new EventEmitter<Array<CameraFilterItem>>();
     this.availableFilters = this.filtersService.getFilters();
 
     this.selectedFilterIndex = 0;
+
+    this.mediaStream$.subscribe(async (mediaStream) => {
+      // Note: when stopping the device, mediaStream is set to null.
+      this.isCameraOn = !!mediaStream;
+    });
   }
 
   ngOnInit(): void {
@@ -332,11 +390,15 @@ export class FiltersPreviewComponent implements OnInit {
         const filteredImage = await webGLFilter.render(image);
 
         // send rendered image data back <img /> element
-        filter.data = (await filteredImage).toDataURL();
+        filter.data = filteredImage.toDataURL();
       }
     };
 
     // set initial picture data
     image.src = "assets/filter-placeholder.jpg";
+  }
+
+  applyStyleTransfer(imageStyle : HTMLImageElement) {
+    this.store.dispatch(new SelectStyleTranserImage(imageStyle));
   }
 }

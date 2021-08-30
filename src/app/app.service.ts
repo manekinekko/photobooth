@@ -1,3 +1,4 @@
+import * as mi from '@magenta/image';
 import { Location } from "@angular/common";
 import { Injectable } from "@angular/core";
 
@@ -12,5 +13,11 @@ export class AppService {
 
   computeCameraAspectRatio() {
     return this.isRunningInMSTeams() ? 0.6 : 0.8;
+  }
+
+  async styleTransfer(image: HTMLImageElement, styleImg: HTMLImageElement, strength = 0.25) {
+    const model = new mi.ArbitraryStyleTransferNetwork();
+    await model.initialize();
+    return await model.stylize(image, styleImg, strength);
   }
 }

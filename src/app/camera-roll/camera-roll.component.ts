@@ -183,6 +183,8 @@ export class CameraRollComponent {
   }
 
   toggleSelectPicture(currentPictureId: string) {
+    console.log(`Toggling select picture id=${currentPictureId}`);
+    
     if (this.selectedPictureId === currentPictureId) {
       this.selectedPictureId = null;
       this.store.dispatch([new UnselectPicture(), new StartMediaStream(this.source)]);

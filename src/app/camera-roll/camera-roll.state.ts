@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
 import { insertItem, patch, removeItem } from "@ngxs/store/operators";
 import { of } from "rxjs";
-import { map, tap } from "rxjs/operators";
+import { delay, map, tap } from "rxjs/operators";
 import { CameraRollService } from "./camera-roll.service";
 
 // actions
@@ -13,7 +13,7 @@ export class InitializePictures {
 
 export class AddPicture {
   static readonly type = "[CameraRoll] add picture";
-  constructor(public readonly data: string) {}
+  constructor(public readonly data: string) { }
 }
 
 export class DeletePicture {
@@ -22,17 +22,17 @@ export class DeletePicture {
 
 export class SelectPicture {
   static readonly type = "[CameraRoll] select picture";
-  constructor(public readonly currentPictureId: string, public readonly useForGreenScreen: boolean = false) {}
+  constructor(public readonly currentPictureId: string, public readonly useForGreenScreen: boolean = false) { }
 }
 
 export class SelectPictureData {
   static readonly type = "[CameraRoll] select picture data";
-  constructor(public readonly data: string) {}
+  constructor(public readonly data: string) { }
 }
 
 export class SelectPictureDataForChromaKey {
   static readonly type = "[CameraRoll] select picture data for chroma key";
-  constructor(public readonly data: string) {}
+  constructor(public readonly data: string) { }
 }
 
 export class UnselectPicture {
@@ -64,7 +64,7 @@ export interface CameraRollStateModel {
 })
 @Injectable()
 export class CameraRollState {
-  constructor(private cameraRollService: CameraRollService) {}
+  constructor(private cameraRollService: CameraRollService) { }
 
   @Selector()
   static pictures(cameraRoll: CameraRollStateModel) {
@@ -154,7 +154,7 @@ export class CameraRollState {
   }
 
   @Action(AddPicture)
-  addPicture({ getState, setState }: StateContext<CameraRollStateModel>, payload: AddPicture) {
+  addPicture({ dispatch, setState }: StateContext<CameraRollStateModel>, payload: AddPicture) {
     return this.cameraRollService.save(payload.data).pipe(
       tap((newPicture: any) => {
         setState(
@@ -162,6 +162,10 @@ export class CameraRollState {
             pictures: insertItem<PictureItem>(newPicture, 0),
           })
         );
+      }),
+      delay(1000),
+      tap((newPicture: any) => {
+        dispatch(new SelectPicture(newPicture.id));
       })
     );
   }
@@ -172,4 +176,5 @@ export class CameraRollState {
       selectedPictureId: null,
     });
   }
+
 }

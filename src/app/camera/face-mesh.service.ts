@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import * as facemesh from "@tensorflow-models/facemesh";
+// import * as facemesh from "@tensorflow-models/facemesh";
 
 @Injectable({
   providedIn: "root",
@@ -10,10 +10,10 @@ export class FaceMeshService {
   constructor() {}
 
   async initialize() {
-    this.model = await facemesh.load({
-      maxFaces: 1,
-    });
-    return this.model;
+    // this.model = await facemesh.load({
+    //   maxFaces: 1,
+    // });
+    // return this.model;
   }
 
   async predictFaceMesh(canvas: HTMLCanvasElement): Promise<number[]> {

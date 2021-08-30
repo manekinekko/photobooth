@@ -48,7 +48,9 @@
             "styles": ["src/styles.css"],
             "scripts": [],
             "allowedCommonJsDependencies": [
-              "seedrandom"
+              "seedrandom",
+              "crypto",
+              "@magenta/image"
             ],
             "vendorChunk": true,
             "extractLicenses": false,
