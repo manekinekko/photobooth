@@ -182,31 +182,31 @@ export class FiltersPreviewComponent implements OnInit {
 
   availableFilters: CameraFilter[] = [];
   styleTransferImages: Array<{ src: string, alt: string }> = [{
-    src: "assets/style-transfer-images/style-01.jpg",
+    src: "assets/style-transfer/images/style-01.jpg",
     alt: "Style 01",
   }, {
-    src: "assets/style-transfer-images/style-02.jpg",
+    src: "assets/style-transfer/images/style-02.jpg",
     alt: "Style 02",
   }, {
-    src: "assets/style-transfer-images/style-03.jpg",
+    src: "assets/style-transfer/images/style-03.jpg",
     alt: "Style 03",
   }, {
-    src: "assets/style-transfer-images/style-04.jpg",
+    src: "assets/style-transfer/images/style-04.jpg",
     alt: "Style 04",
   }, {
-    src: "assets/style-transfer-images/style-05.jpg",
+    src: "assets/style-transfer/images/style-05.jpg",
     alt: "Style 05",
   }, {
-    src: "assets/style-transfer-images/style-06.jpg",
+    src: "assets/style-transfer/images/style-06.jpg",
     alt: "Style 06",
   }, {
-    src: "assets/style-transfer-images/style-07.jpg",
+    src: "assets/style-transfer/images/style-07.jpg",
     alt: "Style 07",
   }, {
-    src: "assets/style-transfer-images/style-08.jpg",
+    src: "assets/style-transfer/images/style-08.jpg",
     alt: "Style 08",
   }, {
-    src: "assets/style-transfer-images/style-09.jpg",
+    src: "assets/style-transfer/images/style-09.jpg",
     alt: "Style 09",
   }];
 

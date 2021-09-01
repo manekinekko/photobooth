@@ -50,14 +50,15 @@
             "allowedCommonJsDependencies": [
               "seedrandom",
               "crypto",
-              "@magenta/image"
+              "@tensorflow/tfjs"
             ],
             "vendorChunk": true,
             "extractLicenses": false,
             "buildOptimizer": false,
             "sourceMap": true,
             "optimization": false,
-            "namedChunks": true
+            "namedChunks": true,
+            "webWorkerTsConfig": "tsconfig.worker.json"
           },
           "configurations": {
             "production": {

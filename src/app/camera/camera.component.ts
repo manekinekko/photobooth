@@ -13,7 +13,7 @@ import {
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { delay } from "rxjs/operators";
-import { AppState, StyleTranserProcessing } from "../app.state";
+import { AppState } from "../app.state";
 import { SelectPictureDataForChromaKey, UnselectPicture } from "../camera-roll/camera-roll.state";
 import { CameraFilterItem } from "../filters-preview/filters-preview.state";
 import { WebGLFilter } from "../shared/webgl-filter.class";
@@ -27,9 +27,12 @@ import { FaceMeshService } from "./face-mesh.service";
   selector: "app-camera",
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="style-transfer-loader" *ngIf="isStyleTransferLoading" [style.width]=" width + 'px' " [style.height]=" height + 'px' ">
-      <img src="https://i.pinimg.com/originals/93/a1/7f/93a17fe156ac2ce9c7fe75e9aefc3b52.gif" [width]="width/2"> 
+
+    <div class="style-transfer-loader" *ngIf="isStyleTransferLoading" [ngStyle]=" { width: width + 'px', height: height + 'px' } ">
+      <!-- <img src="https://i.pinimg.com/originals/93/a1/7f/93a17fe156ac2ce9c7fe75e9aefc3b52.gif" [width]="width/2">  -->
+      <iframe frameBorder="0" src="https://thumbs.gfycat.com/ForsakenPoisedEasternglasslizard-max-1mb.gif" [ngStyle]=" { width: width + 'px', height: height + 'px' } "></iframe> 
     </div>
+
     <video #videoRef hidden autoplay playsinline muted></video>
     <canvas #canvasVideoRef hidden [width]="width" [height]="height"></canvas>
     <canvas #canvasGreenScreenRef hidden [width]="width" [height]="height"></canvas>
@@ -43,7 +46,8 @@ import { FaceMeshService } from "./face-mesh.service";
       style="position: absolute"
     ></canvas>
     <canvas class="foldable" #canvasRef [width]="width" [height]="height"></canvas>
-    <ng-content select="app-camera-roll"></ng-content>
+
+    <ng-content select="app-camera-roll"></ng-content>    
 
     <section class="foldable">
       <button (click)="startTimer()" [disabled]="!isCameraOn">
@@ -73,6 +77,7 @@ import { FaceMeshService } from "./face-mesh.service";
         display: flex;
         justify-content: center;
         align-items: center;
+        overflow: hidden;
       }
       section {
         width: 100%;
@@ -163,7 +168,7 @@ export class CameraComponent implements OnInit {
 
   @Select(TimerState.isTicking) timerIsTicking$: Observable<boolean>;
   @Select(CameraState.mediaStream) mediaStream$: Observable<MediaStream>;
-  @Select(CameraState.preview) preview$: Observable<string | ImageData>;
+  @Select(CameraState.preview) preview$: Observable<string>;
   @Select(AppState.styleTransferProcessingStatus) selectedFiltestyleTransferProcessingStatus$: Observable<boolean>;
 
   onPictureSelectedForGreenScreen: Observable<CapturePictureData>;
@@ -194,17 +199,11 @@ export class CameraComponent implements OnInit {
     // when a picture is selected for preview
     this.preview$.subscribe((preview) => {
       if (preview) {
-        if (typeof preview === "string") {
-          if (preview) {
-            const image = new Image();
-            image.onload = async () => {
-              this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
-            }
-            image.src = preview;
-          }
-        } else if (preview instanceof ImageData) {
-          this.canvasContextRef.putImageData(preview, 0, 0);
+        const image = new Image();
+        image.onload = async () => {
+          this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
         }
+        image.src = preview;
       }
     });
 

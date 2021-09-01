@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { IDBPDatabase, openDB } from "idb";
 import { defer, Observable } from "rxjs";
+import { BlobService } from "../camera/blob.service";
 import { PictureItem } from "./camera-roll.state";
 
 const PHOTO_DB = `photobooth_image`;
@@ -15,7 +16,7 @@ export const enum MODE {
 })
 export class CameraRollService {
   db: Promise<IDBPDatabase<unknown>>;
-  constructor() {
+  constructor(private readonly blobService: BlobService) {
     this.db = openDB(PHOTO_DB, 1, {
       upgrade(db) {
         db.createObjectStore(PHOTO_STORE);
@@ -23,9 +24,14 @@ export class CameraRollService {
     });
   }
 
-  save(data: string) {
+  save(data: string | ImageData, id?: string): Observable<PictureItem> {
     return defer(async () => {
-      const id = this.id();
+
+      if (data instanceof ImageData) {
+        data = await this.blobService.imageDataToBase64(data);
+      }
+
+      id = id ?? this.id();
       const picture = { id, data, date: Date.now() } as PictureItem;
       (await this.db).put(PHOTO_STORE, picture, id);
       return picture;

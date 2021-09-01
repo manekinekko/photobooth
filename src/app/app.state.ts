@@ -119,10 +119,11 @@ export class AppState {
   async styleTranser({ dispatch, patchState }: StateContext<AppStateModel>, payload: StyleTranser) {
     const { imageData, imageStyle, strength } = payload;
     const styledImageData = await this.appService.styleTransfer(imageData, imageStyle, strength);
-    patchState({
-      styledImageData
+    this.cameraRollService.save(styledImageData, 'style-transfert-data').pipe(
+      switchMap(() => this.cameraRollService.read('style-transfert-data'))
+    ).subscribe(entry => {
+      dispatch(new PreviewPictureData(entry.data));
     });
 
-    dispatch([new StyleTranserProcessing(false), new PreviewPictureData(styledImageData)]);
   }
 }
