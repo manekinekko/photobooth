@@ -21,7 +21,7 @@ export class DeletePicture {
 }
 
 export class SelectPicture {
-  static readonly type = "[CameraRoll] select picture";
+  static readonly type = "[CameraRoll] select picture id";
   constructor(public readonly currentPictureId: string, public readonly useForGreenScreen: boolean = false) { }
 }
 
@@ -59,7 +59,7 @@ export interface CameraRollStateModel {
   name: "cameraRoll",
   defaults: {
     pictures: [],
-    selectedPictureId: null,
+    selectedPictureId: null
   },
 })
 @Injectable()
@@ -113,7 +113,7 @@ export class CameraRollState {
           dispatch(new SelectPictureDataForChromaKey(data));
         } else {
           patchState({
-            selectedPictureId: payload.currentPictureId,
+            selectedPictureId: payload.currentPictureId
           });
 
           dispatch(new SelectPictureData(data));
@@ -171,7 +171,7 @@ export class CameraRollState {
   }
 
   @Action(UnselectPicture)
-  unelectPicture({ patchState }: StateContext<CameraRollStateModel>) {
+  unselectPicture({ patchState }: StateContext<CameraRollStateModel>) {
     patchState({
       selectedPictureId: null,
     });

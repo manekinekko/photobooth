@@ -9,11 +9,11 @@ import {
   QueryList,
   Renderer2,
   ViewChild,
-  ViewChildren,
+  ViewChildren
 } from "@angular/core";
 import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
-import { SelectStyleTranserImage, StyleTranser } from "../app.state";
+import { SelectStyleTranserImage, StyleTranserProcessing } from "../app.state";
 import { CameraState } from "../camera/camera.state";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 import { FiltersPreviewService } from "./filters-preview.service";
@@ -398,7 +398,8 @@ export class FiltersPreviewComponent implements OnInit {
     image.src = "assets/filter-placeholder.jpg";
   }
 
-  applyStyleTransfer(imageStyle : HTMLImageElement) {
+  applyStyleTransfer(imageStyle: HTMLImageElement) {
+    // select the image style to apply
     this.store.dispatch(new SelectStyleTranserImage(imageStyle));
   }
 }

@@ -13,6 +13,7 @@ import {
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { delay } from "rxjs/operators";
+import { AppState, StyleTranserProcessing } from "../app.state";
 import { SelectPictureDataForChromaKey, UnselectPicture } from "../camera-roll/camera-roll.state";
 import { CameraFilterItem } from "../filters-preview/filters-preview.state";
 import { WebGLFilter } from "../shared/webgl-filter.class";
@@ -26,7 +27,9 @@ import { FaceMeshService } from "./face-mesh.service";
   selector: "app-camera",
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <img hidden src="/assets/graf.jpeg" id="graf" alt="">
+    <div class="style-transfer-loader" *ngIf="isStyleTransferLoading" [style.width]=" width + 'px' " [style.height]=" height + 'px' ">
+      <img src="https://i.pinimg.com/originals/93/a1/7f/93a17fe156ac2ce9c7fe75e9aefc3b52.gif" [width]="width/2"> 
+    </div>
     <video #videoRef hidden autoplay playsinline muted></video>
     <canvas #canvasVideoRef hidden [width]="width" [height]="height"></canvas>
     <canvas #canvasGreenScreenRef hidden [width]="width" [height]="height"></canvas>
@@ -63,6 +66,13 @@ import { FaceMeshService } from "./face-mesh.service";
       }
       [hidden] {
         display: none;
+      }
+      .style-transfer-loader {
+        position: absolute;
+        mix-blend-mode: screen;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
       section {
         width: 100%;
@@ -144,6 +154,7 @@ export class CameraComponent implements OnInit {
   canvasGreenScreenContextRef: CanvasRenderingContext2D;
 
   isCameraOn: boolean;
+  isStyleTransferLoading = false;
 
   mediaStream: MediaStream;
   flashDuration = 2; // in seconds
@@ -152,7 +163,8 @@ export class CameraComponent implements OnInit {
 
   @Select(TimerState.isTicking) timerIsTicking$: Observable<boolean>;
   @Select(CameraState.mediaStream) mediaStream$: Observable<MediaStream>;
-  @Select(CameraState.preview) preview$: Observable<string>;
+  @Select(CameraState.preview) preview$: Observable<string | ImageData>;
+  @Select(AppState.styleTransferProcessingStatus) selectedFiltestyleTransferProcessingStatus$: Observable<boolean>;
 
   onPictureSelectedForGreenScreen: Observable<CapturePictureData>;
 
@@ -182,11 +194,17 @@ export class CameraComponent implements OnInit {
     // when a picture is selected for preview
     this.preview$.subscribe((preview) => {
       if (preview) {
-        const image = new Image();
-        image.onload = async () => {
-          this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
+        if (typeof preview === "string") {
+          if (preview) {
+            const image = new Image();
+            image.onload = async () => {
+              this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
+            }
+            image.src = preview;
+          }
+        } else if (preview instanceof ImageData) {
+          this.canvasContextRef.putImageData(preview, 0, 0);
         }
-        image.src = preview;
       }
     });
 
@@ -209,7 +227,7 @@ export class CameraComponent implements OnInit {
       this.mediaStream = mediaStream;
       this.isCameraOn = !!mediaStream;
       this.cd.markForCheck();
-      
+
       this.onCameraStatus.emit(this.isCameraOn);
       this.videoRef.nativeElement.srcObject = mediaStream;
 
@@ -222,6 +240,12 @@ export class CameraComponent implements OnInit {
 
         this.onCameraStart.emit(deviceId);
       }
+    });
+
+    this.selectedFiltestyleTransferProcessingStatus$.subscribe((isLoading) => {
+      setTimeout(() => {
+        this.isStyleTransferLoading = Boolean(isLoading);
+      }, 0);
     });
   }
 

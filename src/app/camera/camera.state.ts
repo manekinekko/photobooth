@@ -33,7 +33,7 @@ export class CapturePictureData {
 
 export class PreviewPictureData {
   static readonly type = "[Camera] preview picture data";
-  constructor(public readonly data: string) {}
+  constructor(public readonly data: string | ImageData) {}
 }
 
 export class SwitchCameraDevice {
@@ -179,7 +179,7 @@ export class CameraState implements NgxsOnInit {
   @Action(PreviewPictureData)
   previewPictureData({ patchState }: StateContext<CameraStateModel>, payload: PreviewPictureData) {
     patchState({
-      preview: payload.data,
+      preview: payload.data as string,
     });
   }
 

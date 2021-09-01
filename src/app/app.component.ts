@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, ElementRef, ViewChild } from "@angu
 import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { AppService } from "./app.service";
-import { IframeMessage } from "./app.state";
-import { AddPicture, SelectPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
+import { AppState, IframeMessage } from "./app.state";
+import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
 import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
 import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/filters-preview.state";

@@ -57,7 +57,7 @@ export function installVirtualMediaDevice(deviceSource: DeviceSourceService) {
     FormsModule,
     FoldableModule,
     NgxsModule.forRoot([AppState, TimerState, CameraRollState, CameraState, FilterState], {
-      developmentMode: !environment.production,
+      developmentMode: false,
     }),
     NgxsReduxDevtoolsPluginModule.forRoot(),
   ],

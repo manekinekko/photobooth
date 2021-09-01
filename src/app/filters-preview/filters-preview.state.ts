@@ -1,6 +1,5 @@
 import { Injectable } from "@angular/core";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
-import { FiltersPreviewService } from "./filters-preview.service";
 
 // actions
 
@@ -35,7 +34,6 @@ export interface FilterStateModel {
 })
 @Injectable()
 export class FilterState {
-  constructor(private readonly filterPreviewService: FiltersPreviewService) { }
 
   @Selector()
   static filters(filtersModel: FilterStateModel) {
