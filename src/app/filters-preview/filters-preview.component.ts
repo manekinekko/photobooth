@@ -26,19 +26,19 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
       role="list"
       aria-label="Style transfer preview images" 
       class="filter-list"
-      [class.hide-filters-list]="isCameraOn">
+      [class.hide]="isCameraOn">
       <li 
           role="listitem"
           [attr.tabindex]="currentFilterIndex + 2"
           class="filter-list-item"
-          (click)="applyStyleTransfer(imageStyle)"
+          (click)="applyStyleTransfer(imageStyle, styleImage.strength)"
           *ngFor="let styleImage of styleTransferImages; let currentFilterIndex = index">
         <img #imageStyle src="{{ styleImage.src }}" alt="{{ styleImage.alt }}" height="50">
       </li>
     </ul>
     
     <ul
-      [class.hide-filters-list]="!isCameraOn"
+      [class.hide]="!isCameraOn"
       role="list"
       aria-label="Filter preview items"
       class="filter-list"
@@ -76,7 +76,7 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
         overflow-x: scroll;
         overflow-y: hidden;
       }
-      .filter-list.hide-filters-list {
+      .hide {
         display: none;
       }
       .filter-list::-webkit-scrollbar-track {
@@ -101,6 +101,10 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
       }
       .filter-list-item img {
         border: 1px solid transparent;
+        transition: all 0.2s ease-in-out;
+      }
+      .filter-list-item:hover img {
+        transform: scale(1.1);
       }
       .filter-list-item span {
         color: white;
@@ -181,63 +185,82 @@ export class FiltersPreviewComponent implements OnInit {
   isCameraOn = false;
 
   availableFilters: CameraFilter[] = [];
-  styleTransferImages: Array<{ src: string, alt: string }> = [{
+  styleTransferImages: Array<{ src: string, alt: string, strength: number }> = [{
     src: "assets/style-transfer/images/style-01.jpg",
     alt: "Style 01",
+    strength: 0.25,
   }, {
     src: "assets/style-transfer/images/style-02.jpg",
     alt: "Style 02",
+    strength: 0.25,
   }, {
     src: "assets/style-transfer/images/style-03.jpg",
     alt: "Style 03",
+    strength: 0.25,
   }, {
     src: "assets/style-transfer/images/style-04.jpg",
     alt: "Style 04",
+    strength: 0.25,
   }, {
     src: "assets/style-transfer/images/style-05.jpg",
     alt: "Style 05",
+    strength: 0.25,
   }, {
     src: "assets/style-transfer/images/style-06.jpg",
     alt: "Style 06",
+    strength: 0.25,
   }, {
     src: "assets/style-transfer/images/style-07.jpg",
     alt: "Style 07",
+    strength: 0.25,
   }, {
     src: "assets/style-transfer/images/style-08.jpg",
     alt: "Style 08",
+    strength: 0.25,
   }, {
     src: "assets/style-transfer/images/style-09.jpg",
     alt: "Style 09",
+    strength: 0.25,
   }, {
-    src: "assets/style-transfer/images/style-10.png",
+    src: "assets/style-transfer/images/style-10.jpg",
     alt: "Style 10",
+    strength: 0.25,
   }, {
-    src: "assets/style-transfer/images/style-11.png",
+    src: "assets/style-transfer/images/style-11.jpg",
     alt: "Style 11",
+    strength: 0.25,
   }, {
-    src: "assets/style-transfer/images/style-12.png",
+    src: "assets/style-transfer/images/style-12.jpg",
     alt: "Style 12",
+    strength: 0.25,
   }, {
-    src: "assets/style-transfer/images/style-13.png",
+    src: "assets/style-transfer/images/style-13.jpg",
     alt: "Style 13",
+    strength: 0.25,
   }, {
-    src: "assets/style-transfer/images/style-14.png",
+    src: "assets/style-transfer/images/style-14.jpg",
     alt: "Style 14",
+    strength: 0.25,
   }, {
-    src: "assets/style-transfer/images/style-15.png",
+    src: "assets/style-transfer/images/style-15.jpg",
     alt: "Style 15",
+    strength: 0.25,
   }, {
-    src: "assets/style-transfer/images/style-16.png",
+    src: "assets/style-transfer/images/style-16.jpg",
     alt: "Style 16",
+    strength: 0.25,
   }, {
-    src: "assets/style-transfer/images/style-17.png",
+    src: "assets/style-transfer/images/style-17.jpg",
     alt: "Style 17",
+    strength: 0.25,
   }, {
-    src: "assets/style-transfer/images/style-18.png",
+    src: "assets/style-transfer/images/style-18.jpg",
     alt: "Style 18",
+    strength: 0.25,
   }, {
-    src: "assets/style-transfer/images/style-19.png",
+    src: "assets/style-transfer/images/style-19.jpg",
     alt: "Style 19",
+    strength: 0.25,
   },
   ];
 
@@ -429,8 +452,8 @@ export class FiltersPreviewComponent implements OnInit {
     image.src = "assets/filter-placeholder.jpg";
   }
 
-  applyStyleTransfer(imageStyle: HTMLImageElement) {
+  applyStyleTransfer(imageStyle: HTMLImageElement, strength: number) {
     // select the image style to apply
-    this.store.dispatch(new SelectStyleTranserImage(imageStyle));
+    this.store.dispatch(new SelectStyleTranserImage(imageStyle, strength));
   }
 }

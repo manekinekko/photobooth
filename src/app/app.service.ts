@@ -22,7 +22,7 @@ export class AppService {
     return this.isRunningInMSTeams() ? 0.6 : 0.8;
   }
 
-  async styleTransfer(image: HTMLImageElement, styleImg: HTMLImageElement, strength = 0.25): Promise<ImageData> {
+  async styleTransfer(image: HTMLImageElement, styleImg: HTMLImageElement, strength: number): Promise<ImageData> {
     return this.ngZone.runOutsideAngular<any>(() => {
       return new Promise<ImageData>(async (resolve, reject) => {
         if (typeof Worker !== 'undefined') {
@@ -33,8 +33,8 @@ export class AppService {
             });
           };
 
-          const resizedImage = this.blobService.resizeImage(image);
-          const resizedStyleImg = this.blobService.resizeImage(styleImg);
+          const resizedImage = this.blobService.resizeImage(image, {maxWidth: 100});
+          const resizedStyleImg = this.blobService.resizeImage(styleImg, {maxWidth: 100});
           worker.postMessage({
             image: resizedImage, styleImg: resizedStyleImg, strength
           });

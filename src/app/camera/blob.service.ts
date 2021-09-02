@@ -40,32 +40,27 @@ export class BlobService {
     });
   }
 
-  resizeImage(img: HTMLImageElement) {
-    const settings = {
-      max_width: 600,
-      max_height: 200
-    }
+  resizeImage(img: HTMLImageElement, settings: { maxWidth?: number, maxHeight?: number } = { maxWidth: 600, maxHeight: 200 }): ImageData {
     const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d")
-    const canvasCopy = document.createElement("canvas")
-    const copyContext = canvasCopy.getContext("2d")
-    let ratio = 1
+    const ctx = canvas.getContext("2d");
+    const canvasCopy = document.createElement("canvas");
+    const copyContext = canvasCopy.getContext("2d");
+    let ratio = 1;
 
-    if (img.width > settings.max_width) {
-      ratio = settings.max_width / img.width
+    if (img.width > settings.maxWidth) {
+      ratio = settings.maxWidth / img.width;
     }
-    else if (img.height > settings.max_height) {
-      ratio = settings.max_height / img.height
-
+    else if (img.height > settings.maxHeight) {
+      ratio = settings.maxHeight / img.height;
     }
 
-    canvasCopy.width = img.width
-    canvasCopy.height = img.height
-    copyContext.drawImage(img, 0, 0)
+    canvasCopy.width = img.width;
+    canvasCopy.height = img.height;
+    copyContext.drawImage(img, 0, 0);
 
-    canvas.width = img.width * ratio
-    canvas.height = img.height * ratio
-    ctx.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height)
+    canvas.width = img.width * ratio;
+    canvas.height = img.height * ratio;
+    ctx.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height);
 
     return ctx.getImageData(0, 0, canvas.width, canvas.height);
   }

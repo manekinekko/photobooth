@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Action, Selector, State, StateContext, Store } from "@ngxs/store";
-import { delay, map, switchMap, tap } from "rxjs/operators";
+import { map, switchMap, tap } from "rxjs/operators";
 import { AppService } from "./app.service";
 import { CameraRollService } from "./camera-roll/camera-roll.service";
 import { CameraRollState, PictureItem } from "./camera-roll/camera-roll.state";
@@ -15,12 +15,12 @@ export class IframeMessage {
 
 export class SelectStyleTranserImage {
   static readonly type = "[styleTranfer] select transfer style image";
-  constructor(public imageStyle: HTMLImageElement) { }
+  constructor(public imageStyle: HTMLImageElement, public strength: number) { }
 }
 
 export class StyleTranser {
   static readonly type = "[styleTranfer] transfer style to image";
-  constructor(public imageData: HTMLImageElement, public imageStyle: HTMLImageElement, public strength: number = 0.25) { }
+  constructor(public imageData: HTMLImageElement, public imageStyle: HTMLImageElement, public strength: number) { }
 }
 
 export class StyleTranserProcessing {
@@ -34,15 +34,17 @@ export interface AppStateModel {
   styleTransfer: ImageStyleStateModel;
   styledImageData: ImageData;
   styleTransferProcessingStatus: boolean;
+  strength: number;
 }
 
 export interface ImageStyleStateModel {
-  imageStyle: HTMLImageElement
+  imageStyle: HTMLImageElement;
+  strength: number;
+
 }
 
 export interface StyleTransferStateModel extends ImageStyleStateModel {
-  imageData: HTMLImageElement
-  strength: number;
+  imageData: HTMLImageElement;
 }
 
 @State<AppStateModel>({
@@ -51,7 +53,8 @@ export interface StyleTransferStateModel extends ImageStyleStateModel {
     lastCapturedPicture: null,
     styleTransfer: null,
     styledImageData: null,
-    styleTransferProcessingStatus: false
+    styleTransferProcessingStatus: false,
+    strength: 0,
   },
 })
 @Injectable()
@@ -82,18 +85,20 @@ export class AppState {
   }
 
   @Action(StyleTranserProcessing)
-  setStyleTranserProcessingStatus({ getState, patchState }: StateContext<AppStateModel>, payload: StyleTranserProcessing) {
+  setStyleTranserProcessingStatus({ patchState }: StateContext<AppStateModel>, payload: StyleTranserProcessing) {
     patchState({
       styleTransferProcessingStatus: payload.status
     });
   }
 
   @Action(SelectStyleTranserImage)
-  async selectStyleTranserImage({ dispatch, patchState }: StateContext<AppStateModel>, payload: ImageStyleStateModel) {
-    const { imageStyle } = payload;
+  async selectStyleTranserImage({ dispatch, patchState }: StateContext<AppStateModel>, payload: SelectStyleTranserImage) {
+    const { imageStyle, strength } = payload;
+
     patchState({
       styleTransfer: {
         imageStyle,
+        strength
       }
     });
 
@@ -105,7 +110,7 @@ export class AppState {
           dispatch(new StyleTranserProcessing(true));
           const imageData = new Image();
           imageData.onload = () => {
-            dispatch(new StyleTranser(imageData, imageStyle, 0.25));
+            dispatch(new StyleTranser(imageData, imageStyle, payload.strength));
           }
           imageData.src = pictureData;
         }
@@ -119,7 +124,7 @@ export class AppState {
     const styledImageData = await this.appService.styleTransfer(imageData, imageStyle, strength);
     this.cameraRollService.save(styledImageData, 'style-transfert-data').pipe(
       switchMap(() => this.cameraRollService.read('style-transfert-data'))
-    ).subscribe(entry => {
+    ).subscribe((entry: PictureItem) => {
       dispatch(new PreviewPictureData(entry.data));
       dispatch(new StyleTranserProcessing(false));
     });
