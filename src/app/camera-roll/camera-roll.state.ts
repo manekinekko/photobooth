@@ -109,6 +109,8 @@ export class CameraRollState {
     return this.cameraRollService.read(payload.currentPictureId).pipe(
       map((picture: PictureItem) => picture.data),
       tap((data: string) => {
+        console.log(`Selected picture id=${payload.currentPictureId}`);
+
         if (payload.useForGreenScreen) {
           dispatch(new SelectPictureDataForChromaKey(data));
         } else {

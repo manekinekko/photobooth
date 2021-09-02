@@ -24,9 +24,8 @@ import type {
   GraphModel, Tensor3D, Tensor4D
 } from '@tensorflow/tfjs';
 import {
-  browser, loadGraphModel, scalar, tidy
+  browser, getBackend, loadGraphModel, memory, scalar, setBackend, tidy
 } from '@tensorflow/tfjs';
-
 
 // tslint:disable:max-line-length
 const DEFAULT_STYLE_CHECKPOINT = '/assets/style-transfer/predictor';
@@ -59,6 +58,7 @@ export class ArbitraryStyleTransferNetwork {
   constructor() {
     this.styleCheckpointURL = DEFAULT_STYLE_CHECKPOINT;
     this.transformCheckpointURL = DEFAULT_TRANSFORM_CHECKPOINT;
+    setBackend('webgl');
   }
 
   /**
@@ -81,6 +81,7 @@ export class ArbitraryStyleTransferNetwork {
 
     this.initialized = true;
     console.log('Initialized Arbitrary Style Transfer network');
+    console.log('Backend:', getBackend());
   }
 
   dispose() {
@@ -114,9 +115,7 @@ export class ArbitraryStyleTransferNetwork {
    * @param content Content image to stylize
    * @param bottleneck Bottleneck features for the style to use
    */
-  private produceStylized(
-    content: ImageData,
-    bottleneck: Tensor4D): Tensor3D {
+  private produceStylized(content: ImageData, bottleneck: Tensor4D): Tensor3D {
     return tidy(() => {
       const image: Tensor4D = this.transformNet.predict([
         browser.fromPixels(content).toFloat().div(scalar(255)).expandDims(),
@@ -138,32 +137,33 @@ export class ArbitraryStyleTransferNetwork {
    * @param strength If provided, controls the stylization strength.
    * Should be between 0.0 and 1.0.
    */
-  stylize(
-    content: ImageData,
-    style: ImageData,
-    strength?: number): Promise<ImageData> {
+  stylize(content: ImageData, style: ImageData, strength?: number): Promise<ImageData> {
     return new Promise(async (resolve, reject) => {
 
+      console.log('Stylizing image...');
+      console.table(memory());
 
       if (!this.initialized) {
         await this.initialize();
       }
 
-
       let styleRepresentation = this.predictStyleParameters(style);
       if (strength !== undefined) {
-        styleRepresentation = styleRepresentation.mul(scalar(strength))
-          .add(this.predictStyleParameters(content).mul(
-            scalar(1.0 - strength)));
+        styleRepresentation = styleRepresentation
+          .mul(scalar(strength))
+          .add(this.predictStyleParameters(content).mul(scalar(1.0 - strength)));
       }
       const stylized = this.produceStylized(content, styleRepresentation);
-      return browser.toPixels(stylized).then((bytes) => {
-        const imageData =
-          new ImageData(bytes, stylized.shape[1], stylized.shape[0]);
-        styleRepresentation.dispose();
-        stylized.dispose();
-        resolve(imageData);
-      });
+      
+      const bytes = await browser.toPixels(stylized);
+      const imageData = new ImageData(bytes, stylized.shape[1], stylized.shape[0]);
+      styleRepresentation.dispose();
+      stylized.dispose();
+      
+      console.log('Stylized image');
+      console.table(memory());
+      
+      resolve(imageData);
     });
   }
 }

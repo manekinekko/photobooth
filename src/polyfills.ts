@@ -56,12 +56,23 @@
  * Zone JS is required by default for Angular itself.
  */
 
-import "./zone-flags";
 import "zone.js"; // Included with Angular CLI.
+import "./zone-flags";
 
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
+
+console.log("Browser required features:");
+console.table({
+  WebGLRenderingContext: "WebGLRenderingContext" in window,
+  createImageBitmap: "createImageBitmap" in window,
+  OffscreenCanvas: "OffscreenCanvas" in window,
+  WebAssembly: "WebAssembly" in window,
+  Worker: "Worker" in window,
+});
+
+
 var canvas = document.createElement("canvas");
 var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 if (gl && gl instanceof WebGLRenderingContext && "createImageBitmap" in window) {
