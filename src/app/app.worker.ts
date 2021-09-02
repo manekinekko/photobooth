@@ -3,12 +3,11 @@
 import '@tensorflow/tfjs';
 import { ArbitraryStyleTransferNetwork } from "./shared/arbitrary-stylization.service";
 
-(this as any).window = this;
-
-addEventListener('message', async ({ data }) => {
+addEventListener('message', async ({ data }: { data: { image: ImageData, styleImg: ImageData, strength: number } }) => {
+  const image = new ImageData(data.image.data, data.image.width, data.image.height);
+  const styleImg = new ImageData(data.styleImg.data, data.styleImg.width, data.styleImg.height);
   const model = new ArbitraryStyleTransferNetwork();
-  await model.initialize();
-  const styledImageData = await model.stylize(data.image, data.styleImg, data.strength);
+  const styledImageData = await model.stylize(image, styleImg, data.strength);
 
   postMessage({
     styledImageData

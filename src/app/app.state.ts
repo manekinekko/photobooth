@@ -82,7 +82,7 @@ export class AppState {
   }
 
   @Action(StyleTranserProcessing)
-  setStyleTranserProcessingStatus({ patchState }: StateContext<AppStateModel>, payload: StyleTranserProcessing) {
+  setStyleTranserProcessingStatus({ getState, patchState }: StateContext<AppStateModel>, payload: StyleTranserProcessing) {
     patchState({
       styleTransferProcessingStatus: payload.status
     });
@@ -102,12 +102,10 @@ export class AppState {
       map((picture: PictureItem) => picture.data),
       tap((pictureData: string) => {
         if (pictureData) {
+          dispatch(new StyleTranserProcessing(true));
           const imageData = new Image();
           imageData.onload = () => {
-            dispatch(new StyleTranserProcessing(true)).pipe(
-              delay(1000),
-              switchMap(() => dispatch(new StyleTranser(imageData, imageStyle, 0.25)))
-            ).subscribe();
+            dispatch(new StyleTranser(imageData, imageStyle, 0.25));
           }
           imageData.src = pictureData;
         }
@@ -116,13 +114,14 @@ export class AppState {
   }
 
   @Action(StyleTranser)
-  async styleTranser({ dispatch, patchState }: StateContext<AppStateModel>, payload: StyleTranser) {
+  async styleTranser({ dispatch }: StateContext<AppStateModel>, payload: StyleTranser) {
     const { imageData, imageStyle, strength } = payload;
     const styledImageData = await this.appService.styleTransfer(imageData, imageStyle, strength);
     this.cameraRollService.save(styledImageData, 'style-transfert-data').pipe(
       switchMap(() => this.cameraRollService.read('style-transfert-data'))
     ).subscribe(entry => {
       dispatch(new PreviewPictureData(entry.data));
+      dispatch(new StyleTranserProcessing(false));
     });
 
   }

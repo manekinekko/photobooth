@@ -20,7 +20,7 @@ import { TimerStep } from "./timer.service";
     `
       :host {
         font-family: sans-serif;
-        background: red;
+        background: #4B65A9;
         color: white;
         display: flex;
         justify-content: center;

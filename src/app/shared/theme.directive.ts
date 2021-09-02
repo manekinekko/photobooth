@@ -11,9 +11,6 @@ export class ThemeDirective {
     if (await this.app.isRunningInMSTeams()) {
       this.element.nativeElement.style.setProperty("--background-color", "#464775");
       this.element.nativeElement.style.setProperty("--border-color", "#333448");
-    } else {
-      this.element.nativeElement.style.setProperty("--background-color", "#585454");
-      this.element.nativeElement.style.setProperty("--border-color", "#474444");
     }
   }
 }

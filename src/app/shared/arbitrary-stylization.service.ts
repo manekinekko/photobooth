@@ -20,21 +20,17 @@
  * Imports
  */
 import { Injectable } from '@angular/core';
-import {
-  GraphModel,
-  Tensor4D,
-  Tensor3D,
-  loadGraphModel,
-  tidy,
-  browser,
-  scalar
+import type {
+  GraphModel, Tensor3D, Tensor4D
 } from '@tensorflow/tfjs';
+import {
+  browser, loadGraphModel, scalar, tidy
+} from '@tensorflow/tfjs';
+
 
 // tslint:disable:max-line-length
 const DEFAULT_STYLE_CHECKPOINT = '/assets/style-transfer/predictor';
 const DEFAULT_TRANSFORM_CHECKPOINT = '/assets/style-transfer/transformer';
-// const DEFAULT_STYLE_CHECKPOINT = 'https://storage.googleapis.com/magentadata/js/checkpoints/style/arbitrary/predictor';
-// const DEFAULT_TRANSFORM_CHECKPOINT = 'https://storage.googleapis.com/magentadata/js/checkpoints/style/arbitrary/transformer';
 // tslint:enable:max-line-length
 
 /**

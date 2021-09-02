@@ -7,13 +7,11 @@ import {
   HostListener,
   Input,
   OnInit,
-  Output,
-  ViewChild
+  Output, SimpleChanges, ViewChild
 } from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { delay } from "rxjs/operators";
-import { AppState } from "../app.state";
 import { SelectPictureDataForChromaKey, UnselectPicture } from "../camera-roll/camera-roll.state";
 import { CameraFilterItem } from "../filters-preview/filters-preview.state";
 import { WebGLFilter } from "../shared/webgl-filter.class";
@@ -28,10 +26,8 @@ import { FaceMeshService } from "./face-mesh.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
-    <div class="style-transfer-loader" *ngIf="isStyleTransferLoading" [ngStyle]=" { width: width + 'px', height: height + 'px' } ">
-      <!-- <img src="https://i.pinimg.com/originals/93/a1/7f/93a17fe156ac2ce9c7fe75e9aefc3b52.gif" [width]="width/2">  -->
-      <iframe frameBorder="0" src="https://thumbs.gfycat.com/ForsakenPoisedEasternglasslizard-max-1mb.gif" [ngStyle]=" { width: width + 'px', height: height + 'px' } "></iframe> 
-    </div>
+    <div class="style-transfer-loader" *ngIf="isProcessing" [ngStyle]=" { width: width + 'px', height: height + 'px' } "></div>
+    <img #devfestLogoRef src="/assets/devfest_color_text_white_small.svg" hidden> 
 
     <video #videoRef hidden autoplay playsinline muted></video>
     <canvas #canvasVideoRef hidden [width]="width" [height]="height"></canvas>
@@ -72,6 +68,8 @@ import { FaceMeshService } from "./face-mesh.service";
         display: none;
       }
       .style-transfer-loader {
+        background-image: url(/assets/loader-2.gif);
+        background-size: 200px;
         position: absolute;
         mix-blend-mode: screen;
         display: flex;
@@ -94,8 +92,14 @@ import { FaceMeshService } from "./face-mesh.service";
         height: 76px;
         margin: 5px;
         border-radius: 50%;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+      }
+      button:not([disabled]):hover {
+        transform: scale(1.1);
       }
       button[disabled] {
+        cursor: initial;
         filter: grayscale();
       }
       button img {
@@ -147,11 +151,13 @@ export class CameraComponent implements OnInit {
   @ViewChild("canvasMeshRef", { static: true }) canvasMeshRef: ElementRef<HTMLCanvasElement>;
   @ViewChild("canvasVideoRef", { static: true }) canvasVideoRef: ElementRef<HTMLCanvasElement>;
   @ViewChild("canvasGreenScreenRef", { static: true }) canvasGreenScreenRef: ElementRef<HTMLCanvasElement>;
+  @ViewChild("devfestLogoRef", { static: true }) devfestLogo: ElementRef<HTMLImageElement>;
   @ViewChild(TimerComponent, { static: true }) timerRef: TimerComponent;
 
   @Input() width: number = 1280;
   @Input() height: number = 720;
   @Input() deviceId: string;
+  @Input() isProcessing: boolean = false;
   @Input() selectedFilters: Array<CameraFilterItem>;
   canvasContextRef: CanvasRenderingContext2D;
   canvasMeshContextRef: CanvasRenderingContext2D;
@@ -159,7 +165,6 @@ export class CameraComponent implements OnInit {
   canvasGreenScreenContextRef: CanvasRenderingContext2D;
 
   isCameraOn: boolean;
-  isStyleTransferLoading = false;
 
   mediaStream: MediaStream;
   flashDuration = 2; // in seconds
@@ -169,11 +174,15 @@ export class CameraComponent implements OnInit {
   @Select(TimerState.isTicking) timerIsTicking$: Observable<boolean>;
   @Select(CameraState.mediaStream) mediaStream$: Observable<MediaStream>;
   @Select(CameraState.preview) preview$: Observable<string>;
-  @Select(AppState.styleTransferProcessingStatus) selectedFiltestyleTransferProcessingStatus$: Observable<boolean>;
 
   onPictureSelectedForGreenScreen: Observable<CapturePictureData>;
 
-  constructor(private cd: ChangeDetectorRef, private faceMesh: FaceMeshService, private store: Store, private actions$: Actions) {
+  constructor(
+    private cd: ChangeDetectorRef,
+    private faceMesh: FaceMeshService,
+    private store: Store,
+    private actions$: Actions
+  ) {
     this.onCapture = this.actions$.pipe(ofActionSuccessful(CapturePictureData));
     this.onPictureSelectedForGreenScreen = this.actions$.pipe(ofActionSuccessful(SelectPictureDataForChromaKey));
 
@@ -202,6 +211,7 @@ export class CameraComponent implements OnInit {
         const image = new Image();
         image.onload = async () => {
           this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
+          this.canvasContextRef.drawImage(this.devfestLogo.nativeElement, 10, 10);
         }
         image.src = preview;
       }
@@ -240,12 +250,12 @@ export class CameraComponent implements OnInit {
         this.onCameraStart.emit(deviceId);
       }
     });
+  }
 
-    this.selectedFiltestyleTransferProcessingStatus$.subscribe((isLoading) => {
-      setTimeout(() => {
-        this.isStyleTransferLoading = Boolean(isLoading);
-      }, 0);
-    });
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.isProcessing) {
+      this.cd.markForCheck();
+    }
   }
 
   @HostListener("document:keyup.shift", ["$event"])

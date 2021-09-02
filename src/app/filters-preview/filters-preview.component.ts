@@ -13,7 +13,7 @@ import {
 } from "@angular/core";
 import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
-import { SelectStyleTranserImage, StyleTranserProcessing } from "../app.state";
+import { SelectStyleTranserImage } from "../app.state";
 import { CameraState } from "../camera/camera.state";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 import { FiltersPreviewService } from "./filters-preview.service";
@@ -70,7 +70,7 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
         border-bottom: 1px solid #474444;
         display: flex;
         height: 62px;
-        padding: 0px 4px;
+        padding: 0px 6px;
         margin: 0;
         position: relative;
         overflow-x: scroll;
@@ -208,7 +208,38 @@ export class FiltersPreviewComponent implements OnInit {
   }, {
     src: "assets/style-transfer/images/style-09.jpg",
     alt: "Style 09",
-  }];
+  }, {
+    src: "assets/style-transfer/images/style-10.png",
+    alt: "Style 10",
+  }, {
+    src: "assets/style-transfer/images/style-11.png",
+    alt: "Style 11",
+  }, {
+    src: "assets/style-transfer/images/style-12.png",
+    alt: "Style 12",
+  }, {
+    src: "assets/style-transfer/images/style-13.png",
+    alt: "Style 13",
+  }, {
+    src: "assets/style-transfer/images/style-14.png",
+    alt: "Style 14",
+  }, {
+    src: "assets/style-transfer/images/style-15.png",
+    alt: "Style 15",
+  }, {
+    src: "assets/style-transfer/images/style-16.png",
+    alt: "Style 16",
+  }, {
+    src: "assets/style-transfer/images/style-17.png",
+    alt: "Style 17",
+  }, {
+    src: "assets/style-transfer/images/style-18.png",
+    alt: "Style 18",
+  }, {
+    src: "assets/style-transfer/images/style-19.png",
+    alt: "Style 19",
+  },
+  ];
 
   constructor(private renderer: Renderer2, private filtersService: FiltersPreviewService, private store: Store) {
     this.onFilterSelected = new EventEmitter<Array<CameraFilterItem>>();

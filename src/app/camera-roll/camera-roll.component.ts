@@ -40,6 +40,10 @@ import {
   `,
   styles: [
     `
+      :host {
+        border-bottom: 1px solid #ffffff38;
+        display: block;
+      }
       .camera-roll {
         display: flex;
         height: 62px;
@@ -69,6 +73,7 @@ import {
         animation-timing-function: cubic-bezier(0.6, 0.4, 0.54, 1.12), ease;
         position: relative;
         transform: translateY(-55px);
+        cursor: pointer;
       }
       .camera-roll-item:last-child {
         padding-right: 4px;

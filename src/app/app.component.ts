@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild } from "@angular/core";
 import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { AppService } from "./app.service";
@@ -10,7 +10,7 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
 
 @Component({
   selector: "app-root",
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
     <section appTheme [class.disabled]="activeSource === null">
@@ -23,6 +23,7 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
         <app-camera
           [width]="width"
           [height]="height"
+          [isProcessing]="isStyleTransferLoading"
           [selectedFilters]="selectedFilters"
           (onCapture)="onCapture($event)"
           (onFlash)="flashEffect($event)"
@@ -65,7 +66,7 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
         padding: 10px 0 0;
         min-width: 500px;
         min-height: 400px;
-        box-shadow: 1px 3px 13px 4px rgba(0, 0, 0, 0.5);
+        box-shadow: 0px 0px 10px 1px rgb(0 0 0 / 50%);
         transition: 1s all;
       }
 
@@ -130,11 +131,13 @@ export class AppComponent {
   selectedFilters: Array<CameraFilterItem>;
 
   activeSource: string | null;
+  isStyleTransferLoading = false;
 
   @Select(CameraState.source) activeSource$: Observable<string>;
   @Select(FilterState.selectedFilter) selectedFilter$: Observable<CameraFilter>;
+  @Select(AppState.styleTransferProcessingStatus) selectedFiltestyleTransferProcessingStatus$: Observable<boolean>;
 
-  constructor(private store: Store, private app: AppService) {
+  constructor(private store: Store, private app: AppService, private cd: ChangeDetectorRef) {
     this.activeSource = null;
     this.selectedFilter$.subscribe((selectedFilter) => (this.selectedFilters = selectedFilter?.filters));
 
@@ -145,6 +148,11 @@ export class AppComponent {
         this.store.dispatch(new StartMediaStream(source));
       }
       this.activeSource = source;
+    });
+
+    this.selectedFiltestyleTransferProcessingStatus$.subscribe((isLoading) => {
+      this.isStyleTransferLoading = Boolean(isLoading);
+      this.cd.markForCheck();
     });
   }
 

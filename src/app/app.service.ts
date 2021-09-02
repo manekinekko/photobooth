@@ -1,5 +1,5 @@
 import { Location } from "@angular/common";
-import { Injectable } from "@angular/core";
+import { Injectable, NgZone } from "@angular/core";
 import { BlobService } from "./camera/blob.service";
 import { ArbitraryStyleTransferNetwork } from "./shared/arbitrary-stylization.service";
 
@@ -7,7 +7,13 @@ import { ArbitraryStyleTransferNetwork } from "./shared/arbitrary-stylization.se
   providedIn: "root",
 })
 export class AppService {
-  constructor(private location: Location, private styleService: ArbitraryStyleTransferNetwork, private blobService: BlobService) { }
+  constructor(
+    private location: Location,
+    private styleService: ArbitraryStyleTransferNetwork,
+    private blobService: BlobService,
+    private ngZone: NgZone
+  ) { }
+
   isRunningInMSTeams() {
     return this.location.path().includes("context=teams");
   }
@@ -17,21 +23,23 @@ export class AppService {
   }
 
   async styleTransfer(image: HTMLImageElement, styleImg: HTMLImageElement, strength = 0.25): Promise<ImageData> {
-    const resizedImage = this.blobService.resizeImage(image);
-    return await this.styleService.stylize(resizedImage as any /* workkaround for worker compatibility */, styleImg as any /* workkaround for worker compatibility */, strength);
-    
-    // return new Promise(async (resolve, reject) => {
-    //   if (typeof Worker !== 'undefined') {
-    //     const worker = new Worker('./app.worker', { type: 'module' });
+    return this.ngZone.runOutsideAngular<any>(() => {
+      return new Promise<ImageData>(async (resolve, reject) => {
+        if (typeof Worker !== 'undefined') {
+          const worker = new Worker(new URL('./app.worker', import.meta.url));
+          worker.onmessage = ({ data }: { data: { styledImageData: ImageData } }) => {
+            this.ngZone.run(() => {
+              resolve(data.styledImageData);
+            });
+          };
 
-    //     worker.onmessage = ({ data }) => {
-    //       resolve(data);
-    //     };
-
-    //     worker.postMessage({
-    //       image, styleImg, strength
-    //     });
-    //   }
-    // });
+          const resizedImage = this.blobService.resizeImage(image);
+          const resizedStyleImg = this.blobService.resizeImage(styleImg);
+          worker.postMessage({
+            image: resizedImage, styleImg: resizedStyleImg, strength
+          });
+        }
+      });
+    });
   }
 }
