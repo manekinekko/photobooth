@@ -261,8 +261,11 @@ export class FiltersPreviewComponent implements OnInit {
     src: "assets/style-transfer/images/style-19.jpg",
     alt: "Style 19",
     strength: 0.25,
-  },
-  ];
+  }, {
+    src: "assets/style-transfer/images/style-20.jpg",
+    alt: "Style 20",
+    strength: 0.30,
+  }];
 
   constructor(private renderer: Renderer2, private filtersService: FiltersPreviewService, private store: Store) {
     this.onFilterSelected = new EventEmitter<Array<CameraFilterItem>>();

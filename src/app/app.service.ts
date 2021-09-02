@@ -37,7 +37,7 @@ export class AppService {
           };
 
           const resizedImage = this.blobService.resizeImage(image, { maxWidth: 500 });
-          const resizedStyleImg = this.blobService.resizeImage(styleImg, { maxWidth: 50 });
+          const resizedStyleImg = this.blobService.resizeImage(styleImg, { maxWidth: 500 });
           worker.postMessage({
             image: resizedImage, styleImg: resizedStyleImg, strength
           });

@@ -19,6 +19,7 @@ import { FiltersPreviewComponent } from "./filters-preview/filters-preview.compo
 import { FilterState } from "./filters-preview/filters-preview.state";
 import { FoldableComponent } from "./foldable.component";
 import { DeviceIdFormatPipe } from "./shared/device-id-format.pipe";
+import { DragDropDirective } from "./shared/drag-drop.directive";
 import { StopEventPropagation } from "./shared/stop-event-propagation.directive";
 import { ThemeDirective } from "./shared/theme.directive";
 import { TimerComponent } from "./timer/timer.component";
@@ -50,7 +51,8 @@ export function installVirtualMediaDevice(deviceSource: DeviceSourceService) {
     ThemeDirective,
     StopEventPropagation,
     FoldableComponent,
-    BootComponent
+    BootComponent,
+    DragDropDirective
   ],
   imports: [
     BrowserModule,

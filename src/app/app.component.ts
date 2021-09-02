@@ -10,10 +10,15 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
 
 @Component({
   selector: "app-root",
-  // changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
-    <section appTheme [class.disabled]="activeSource === null">
+    <section 
+      appTheme 
+      [class.disabled]="activeSource === null" 
+      appDragDrop
+      (onFileDropped)="onFileDropped($event)"
+    >
       <app-device-source *ngIf="activeSource" ></app-device-source>
 
       <app-filters-preview *ngIf="activeSource" [ngStyle]="{ width: width + 'px' }"></app-filters-preview>
@@ -180,5 +185,20 @@ export class AppComponent {
 
   onPictureSelected(picture: SelectPictureData) {
     this.store.dispatch([new StopMediaStream(), new PreviewPictureData(picture.data)]);
+  }
+
+  onFileDropped(files: FileList) {
+    const file = files?.item(0);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const fileContent = e.target?.result;
+        this.onCapture({
+          data: fileContent
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   }
 }
