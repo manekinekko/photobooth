@@ -1,8 +1,6 @@
 import { enableProdMode } from "@angular/core";
 import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
 import * as microsoftTeams from "@microsoft/teams-js";
-// import "@tensorflow/tfjs-backend-cpu";
-// import "@tensorflow/tfjs-backend-webgl";
 import { AppModule } from "./app/app.module";
 import { environment } from "./environments/environment";
 
