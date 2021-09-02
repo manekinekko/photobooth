@@ -32,9 +32,12 @@ export class AppService {
               resolve(data.styledImageData);
             });
           };
+          worker.onerror = (error) => {
+            console.error(error);
+          };
 
-          const resizedImage = this.blobService.resizeImage(image, {maxWidth: 100});
-          const resizedStyleImg = this.blobService.resizeImage(styleImg, {maxWidth: 100});
+          const resizedImage = this.blobService.resizeImage(image, { maxWidth: 500 });
+          const resizedStyleImg = this.blobService.resizeImage(styleImg, { maxWidth: 50 });
           worker.postMessage({
             image: resizedImage, styleImg: resizedStyleImg, strength
           });
