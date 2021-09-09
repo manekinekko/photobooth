@@ -16,12 +16,12 @@ export class IframeMessage {
 
 export class SelectStyleTranserImage {
   static readonly type = "[styleTranfer] select transfer style image";
-  constructor(public imageStyle: HTMLImageElement, public strength: number) { }
+  constructor(public imageStyleIdOrData: string | HTMLImageElement, public strength: number) { }
 }
 
 export class StyleTranser {
   static readonly type = "[styleTranfer] transfer style to image";
-  constructor(public imageInput: HTMLImageElement, public imageStyle: HTMLImageElement, public strength: number) { }
+  constructor(public imageInput: HTMLImageElement, public imageStyleIdOrData: string | HTMLImageElement, public strength: number) { }
 }
 
 export class StyleTranserProcessing {
@@ -39,7 +39,7 @@ export interface AppStateModel {
 }
 
 export interface ImageStyleStateModel {
-  imageStyle: HTMLImageElement;
+  imageStyleIdOrData: string | HTMLImageElement;
   strength: number;
 
 }
@@ -95,11 +95,11 @@ export class AppState {
 
   @Action(SelectStyleTranserImage)
   async selectStyleTranserImage({ dispatch, patchState }: StateContext<AppStateModel>, payload: SelectStyleTranserImage) {
-    const { imageStyle, strength } = payload;
+    const { imageStyleIdOrData, strength } = payload;
 
     patchState({
       styleTransfer: {
-        imageStyle,
+        imageStyleIdOrData,
         strength
       }
     });
@@ -112,7 +112,7 @@ export class AppState {
           dispatch(new StyleTranserProcessing(true));
           const imageData = new Image();
           imageData.onload = () => {
-            dispatch(new StyleTranser(imageData, imageStyle, payload.strength));
+            dispatch(new StyleTranser(imageData, imageStyleIdOrData, payload.strength));
           }
           imageData.src = pictureData;
         }
@@ -122,12 +122,15 @@ export class AppState {
 
   @Action(StyleTranser)
   async styleTranser({ dispatch }: StateContext<AppStateModel>, payload: StyleTranser) {
-    const { imageInput, imageStyle, strength } = payload;
-
+    const { imageInput, imageStyleIdOrData, strength } = payload;
+    
+    let imageStyle: ImageData | string = imageStyleIdOrData as string;
+    if (imageStyleIdOrData instanceof HTMLImageElement) {
+      imageStyle = await this.blobService.resizeImage(imageStyleIdOrData);
+    }
+    
     const imageData = await this.blobService.resizeImage(imageInput, { maxWidth: 450 });
-    const imageStyleImageData = await this.blobService.resizeImage(imageStyle);
-    const styledImageData = await this.appService.requestStyleTransferOperation(imageData, imageStyleImageData, strength);
-
+    const styledImageData = await this.appService.requestStyleTransferOperation(imageData, imageStyle, strength);
     this.cameraRollService.save(styledImageData, 'style-transfert-data').pipe(
       switchMap(() => this.cameraRollService.read('style-transfert-data'))
     ).subscribe((entry: PictureItem) => {

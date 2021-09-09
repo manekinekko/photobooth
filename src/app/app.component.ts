@@ -180,8 +180,6 @@ export class AppComponent {
 
     this.preview$.subscribe((preview) => {
       this.isPreview = Boolean(preview);
-      console.log(this.isPreview);
-
       this.cd.markForCheck();
     });
   }

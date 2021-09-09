@@ -32,7 +32,7 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
           role="listitem"
           [attr.tabindex]="currentFilterIndex + 2"
           class="filter-list-item"
-          (click)="loadStyleTransferImage(styleImage.src.large, styleImage.strength)"
+          (click)="loadStyleTransferImage(styleImage.isPrecomputed ? styleImage.id : styleImage.src.large, styleImage.strength)"
           *ngFor="let styleImage of styleTransferImages; let currentFilterIndex = index">
         <img [attr.id]="styleImage.id" src="{{ styleImage.src.small }}" [attr.data-src-large]="styleImage.src.large" alt="{{ styleImage.alt }}">
       </li>
@@ -186,8 +186,9 @@ export class FiltersPreviewComponent implements OnInit {
   isCameraOn = false;
 
   availableFilters: CameraFilter[] = [];
-  styleTransferImages: Array<{ id: string, src: { small: string, large: string }, alt: string, strength: number }> = [{
+  styleTransferImages: Array<{ isPrecomputed: boolean, id: string, src: { small: string, large: string }, alt: string, strength: number }> = [{
     id: 'style-01',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-01.jpg",
       large: "assets/style-transfer/images/256x256/style-01.jpg"
@@ -196,6 +197,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-02',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-02.jpg",
       large: "assets/style-transfer/images/256x256/style-02.jpg"
@@ -204,6 +206,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-03',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-03.jpg",
       large: "assets/style-transfer/images/256x256/style-03.jpg"
@@ -212,6 +215,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-04',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-04.jpg",
       large: "assets/style-transfer/images/256x256/style-04.jpg"
@@ -220,6 +224,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-05',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-05.jpg",
       large: "assets/style-transfer/images/256x256/style-05.jpg"
@@ -228,6 +233,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-06',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-06.jpg",
       large: "assets/style-transfer/images/256x256/style-06.jpg"
@@ -236,6 +242,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-07',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-07.jpg",
       large: "assets/style-transfer/images/256x256/style-07.jpg"
@@ -244,6 +251,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-08',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-08.jpg",
       large: "assets/style-transfer/images/256x256/style-08.jpg"
@@ -252,6 +260,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-09',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-09.jpg",
       large: "assets/style-transfer/images/256x256/style-09.jpg"
@@ -260,6 +269,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-10',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-10.jpg",
       large: "assets/style-transfer/images/256x256/style-10.jpg"
@@ -268,6 +278,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-11',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-11.jpg",
       large: "assets/style-transfer/images/256x256/style-11.jpg"
@@ -276,6 +287,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-12',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-12.jpg",
       large: "assets/style-transfer/images/256x256/style-12.jpg"
@@ -284,6 +296,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-13',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-13.jpg",
       large: "assets/style-transfer/images/256x256/style-13.jpg"
@@ -292,6 +305,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-14',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-14.jpg",
       large: "assets/style-transfer/images/256x256/style-14.jpg"
@@ -300,6 +314,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-15',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-15.jpg",
       large: "assets/style-transfer/images/256x256/style-15.jpg"
@@ -308,6 +323,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-16',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-16.jpg",
       large: "assets/style-transfer/images/256x256/style-16.jpg"
@@ -316,6 +332,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-17',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-17.jpg",
       large: "assets/style-transfer/images/256x256/style-17.jpg"
@@ -324,6 +341,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-18',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-18.jpg",
       large: "assets/style-transfer/images/256x256/style-18.jpg"
@@ -332,6 +350,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-19',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-19.jpg",
       large: "assets/style-transfer/images/256x256/style-19.jpg"
@@ -340,6 +359,7 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 1,
   }, {
     id: 'style-20',
+    isPrecomputed: true,
     src: {
       small: "assets/style-transfer/images/50x50/style-20.jpg",
       large: "assets/style-transfer/images/256x256/style-20.jpg"
@@ -350,9 +370,9 @@ export class FiltersPreviewComponent implements OnInit {
 
   constructor(
     private renderer: Renderer2,
-     private filtersService: FiltersPreviewService,
-      private store: Store
-    ) {
+    private filtersService: FiltersPreviewService,
+    private store: Store
+  ) {
     this.onFilterSelected = new EventEmitter<Array<CameraFilterItem>>();
     this.availableFilters = this.filtersService.getFilters();
 
@@ -531,9 +551,14 @@ export class FiltersPreviewComponent implements OnInit {
     image.src = "assets/filter-placeholder.jpg";
   }
 
-  async loadStyleTransferImage(imageStyleSrc: string, strength: number) {
-    const image = new Image();
-    image.onload = () => this.store.dispatch(new SelectStyleTranserImage(image, strength));
-    image.src = imageStyleSrc
+  async loadStyleTransferImage(imageStyleIdOrSrc: string, strength: number) {
+    if (imageStyleIdOrSrc.startsWith("assets/")) {
+      const image = new Image();
+      image.onload = () => this.store.dispatch(new SelectStyleTranserImage(image, strength));
+      image.src = imageStyleIdOrSrc;
+    }
+    else {
+      this.store.dispatch(new SelectStyleTranserImage(imageStyleIdOrSrc, strength));
+    }
   }
 }
