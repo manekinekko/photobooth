@@ -5,8 +5,8 @@ import { AppService } from "./app.service";
 import { IframeMessage } from "./app.state";
 import { AddPicture, SelectPictureData } from "./camera-roll/camera-roll.state";
 import { CameraComponent } from "./camera/camera.component";
-import { CameraState, StartMediaStream, StopMediaStream, PreviewPictureData } from "./camera/camera.state";
-import { CameraFilterItem, FilterState, CameraFilter } from "./filters-preview/filters-preview.state";
+import { CameraState, PreviewPictureData, StartMediaStream, StopMediaStream } from "./camera/camera.state";
+import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/filters-preview.state";
 
 @Component({
   selector: 'app-foldable',
@@ -157,6 +157,8 @@ export class FoldableComponent {
   }
 
   onPictureSelected(picture: SelectPictureData) {
-    this.store.dispatch([new StopMediaStream(), new PreviewPictureData(picture.data)]);
+    if (picture.data) {
+      this.store.dispatch([new StopMediaStream(), new PreviewPictureData(picture.data)]);
+    }
   }
 }

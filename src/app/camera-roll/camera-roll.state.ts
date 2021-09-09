@@ -27,7 +27,7 @@ export class SelectPicture {
 
 export class SelectPictureData {
   static readonly type = "[CameraRoll] select picture data";
-  constructor(public readonly data: string) { }
+  constructor(public readonly data: string | null) { }
 }
 
 export class SelectPictureDataForChromaKey {

@@ -209,7 +209,9 @@ export class AppComponent {
   }
 
   onPictureSelected(picture: SelectPictureData) {
-    this.store.dispatch([new StopMediaStream(), new PreviewPictureData(picture.data)]);
+    if (picture.data) {
+      this.store.dispatch([new StopMediaStream(), new PreviewPictureData(picture.data)]);
+    }
   }
 
   onFileDropped(files: FileList) {

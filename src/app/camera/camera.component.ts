@@ -11,7 +11,7 @@ import {
 } from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
-import { delay } from "rxjs/operators";
+import { delay, switchMap } from "rxjs/operators";
 import { SelectPictureDataForChromaKey, UnselectPicture } from "../camera-roll/camera-roll.state";
 import { CameraFilterItem } from "../filters-preview/filters-preview.state";
 import { WebGLFilter } from "../shared/webgl-filter.class";
@@ -291,10 +291,11 @@ export class CameraComponent implements OnInit {
       this.store.dispatch(new StartTimer());
     } else {
       this.startMediaStream()
-        .pipe(delay(1000))
-        .subscribe((_) => {
-          this.store.dispatch(new StartTimer());
-        });
+        .pipe(
+          delay(1000),
+          switchMap(() => this.store.dispatch(new StartTimer()))
+        )
+        .subscribe();
     }
   }
 
