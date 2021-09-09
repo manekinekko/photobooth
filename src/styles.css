@@ -20,8 +20,8 @@ body {
 }
 
 :root {
-  --background-color: #50B398;
-  --border-color: #6ABFC3;
+  --background-color: #50b398;
+  --border-color: #6abfc3;
 }
 
 app-boot {
@@ -113,4 +113,43 @@ app-boot.disabled {
 
 .browser-edge {
   background: url(/assets/supported-browsers/edge.png) no-repeat 30px 50%;
+}
+
+@media print {
+  @page {
+    size: 100mm 148mm landscape;
+  }
+  
+  body,
+  html {
+    background: white;
+  }
+  .polaroid-container {
+    position: fixed;
+    background: white;
+    height: 80%;
+    width: 100%;
+    top: 0;
+    bottom: 0;
+    z-index: 999;
+    right: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  .polaroid-container canvas {
+    border-style: inset solid;
+    border-width: 4px;
+    border-color: beige;
+  }
+  .printed-logo {
+    display: block !important;
+    position: fixed;
+    bottom: 0;
+    height: 160px;
+  }
 }

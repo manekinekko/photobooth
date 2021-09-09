@@ -348,7 +348,11 @@ export class FiltersPreviewComponent implements OnInit {
     strength: 0.30,
   }];
 
-  constructor(private renderer: Renderer2, private filtersService: FiltersPreviewService, private store: Store) {
+  constructor(
+    private renderer: Renderer2,
+     private filtersService: FiltersPreviewService,
+      private store: Store
+    ) {
     this.onFilterSelected = new EventEmitter<Array<CameraFilterItem>>();
     this.availableFilters = this.filtersService.getFilters();
 
@@ -380,14 +384,6 @@ export class FiltersPreviewComponent implements OnInit {
   ngAfterViewInit() {
     // Run on the next macro task to avoid error NG0100
     setTimeout(() => this.initializeSelectedFiltersFromUrlHash(), 0);
-
-    // const filterElementRef = this.filterListItemRef.find(
-    //   (item) => item.nativeElement.dataset.label === this.selectedFilterLabel
-    // );
-
-    // setTimeout((_) => {
-    //   filterElementRef.nativeElement.scrollIntoView({ behavior: "smooth", inline: "center" });
-    // }, 100);
   }
 
   toggleScrollingInFilterList(enable: boolean) {

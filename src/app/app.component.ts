@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, ViewChild } from "@angular/core";
 import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { AppService } from "./app.service";
@@ -20,6 +20,7 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
       (onFileDropped)="onFileDropped($event)"
     >
       <app-device-source *ngIf="activeSource" ></app-device-source>
+      <button *ngIf="shouldTriggerPrint()" (click)="triggerPrint()" class="btn-print"></button>
 
       <app-filters-preview *ngIf="activeSource" [ngStyle]="{ width: width + 'px' }"></app-filters-preview>
 
@@ -73,6 +74,19 @@ import { CameraFilter, CameraFilterItem, FilterState } from "./filters-preview/f
         min-height: 400px;
         box-shadow: 0px 0px 10px 1px rgb(0 0 0 / 50%);
         transition: 1s all;
+      }
+
+      .btn-print {
+        background-color: transparent;
+        background-image: url(/assets/printer.png);
+        border: 0;
+        position: absolute;
+        width: 45px;
+        height: 45px;
+        right: 0;
+        background-size: cover;
+        margin-right: 10px;
+        cursor: pointer;
       }
 
       .flash-effect {
@@ -137,8 +151,12 @@ export class AppComponent {
 
   activeSource: string | null;
   isStyleTransferLoading = false;
+  isPreview = false;
+
+  @ViewChild("printedLogoRef", { static: true }) printedLogo: ElementRef<HTMLImageElement>;
 
   @Select(CameraState.source) activeSource$: Observable<string>;
+  @Select(CameraState.preview) preview$: Observable<string | ImageData>;
   @Select(FilterState.selectedFilter) selectedFilter$: Observable<CameraFilter>;
   @Select(AppState.styleTransferProcessingStatus) selectedFiltestyleTransferProcessingStatus$: Observable<boolean>;
 
@@ -157,6 +175,13 @@ export class AppComponent {
 
     this.selectedFiltestyleTransferProcessingStatus$.subscribe((isLoading) => {
       this.isStyleTransferLoading = Boolean(isLoading);
+      this.cd.markForCheck();
+    });
+
+    this.preview$.subscribe((preview) => {
+      this.isPreview = Boolean(preview);
+      console.log(this.isPreview);
+
       this.cd.markForCheck();
     });
   }
@@ -200,5 +225,16 @@ export class AppComponent {
       };
       reader.readAsDataURL(file);
     }
+  }
+
+  @HostListener('document:keydown.p', ['$event'])
+  triggerPrint() {
+    if (this.shouldTriggerPrint()) {
+      window.print();
+    }
+  }
+
+  shouldTriggerPrint() {
+    return this.isPreview && this.isStyleTransferLoading === false;
   }
 }

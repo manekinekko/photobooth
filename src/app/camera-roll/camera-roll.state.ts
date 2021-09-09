@@ -173,7 +173,8 @@ export class CameraRollState {
   }
 
   @Action(UnselectPicture)
-  unselectPicture({ patchState }: StateContext<CameraRollStateModel>) {
+  unselectPicture({ dispatch, patchState }: StateContext<CameraRollStateModel>) {
+    dispatch(new SelectPictureData(null));
     patchState({
       selectedPictureId: null,
     });

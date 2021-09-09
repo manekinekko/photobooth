@@ -27,8 +27,8 @@ import { FaceMeshService } from "./face-mesh.service";
   template: `
 
     <div class="style-transfer-loader" *ngIf="isProcessing" [ngStyle]=" { width: width + 'px', height: height + 'px' } "></div>
-    <img #devfestLogoRef src="/assets/devfest_color_text_white_small.svg" hidden> 
 
+    <span class="fps-rate">{{ fpsRate }} fps</span>
     <video #videoRef hidden autoplay playsinline muted></video>
     <canvas #canvasVideoRef hidden [width]="width" [height]="height"></canvas>
     <canvas #canvasGreenScreenRef hidden [width]="width" [height]="height"></canvas>
@@ -36,12 +36,15 @@ import { FaceMeshService } from "./face-mesh.service";
     <ng-content select="app-filters"></ng-content>
     <canvas
       #canvasMeshRef
-      [hidden]="!shouldDrawFaceMesh"
+      *ngIf="shouldDrawFaceMesh"
       [width]="width"
       [height]="height"
       style="position: absolute"
     ></canvas>
-    <canvas class="foldable" #canvasRef [width]="width" [height]="height"></canvas>
+    <div class="polaroid-container">
+      <canvas class="foldable" #canvasRef [width]="width" [height]="height"></canvas>
+      <img class="printed-logo" #printedLogoRef src="/assets/devfest-2021-msft-logo.png"> 
+    </div>
 
     <ng-content select="app-camera-roll"></ng-content>    
 
@@ -61,11 +64,20 @@ import { FaceMeshService } from "./face-mesh.service";
   `,
   styles: [
     `
-      :host {
-        position: relative;
-      }
       [hidden] {
         display: none;
+      }
+      .fps-rate {
+        position: absolute;
+        right: 0;
+        padding: 10px;
+        filter: contrast(0);
+      }
+      .printed-logo {
+        display: none;
+      }
+      canvas {
+        background-color: #000;
       }
       .style-transfer-loader {
         background-image: url(/assets/loader-2.gif);
@@ -151,7 +163,6 @@ export class CameraComponent implements OnInit {
   @ViewChild("canvasMeshRef", { static: true }) canvasMeshRef: ElementRef<HTMLCanvasElement>;
   @ViewChild("canvasVideoRef", { static: true }) canvasVideoRef: ElementRef<HTMLCanvasElement>;
   @ViewChild("canvasGreenScreenRef", { static: true }) canvasGreenScreenRef: ElementRef<HTMLCanvasElement>;
-  @ViewChild("devfestLogoRef", { static: true }) devfestLogo: ElementRef<HTMLImageElement>;
   @ViewChild(TimerComponent, { static: true }) timerRef: TimerComponent;
 
   @Input() width: number = 1280;
@@ -165,6 +176,8 @@ export class CameraComponent implements OnInit {
   canvasGreenScreenContextRef: CanvasRenderingContext2D;
 
   isCameraOn: boolean;
+  fpsTimes = [];
+  fpsRate = 0.0;
 
   mediaStream: MediaStream;
   flashDuration = 2; // in seconds
@@ -192,9 +205,9 @@ export class CameraComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.canvasContextRef = this.canvasRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
-    this.canvasMeshContextRef = this.canvasMeshRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
-    this.canvasVideoContextRef = this.canvasVideoRef.nativeElement.getContext("2d") as CanvasRenderingContext2D;
+    this.canvasContextRef = this.canvasRef?.nativeElement.getContext("2d") as CanvasRenderingContext2D;
+    this.canvasMeshContextRef = this.canvasMeshRef?.nativeElement.getContext("2d") as CanvasRenderingContext2D;
+    this.canvasVideoContextRef = this.canvasVideoRef?.nativeElement.getContext("2d") as CanvasRenderingContext2D;
 
     this.canvasGreenScreenContextRef = this.canvasGreenScreenRef.nativeElement.getContext(
       "2d"
@@ -213,14 +226,12 @@ export class CameraComponent implements OnInit {
           image.width = this.canvasRef.nativeElement.width;
           image.height = this.canvasRef.nativeElement.height;
           this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
-          this.canvasContextRef.drawImage(this.devfestLogo.nativeElement, 10, 10);
         }
         image.src = preview;
       }
       else if ((preview as any) instanceof ImageData) {
         const scale = Math.max(this.canvasRef.nativeElement.width / preview.width, this.canvasRef.nativeElement.height / preview.height);
         this.canvasContextRef.putImageData(preview as any, 0, 0, 0, 0, preview.width * scale, preview.height * scale);
-        this.canvasContextRef.drawImage(this.devfestLogo.nativeElement, 10, 10);
       }
     });
 
@@ -310,6 +321,15 @@ export class CameraComponent implements OnInit {
     return this.store.dispatch(new StartMediaStream(this.deviceId));
   }
 
+  private computeFps() {
+    const now = performance.now();
+    while (this.fpsTimes.length > 0 && this.fpsTimes[0] <= now - 1000) {
+      this.fpsTimes.shift();
+    }
+    this.fpsTimes.push(now);
+    this.fpsRate = this.fpsTimes.length;
+    this.cd.markForCheck();
+  }
   private async loop(webGLFilter: WebGLFilter) {
     if (this.isCameraOn) {
       let shouldBlend = false;
@@ -357,12 +377,17 @@ export class CameraComponent implements OnInit {
         this.drawFaceMeshPath(scaledMesh);
       }
 
+      this.computeFps();
+
       window.requestAnimationFrame(async () => await this.loop(webGLFilter));
     }
   }
 
   private drawFaceMeshPath(scaledMesh) {
     const ctx = this.canvasMeshContextRef;
+    if (!ctx) {
+      return;
+    }
     ctx.clearRect(0, 0, this.width, this.height);
     for (let i = 0; i < scaledMesh.length; i++) {
       const x = scaledMesh[i][0];
