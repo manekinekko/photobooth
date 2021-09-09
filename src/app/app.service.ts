@@ -22,7 +22,7 @@ export class AppService {
     return this.isRunningInMSTeams() ? 0.6 : 0.8;
   }
 
-  async requestStyleTransferOperation(imageInput: ImageData, imageStyleIdOrData: string | ImageData, strength: number): Promise<ImageData> {
+  async requestStyleTransferOperation(imageInput: ImageData, imageStyleTensorOrData: number[] | ImageData, strength: number): Promise<ImageData> {
     // return new Promise<ImageData>(async (resolve, reject) => {
     //   const model = new ArbitraryStyleTransferNetwork();
     //   const styledImageData = await model.stylize(image as any, styleImg as any, strength);
@@ -41,7 +41,7 @@ export class AppService {
           console.error(error);
         };
         worker.postMessage({
-          imageInput, imageStyleIdOrData, strength
+          imageInput, imageStyleTensorOrData, strength
         });
       }
     });

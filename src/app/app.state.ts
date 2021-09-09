@@ -15,13 +15,13 @@ export class IframeMessage {
 }
 
 export class SelectStyleTranserImage {
-  static readonly type = "[styleTranfer] select transfer style image";
-  constructor(public imageStyleIdOrData: string | HTMLImageElement, public strength: number) { }
+  static readonly type = "[styleTranfer] select transfer style image source";
+  constructor(public imageStyleTensorOrSrc: string, public strength: number) { }
 }
 
 export class StyleTranser {
   static readonly type = "[styleTranfer] transfer style to image";
-  constructor(public imageInput: HTMLImageElement, public imageStyleIdOrData: string | HTMLImageElement, public strength: number) { }
+  constructor(public imageInput: HTMLImageElement, public imageStyleTensorValuesOrHTMLImage: number[] | HTMLImageElement, public strength: number) { }
 }
 
 export class StyleTranserProcessing {
@@ -39,7 +39,11 @@ export interface AppStateModel {
 }
 
 export interface ImageStyleStateModel {
-  imageStyleIdOrData: string | HTMLImageElement;
+  imageContent?: HTMLImageElement;
+  tensor?: {
+    values: number[];
+    id: string;
+  };
   strength: number;
 
 }
@@ -95,14 +99,37 @@ export class AppState {
 
   @Action(SelectStyleTranserImage)
   async selectStyleTranserImage({ dispatch, patchState }: StateContext<AppStateModel>, payload: SelectStyleTranserImage) {
-    const { imageStyleIdOrData, strength } = payload;
+    const { imageStyleTensorOrSrc, strength } = payload;
 
-    patchState({
-      styleTransfer: {
-        imageStyleIdOrData,
-        strength
-      }
-    });
+    let tensorOrImageContent: HTMLImageElement | number[];
+    if (imageStyleTensorOrSrc.endsWith(".json")) {
+      // load tensor
+      const res = await fetch(imageStyleTensorOrSrc);
+      const tensor = await res.json() as { values: number[], id: string };
+      tensorOrImageContent = tensor.values;
+
+      patchState({
+        styleTransfer: {
+          tensor,
+          strength
+        }
+      });
+    }
+    else {
+      // load image content
+      const imageContent = new Image();
+      imageContent.onload = () => {
+        tensorOrImageContent = imageContent;
+
+        patchState({
+          styleTransfer: {
+            imageContent,
+            strength
+          }
+        });
+      };
+      imageContent.src = imageStyleTensorOrSrc;
+    }
 
     const selectedPictureId = this.store.selectSnapshot(CameraRollState.selectedPictureId);
     this.cameraRollService.read(selectedPictureId).pipe(
@@ -112,7 +139,7 @@ export class AppState {
           dispatch(new StyleTranserProcessing(true));
           const imageData = new Image();
           imageData.onload = () => {
-            dispatch(new StyleTranser(imageData, imageStyleIdOrData, payload.strength));
+            dispatch(new StyleTranser(imageData, tensorOrImageContent, payload.strength));
           }
           imageData.src = pictureData;
         }
@@ -122,13 +149,13 @@ export class AppState {
 
   @Action(StyleTranser)
   async styleTranser({ dispatch }: StateContext<AppStateModel>, payload: StyleTranser) {
-    const { imageInput, imageStyleIdOrData, strength } = payload;
-    
-    let imageStyle: ImageData | string = imageStyleIdOrData as string;
-    if (imageStyleIdOrData instanceof HTMLImageElement) {
-      imageStyle = await this.blobService.resizeImage(imageStyleIdOrData);
+    const { imageInput, imageStyleTensorValuesOrHTMLImage, strength } = payload;
+
+    let imageStyle: ImageData | number[] = imageStyleTensorValuesOrHTMLImage as number[];
+    if (imageStyleTensorValuesOrHTMLImage instanceof HTMLImageElement) {
+      imageStyle = await this.blobService.resizeImage(imageStyleTensorValuesOrHTMLImage);
     }
-    
+
     const imageData = await this.blobService.resizeImage(imageInput, { maxWidth: 450 });
     const styledImageData = await this.appService.requestStyleTransferOperation(imageData, imageStyle, strength);
     this.cameraRollService.save(styledImageData, 'style-transfert-data').pipe(

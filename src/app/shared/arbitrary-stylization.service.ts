@@ -4,8 +4,7 @@ import { Injectable } from '@angular/core';
 import type {
   GraphModel,
   Tensor3D,
-  Tensor4D,
-  DataTypeMap
+  Tensor4D
 } from '@tensorflow/tfjs';
 import {
   browser,
@@ -19,7 +18,6 @@ import {
   tensor4d,
   tidy
 } from '@tensorflow/tfjs';
-import { PrecomputedStylization } from './arbitrary-stylization.constant';
 
 // tslint:disable:max-line-length
 const DEFAULT_STYLE_CHECKPOINT = '/assets/style-transfer/predictor';
@@ -56,9 +54,8 @@ export class ArbitraryStyleTransferNetwork {
   }
 
   async warmup() {
-    // Also warmup
     const input: Tensor3D = randomNormal([320, 240, 3]);
-    let res = this.stylize(input, '0');
+    let res = this.stylize(input, [0, 0, 0]);
     res = null;
     input.dispose()
   }
@@ -140,7 +137,7 @@ export class ArbitraryStyleTransferNetwork {
    * @param strength If provided, controls the stylization strength.
    * Should be between 0.0 and 1.0.
    */
-  stylize(content: ImageData | Tensor3D, style: string | ImageData, strength?: number): Promise<ImageData> {
+  stylize(content: ImageData | Tensor3D, style: number[] | ImageData, strength?: number): Promise<ImageData> {
     return new Promise(async (resolve, reject) => {
 
       engine().startScope();
@@ -160,11 +157,10 @@ export class ArbitraryStyleTransferNetwork {
         styleRepresentation.print(true);
         console.log(Array.from(await styleRepresentation.data()));
       }
-      else if (typeof style === 'string') {
-        console.log(`Loading precomputed style parameters for '${style}'...`);
-        
-        let precomputedStylizationValues = PrecomputedStylization.find(x => x.id === style).values;
-        styleRepresentation = tensor4d(precomputedStylizationValues, [1, 1, 1, 100], 'float32');
+      else if (Array.isArray(style)) {
+        console.log(`Using precomputed style parameters...`);
+
+        styleRepresentation = tensor4d(style, [1, 1, 1, 100], 'float32');
       }
 
       if (strength !== undefined) {
