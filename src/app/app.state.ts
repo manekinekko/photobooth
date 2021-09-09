@@ -4,6 +4,7 @@ import { map, switchMap, tap } from "rxjs/operators";
 import { AppService } from "./app.service";
 import { CameraRollService } from "./camera-roll/camera-roll.service";
 import { CameraRollState, PictureItem } from "./camera-roll/camera-roll.state";
+import { BlobService } from "./camera/blob.service";
 import { PreviewPictureData } from "./camera/camera.state";
 
 // actions
@@ -20,7 +21,7 @@ export class SelectStyleTranserImage {
 
 export class StyleTranser {
   static readonly type = "[styleTranfer] transfer style to image";
-  constructor(public imageData: HTMLImageElement, public imageStyle: HTMLImageElement, public strength: number) { }
+  constructor(public imageInput: HTMLImageElement, public imageStyle: HTMLImageElement, public strength: number) { }
 }
 
 export class StyleTranserProcessing {
@@ -62,6 +63,7 @@ export class AppState {
   constructor(
     private readonly appService: AppService,
     private readonly cameraRollService: CameraRollService,
+    private readonly blobService: BlobService,
     private readonly store: Store
   ) { }
 
@@ -120,8 +122,12 @@ export class AppState {
 
   @Action(StyleTranser)
   async styleTranser({ dispatch }: StateContext<AppStateModel>, payload: StyleTranser) {
-    const { imageData, imageStyle, strength } = payload;
-    const styledImageData = await this.appService.styleTransfer(imageData, imageStyle, strength);
+    const { imageInput, imageStyle, strength } = payload;
+
+    const imageData = await this.blobService.resizeImage(imageInput, { maxWidth: 450 });
+    const imageStyleImageData = await this.blobService.resizeImage(imageStyle);
+    const styledImageData = await this.appService.requestStyleTransferOperation(imageData, imageStyleImageData, strength);
+
     this.cameraRollService.save(styledImageData, 'style-transfert-data').pipe(
       switchMap(() => this.cameraRollService.read('style-transfert-data'))
     ).subscribe((entry: PictureItem) => {

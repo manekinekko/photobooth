@@ -14,7 +14,8 @@ import {
 import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { SelectStyleTranserImage } from "../app.state";
-import { CameraState } from "../camera/camera.state";
+import { CameraState, PreviewPictureData } from "../camera/camera.state";
+import { ArbitraryStyleTransferNetwork } from "../shared/arbitrary-stylization.service";
 import { WebGLFilter } from "../shared/webgl-filter.class";
 import { FiltersPreviewService } from "./filters-preview.service";
 import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.state";
@@ -31,9 +32,9 @@ import { CameraFilter, CameraFilterItem, SelectFilter } from "./filters-preview.
           role="listitem"
           [attr.tabindex]="currentFilterIndex + 2"
           class="filter-list-item"
-          (click)="applyStyleTransfer(imageStyle, styleImage.strength)"
+          (click)="loadStyleTransferImage(styleImage.src.large, styleImage.strength)"
           *ngFor="let styleImage of styleTransferImages; let currentFilterIndex = index">
-        <img #imageStyle src="{{ styleImage.src }}" alt="{{ styleImage.alt }}" height="50">
+        <img [attr.id]="styleImage.id" src="{{ styleImage.src.small }}" [attr.data-src-large]="styleImage.src.large" alt="{{ styleImage.alt }}">
       </li>
     </ul>
     
@@ -185,84 +186,164 @@ export class FiltersPreviewComponent implements OnInit {
   isCameraOn = false;
 
   availableFilters: CameraFilter[] = [];
-  styleTransferImages: Array<{ src: string, alt: string, strength: number }> = [{
-    src: "assets/style-transfer/images/style-01.jpg",
+  styleTransferImages: Array<{ id: string, src: { small: string, large: string }, alt: string, strength: number }> = [{
+    id: 'style-01',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-01.jpg",
+      large: "assets/style-transfer/images/256x256/style-01.jpg"
+    },
     alt: "Style 01",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-02.jpg",
+    id: 'style-02',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-02.jpg",
+      large: "assets/style-transfer/images/256x256/style-02.jpg"
+    },
     alt: "Style 02",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-03.jpg",
+    id: 'style-03',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-03.jpg",
+      large: "assets/style-transfer/images/256x256/style-03.jpg"
+    },
     alt: "Style 03",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-04.jpg",
+    id: 'style-04',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-04.jpg",
+      large: "assets/style-transfer/images/256x256/style-04.jpg"
+    },
     alt: "Style 04",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-05.jpg",
+    id: 'style-05',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-05.jpg",
+      large: "assets/style-transfer/images/256x256/style-05.jpg"
+    },
     alt: "Style 05",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-06.jpg",
+    id: 'style-06',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-06.jpg",
+      large: "assets/style-transfer/images/256x256/style-06.jpg"
+    },
     alt: "Style 06",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-07.jpg",
+    id: 'style-07',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-07.jpg",
+      large: "assets/style-transfer/images/256x256/style-07.jpg"
+    },
     alt: "Style 07",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-08.jpg",
+    id: 'style-08',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-08.jpg",
+      large: "assets/style-transfer/images/256x256/style-08.jpg"
+    },
     alt: "Style 08",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-09.jpg",
+    id: 'style-09',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-09.jpg",
+      large: "assets/style-transfer/images/256x256/style-09.jpg"
+    },
     alt: "Style 09",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-10.jpg",
+    id: 'style-10',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-10.jpg",
+      large: "assets/style-transfer/images/256x256/style-10.jpg"
+    },
     alt: "Style 10",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-11.jpg",
+    id: 'style-11',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-11.jpg",
+      large: "assets/style-transfer/images/256x256/style-11.jpg"
+    },
     alt: "Style 11",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-12.jpg",
+    id: 'style-12',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-12.jpg",
+      large: "assets/style-transfer/images/256x256/style-12.jpg"
+    },
     alt: "Style 12",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-13.jpg",
+    id: 'style-13',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-13.jpg",
+      large: "assets/style-transfer/images/256x256/style-13.jpg"
+    },
     alt: "Style 13",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-14.jpg",
+    id: 'style-14',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-14.jpg",
+      large: "assets/style-transfer/images/256x256/style-14.jpg"
+    },
     alt: "Style 14",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-15.jpg",
+    id: 'style-15',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-15.jpg",
+      large: "assets/style-transfer/images/256x256/style-15.jpg"
+    },
     alt: "Style 15",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-16.jpg",
+    id: 'style-16',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-16.jpg",
+      large: "assets/style-transfer/images/256x256/style-16.jpg"
+    },
     alt: "Style 16",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-17.jpg",
+    id: 'style-17',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-17.jpg",
+      large: "assets/style-transfer/images/256x256/style-17.jpg"
+    },
     alt: "Style 17",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-18.jpg",
+    id: 'style-18',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-18.jpg",
+      large: "assets/style-transfer/images/256x256/style-18.jpg"
+    },
     alt: "Style 18",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-19.jpg",
+    id: 'style-19',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-19.jpg",
+      large: "assets/style-transfer/images/256x256/style-19.jpg"
+    },
     alt: "Style 19",
-    strength: 0.25,
+    strength: 1,
   }, {
-    src: "assets/style-transfer/images/style-20.jpg",
+    id: 'style-20',
+    src: {
+      small: "assets/style-transfer/images/50x50/style-20.jpg",
+      large: "assets/style-transfer/images/256x256/style-20.jpg"
+    },
     alt: "Style 20",
     strength: 0.30,
   }];
@@ -363,7 +444,6 @@ export class FiltersPreviewComponent implements OnInit {
       },
       true
     );
-
   }
 
   onFilterClicked(filter: CameraFilter, updateUrlHash = false) {
@@ -455,8 +535,9 @@ export class FiltersPreviewComponent implements OnInit {
     image.src = "assets/filter-placeholder.jpg";
   }
 
-  applyStyleTransfer(imageStyle: HTMLImageElement, strength: number) {
-    // select the image style to apply
-    this.store.dispatch(new SelectStyleTranserImage(imageStyle, strength));
+  async loadStyleTransferImage(imageStyleSrc: string, strength: number) {
+    const image = new Image();
+    image.onload = () => this.store.dispatch(new SelectStyleTranserImage(image, strength));
+    image.src = imageStyleSrc
   }
 }

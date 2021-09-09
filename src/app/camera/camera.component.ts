@@ -206,14 +206,21 @@ export class CameraComponent implements OnInit {
     };
 
     // when a picture is selected for preview
-    this.preview$.subscribe((preview) => {
-      if (preview) {
+    this.preview$.subscribe((preview: string | ImageData) => {
+      if (typeof preview === 'string') {
         const image = new Image();
         image.onload = async () => {
+          image.width = this.canvasRef.nativeElement.width;
+          image.height = this.canvasRef.nativeElement.height;
           this.canvasContextRef.drawImage(image, 0, 0, this.width, this.height);
           this.canvasContextRef.drawImage(this.devfestLogo.nativeElement, 10, 10);
         }
         image.src = preview;
+      }
+      else if ((preview as any) instanceof ImageData) {
+        const scale = Math.max(this.canvasRef.nativeElement.width / preview.width, this.canvasRef.nativeElement.height / preview.height);
+        this.canvasContextRef.putImageData(preview as any, 0, 0, 0, 0, preview.width * scale, preview.height * scale);
+        this.canvasContextRef.drawImage(this.devfestLogo.nativeElement, 10, 10);
       }
     });
 

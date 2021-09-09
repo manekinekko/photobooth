@@ -40,7 +40,7 @@ export class BlobService {
     });
   }
 
-  resizeImage(img: HTMLImageElement, settings: { maxWidth?: number, maxHeight?: number } = { maxWidth: 600, maxHeight: 200 }): ImageData {
+  resizeImage(img: HTMLImageElement, settings: { maxWidth?: number, maxHeight?: number } = { maxWidth: 600, maxHeight: 200 }): Promise<ImageData> {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     const canvasCopy = document.createElement("canvas");
@@ -62,6 +62,8 @@ export class BlobService {
     canvas.height = img.height * ratio;
     ctx.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height);
 
-    return ctx.getImageData(0, 0, canvas.width, canvas.height);
+    return new Promise((resolve, reject) => {
+      resolve(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    });
   }
 }

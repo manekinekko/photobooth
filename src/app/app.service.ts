@@ -22,27 +22,29 @@ export class AppService {
     return this.isRunningInMSTeams() ? 0.6 : 0.8;
   }
 
-  async styleTransfer(image: HTMLImageElement, styleImg: HTMLImageElement, strength: number): Promise<ImageData> {
-    return this.ngZone.runOutsideAngular<any>(() => {
-      return new Promise<ImageData>(async (resolve, reject) => {
-        if (typeof Worker !== 'undefined') {
-          const worker = new Worker(new URL('./app.worker', import.meta.url));
-          worker.onmessage = ({ data }: { data: { styledImageData: ImageData } }) => {
-            this.ngZone.run(() => {
-              resolve(data.styledImageData);
-            });
-          };
-          worker.onerror = (error) => {
-            console.error(error);
-          };
+  async requestStyleTransferOperation(imageInput: ImageData, styleImage: ImageData, strength: number): Promise<ImageData> {
+    // return new Promise<ImageData>(async (resolve, reject) => {
+    //   image = await this.blobService.resizeImage(image, { maxWidth: 450 });
+    //   const model = new ArbitraryStyleTransferNetwork();
+    //   const styledImageData = await model.stylize(image as any, styleImg as any, strength);
+    //   resolve(styledImageData);
+    // });
 
-          const resizedImage = this.blobService.resizeImage(image, { maxWidth: 500 });
-          const resizedStyleImg = this.blobService.resizeImage(styleImg, { maxWidth: 500 });
-          worker.postMessage({
-            image: resizedImage, styleImg: resizedStyleImg, strength
+    return new Promise<ImageData>(async (resolve, reject) => {
+      if (typeof Worker !== 'undefined') {
+        const worker = new Worker(new URL('./app.worker', import.meta.url));
+        worker.onmessage = ({ data }: { data: { styledImageData: ImageData } }) => {
+          this.ngZone.run(() => {
+            resolve(data.styledImageData);
           });
-        }
-      });
+        };
+        worker.onerror = (error) => {
+          console.error(error);
+        };
+        worker.postMessage({
+          imageInput, styleImage, strength
+        });
+      }
     });
   }
 }

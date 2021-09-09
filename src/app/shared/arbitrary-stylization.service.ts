@@ -24,7 +24,7 @@ import type {
   GraphModel, Tensor3D, Tensor4D
 } from '@tensorflow/tfjs';
 import {
-  browser, getBackend, loadGraphModel, memory, scalar, setBackend, tidy, engine
+  browser, engine, getBackend, loadGraphModel, memory, scalar, setBackend, tidy
 } from '@tensorflow/tfjs';
 
 // tslint:disable:max-line-length
@@ -139,7 +139,7 @@ export class ArbitraryStyleTransferNetwork {
    */
   stylize(content: ImageData, style: ImageData, strength?: number): Promise<ImageData> {
     return new Promise(async (resolve, reject) => {
-      
+
       engine().startScope();
 
       console.log('Stylizing image...');
@@ -156,15 +156,15 @@ export class ArbitraryStyleTransferNetwork {
           .add(this.predictStyleParameters(content).mul(scalar(1.0 - strength)));
       }
       const stylized = this.produceStylized(content, styleRepresentation);
-      
+
       const bytes = await browser.toPixels(stylized);
       const imageData = new ImageData(bytes, stylized.shape[1], stylized.shape[0]);
       styleRepresentation.dispose();
       stylized.dispose();
-      
-      
+
+
       resolve(imageData);
-      
+
       engine().endScope();
       console.log('Stylized image done');
       console.table(memory());
