@@ -78,9 +78,9 @@ export class AppState {
 
   @Action(IframeMessage)
   initializeTimer({ patchState }: StateContext<AppStateModel>, payload: IframeMessage) {
-    patchState({
-      lastCapturedPicture: payload.data,
-    });
+    // patchState({
+    //   lastCapturedPicture: payload.data,
+    // });
 
     window.parent.postMessage(
       {

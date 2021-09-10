@@ -540,10 +540,12 @@ export class FiltersPreviewComponent implements OnInit {
         });
 
         // apply and render all filters
-        const filteredImage = await webGLFilter.render(image);
+        let filteredImage = await webGLFilter.render(image);
 
         // send rendered image data back <img /> element
         filter.data = filteredImage.toDataURL();
+
+        filteredImage = null; // free memory
       }
     };
 

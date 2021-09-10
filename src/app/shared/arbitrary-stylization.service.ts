@@ -19,14 +19,8 @@ import {
   tidy
 } from '@tensorflow/tfjs';
 
-// tslint:disable:max-line-length
 const DEFAULT_STYLE_CHECKPOINT = '/assets/style-transfer/predictor';
 const DEFAULT_TRANSFORM_CHECKPOINT = '/assets/style-transfer/transformer';
-// tslint:enable:max-line-length
-
-/**
- * Main ArbitraryStyleTransferNetwork class
- */
 
 @Injectable({
   providedIn: 'root'
@@ -42,10 +36,6 @@ export class ArbitraryStyleTransferNetwork {
 
   /**
    * `ArbitraryStyleTransferNetwork` constructor.
-   *
-   * @param styleCheckpointURL Path to style model checkpoint directory.
-   * @param transformCheckpointURL Path to transformation model checkpoint
-   * directory.
    */
   constructor() {
     this.styleCheckpointURL = DEFAULT_STYLE_CHECKPOINT;
@@ -60,16 +50,10 @@ export class ArbitraryStyleTransferNetwork {
     input.dispose()
   }
 
-  /**
-   * Returns true if model is initialized.
-   */
   isInitialized() {
     return this.initialized;
   }
 
-  /**
-   * Loads models from the checkpoints.
-   */
   async initialize() {
     this.dispose();
 
@@ -94,12 +78,6 @@ export class ArbitraryStyleTransferNetwork {
     this.initialized = false;
   }
 
-  /**
-   * This function returns style bottleneck features for
-   * the given image.
-   *
-   * @param style Style image to get 100D bottleneck features for
-   */
   private predictStyleParameters(style: ImageData | Tensor3D | number[]): Tensor4D {
     return tidy(() => {
       return this.styleNet.predict(
@@ -108,13 +86,6 @@ export class ArbitraryStyleTransferNetwork {
     }) as Tensor4D;
   }
 
-  /**
-   * This function stylizes the content image given the bottleneck
-   * features. It returns a tf.Tensor3D containing the stylized image.
-   *
-   * @param content Content image to stylize
-   * @param bottleneck Bottleneck features for the style to use
-   */
   private produceStylized(content: ImageData | Tensor3D, bottleneck: Tensor4D): Tensor3D {
     return tidy(() => {
       const image: Tensor4D = this.transformNet.predict([
@@ -125,19 +96,7 @@ export class ArbitraryStyleTransferNetwork {
     });
   }
 
-  /**
-   * This function stylizes the content image given the style image.
-   * It returns an ImageData instance containing the stylized image.
-   *
-   * TODO(vdumoulin): Add option to resize style and content images.
-   * TODO(adarob): Add option to use model with depthwise separable convs.
-   *
-   * @param content Content image to stylize
-   * @param style Style image to use
-   * @param strength If provided, controls the stylization strength.
-   * Should be between 0.0 and 1.0.
-   */
-  stylize(content: ImageData | Tensor3D, style: number[] | ImageData, strength?: number): Promise<ImageData> {
+  stylize(content: ImageData | Tensor3D, styleData: number[] | ImageData, strength?: number): Promise<ImageData> {
     return new Promise(async (resolve, reject) => {
 
       engine().startScope();
@@ -150,17 +109,17 @@ export class ArbitraryStyleTransferNetwork {
       }
 
       let styleRepresentation: Tensor4D;
-      if (style instanceof ImageData) {
+      if (styleData instanceof ImageData) {
         console.log(`Computing style parameters...`);
 
-        styleRepresentation = this.predictStyleParameters(style);
+        styleRepresentation = this.predictStyleParameters(styleData);
         styleRepresentation.print(true);
         console.log(Array.from(await styleRepresentation.data()));
       }
-      else if (Array.isArray(style)) {
+      else if (Array.isArray(styleData)) {
         console.log(`Using precomputed style parameters...`);
 
-        styleRepresentation = tensor4d(style, [1, 1, 1, 100], 'float32');
+        styleRepresentation = tensor4d(styleData, [1, 1, 1, 100], 'float32');
       }
 
       if (strength !== undefined) {
@@ -168,16 +127,21 @@ export class ArbitraryStyleTransferNetwork {
           .mul(scalar(strength))
           .add(this.predictStyleParameters(content).mul(scalar(1.0 - strength)));
       }
-      const stylized = this.produceStylized(content, styleRepresentation);
+      const stylizedImage = this.produceStylized(content, styleRepresentation);
 
-      const bytes = await browser.toPixels(stylized);
-      const imageData = new ImageData(bytes, stylized.shape[1], stylized.shape[0]);
-      styleRepresentation.dispose();
-      stylized.dispose();
-
+      let bytes = await browser.toPixels(stylizedImage);
+      const imageData = new ImageData(bytes, stylizedImage.shape[1], stylizedImage.shape[0]);
+      
       resolve(imageData);
+      
+      // free memory
+      styleRepresentation.dispose();
+      stylizedImage.dispose();
+      bytes = null; 
+      styleData = null;
 
       engine().endScope();
+      
       console.log('Stylized image done');
       console.table(memory());
     });

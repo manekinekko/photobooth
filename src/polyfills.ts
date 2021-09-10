@@ -63,6 +63,7 @@ import "./zone-flags";
  * APPLICATION IMPORTS
  */
 
+import * as tf from '@tensorflow/tfjs';
 console.log("Browser required features:");
 console.table({
   WebGLRenderingContext: "WebGLRenderingContext" in window,
@@ -70,6 +71,7 @@ console.table({
   OffscreenCanvas: "OffscreenCanvas" in window,
   WebAssembly: "WebAssembly" in window,
   Worker: "Worker" in window,
+  Tensorflow: tf.version
 });
 
 

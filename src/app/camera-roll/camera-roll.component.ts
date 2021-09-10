@@ -1,7 +1,7 @@
 import { Component, Output } from "@angular/core";
 import { Actions, ofActionSuccessful, Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
-import { CameraState, StartMediaStream } from "../camera/camera.state";
+import { CameraState, PreviewPictureData, StartMediaStream } from "../camera/camera.state";
 import { CameraFilter, FilterState } from "../filters-preview/filters-preview.state";
 import {
   CameraRollState,
@@ -200,7 +200,12 @@ export class CameraRollComponent {
   deletePicture() {
     this.isChromaKeyBackgroundApplied = false;
     this.currentChromaKeyPictureId = null;
-    this.store.dispatch([new SelectPicture(null, true), new DeletePicture(), new UnselectPicture()]);
+    this.store.dispatch([
+      new SelectPicture(null, true), 
+      new DeletePicture(), 
+      new UnselectPicture(), 
+      new PreviewPictureData(null)
+    ]);
   }
 
   toggleSelectForChromaKeyFilter(currentPictureId: string) {

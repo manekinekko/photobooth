@@ -101,7 +101,10 @@ export class TimerState {
   tickTimer() {}
 
   @Action(ResetTimer)
-  resetTimer({ getState, dispatch }: StateContext<TimerStateModel>) {
+  resetTimer({ getState, dispatch, patchState }: StateContext<TimerStateModel>) {
+    patchState({
+      steps: null
+    });
     dispatch(new InitializeTimer(getState().value));
   }
 }
