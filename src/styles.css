@@ -147,7 +147,8 @@ app-boot.disabled {
     border-color: beige;
   }
   .printed-logo {
-    display: block !important;
+    /*display: block !important;*/
+    display: none;
     position: fixed;
     bottom: 0;
     height: 160px;
