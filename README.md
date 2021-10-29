@@ -5,6 +5,7 @@
 <p align="center">
   <a href="https://photobooth.staticweb.app">
     <img width="460" src="https://user-images.githubusercontent.com/1699357/106653194-c46e6100-6596-11eb-9f0c-785bb021b782.png" />
+    <img width="460" alt="Photo Booth - by Wassim Chegham" src="https://user-images.githubusercontent.com/1699357/139429832-c52984a9-ad9c-4c03-bc39-a1520bc6f891.png">
   </a>
 </p>
 
