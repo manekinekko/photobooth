@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">Online Photo Booth app with 25+ built-in filters (powered by AI) 📸</h1>
+  <h1 align="center">Online Photo Booth app with 25+ built-in filters 📸<br>(Powered by WebGL and Machine Learning)</h1>
 </p>
 
 <p align="center">
